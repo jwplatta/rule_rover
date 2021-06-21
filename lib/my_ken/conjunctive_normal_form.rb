@@ -3,82 +3,170 @@ module MyKen
     class Converter
       class << self
         def run(statement)
-          if statement.atomic? or \
-            (statement.operator == "not" and statement.statement_x.atomic?) or \
-            (["or", "and"].include? statement.operator and statement.statement_x.atomic? and statement.statement_y.atomic?)
-            return statement
+          stmt = eliminate_biconditionals(statement).then do |stmt|
+            eliminate_conditionals(stmt)
+          end.then do |stmt|
+            move_negation_to_literals(stmt)
+          end.then do |stmt|
+            eliminate_double_negation(stmt)
+          end.then do |stmt|
+            distribute_twice(stmt)
           end
 
-          new_statement = MyKen::Statements::ComplexStatement.new
+          stmt
+        end
 
-          # STEP: eliminate all the conditionals and biconditionals
-          statement_x = run(statement.statement_x)
-          statement_y = run(statement.statement_y) unless statement.operator == "not"
+        def eliminate_biconditionals(statement)
+          return statement if statement.atomic?
+
+          statement_x = if statement.statement_x.atomic?
+            statement.statement_x
+          else
+            eliminate_biconditionals(statement.statement_x)
+          end
+
+          statement_y = if statement.operator == "not" or statement.statement_y.atomic?
+            statement.statement_y
+          else
+            eliminate_biconditionals(statement.statement_y)
+          end
+
+          if statement.operator == "≡"
+            MyKen::Statements::ComplexStatement.new(
+              MyKen::Statements::ComplexStatement.new(statement_x, statement_y, "⊃"),
+              MyKen::Statements::ComplexStatement.new(statement_y, statement_x, "⊃"),
+              "and"
+            )
+          else
+            MyKen::Statements::ComplexStatement.new(
+              statement_x,
+              statement_y,
+              statement.operator
+            )
+          end
+        end
+
+        def eliminate_conditionals(statement)
+          return statement if statement.atomic?
+
+          statement_x = if statement.statement_x.atomic?
+            statement.statement_x
+          else
+            eliminate_conditionals(statement.statement_x)
+          end
+
+          statement_y = if statement.operator == "not" or statement.statement_y.atomic?
+            statement.statement_y
+          else
+            eliminate_conditionals(statement.statement_y)
+          end
 
           if statement.operator == "⊃"
-            new_statement.operator = "or"
-            new_statement.statement_x = run(MyKen::Statements::ComplexStatement.new(statement_x, nil, "not"))
-            new_statement.statement_y = statement_y
-          elsif statement.operator == "≡"
-            new_statement.operator = "and"
-            new_statement.statement_x = run(MyKen::Statements::ComplexStatement.new(statement_x, statement_y, "⊃"))
-            new_statement.statement_y = run(MyKen::Statements::ComplexStatement.new(statement_y, statement_x, "⊃"))
-          elsif statement.operator == "not"
-            # STEP 2: remove negatives of ComplexStatements
-
-            if statement_x.operator == "not"
-              # NOTE: oi va voi! This line sets the
-              # current statement equal to the nested non-negated
-              # statement thereby removing the double negation.
-              new_statement = statement_x.statement_x
-            elsif statement_x.operator == "or"
-              new_statement.operator = "and"
-              new_statement.statement_x = run(MyKen::Statements::ComplexStatement.new(statement_x.statement_x, nil, "not"))
-              new_statement.statement_y = run(MyKen::Statements::ComplexStatement.new(statement_x.statement_y, nil, "not"))
-            elsif statement_x.operator == "and"
-              new_statement.operator = "or"
-              new_statement.statement_x = run(MyKen::Statements::ComplexStatement.new(statement_x.statement_x, nil, "not"))
-              new_statement.statement_y = run(MyKen::Statements::ComplexStatement.new(statement_x.statement_y, nil, "not"))
-            end
+            MyKen::Statements::ComplexStatement.new(
+              MyKen::Statements::ComplexStatement.new(statement_x, nil, "not"),
+              statement_y,
+              "or"
+            )
           else
-            new_statement.operator = statement.operator
-            new_statement.statement_x = statement_x
-            new_statement.statement_y = statement_y
+            MyKen::Statements::ComplexStatement.new(
+              statement_x,
+              statement_y,
+              statement.operator
+            )
+          end
+        end
+
+        def move_negation_to_literals(statement)
+          # NOTE: apply DeMorgan's Rule
+          return statement if statement.nil? or statement.atomic?
+
+          new_statement = if statement.operator == "not" and statement.statement_x.operator == "or"
+            MyKen::Statements::ComplexStatement.new(
+              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_x, nil, "not"),
+              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_y, nil, "not"),
+              "and"
+            )
+          elsif statement.operator == "not" and statement.statement_x.operator == "and"
+            MyKen::Statements::ComplexStatement.new(
+              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_x, nil, "not"),
+              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_y, nil, "not"),
+              "or"
+            )
+          else
+            statement
           end
 
-          # STEP: apply the Distributivity Law
-          # REVIEW: oi va voi again! This can consolidated into a single method.
-          if !new_statement.atomic? and new_statement.statement_x.atomic? and !new_statement.statement_y&.atomic?
-            if new_statement.statement_y.operator == "or" and new_statement.operator == "and"
-              distributed_statement = MyKen::Statements::ComplexStatement.new
-              distributed_statement.operator = "or"
-              distributed_statement.statement_x = MyKen::Statements::ComplexStatement.new(new_statement.statement_y.statement_x, new_statement.statement_x, "and")
-              distributed_statement.statement_y = MyKen::Statements::ComplexStatement.new(new_statement.statement_y.statement_y, new_statement.statement_x, "and")
-              new_statement = distributed_statement
-            elsif new_statement.statement_y.operator == "and" and new_statement.operator == "or"
-              distributed_statement = MyKen::Statements::ComplexStatement.new
-              distributed_statement.operator = "and"
-              distributed_statement.statement_x = MyKen::Statements::ComplexStatement.new(new_statement.statement_y.statement_x, new_statement.statement_x, "or")
-              distributed_statement.statement_y = MyKen::Statements::ComplexStatement.new(new_statement.statement_y.statement_x, new_statement.statement_x, "or")
-              new_statement = distributed_statement
-            end
-          elsif !new_statement.atomic? and new_statement.statement_y&.atomic? and !new_statement.statement_x.atomic?
-            if new_statement.statement_x.operator == "or" and new_statement.operator == "and"
-              distributed_statement = MyKen::Statements::ComplexStatement.new
-              distributed_statement.operator = "or"
-              distributed_statement.statement_x = MyKen::Statements::ComplexStatement.new(new_statement.statement_x.statement_x, new_statement.statement_y, "and")
-              distributed_statement.statement_y = MyKen::Statements::ComplexStatement.new(new_statement.statement_x.statement_y, new_statement.statement_y, "and")
-              new_statement = distributed_statement
-            elsif new_statement.statement_x.operator == "and" and new_statement.operator == "or"
-              distributed_statement = MyKen::Statements::ComplexStatement.new
-              distributed_statement.operator = "and"
-              distributed_statement.statement_x = MyKen::Statements::ComplexStatement.new(new_statement.statement_x.statement_x, new_statement.statement_y, "or")
-              distributed_statement.statement_y = MyKen::Statements::ComplexStatement.new(new_statement.statement_x.statement_y, new_statement.statement_y, "or")
-              new_statement = distributed_statement
-            end
+          MyKen::Statements::ComplexStatement.new(
+            move_negation_to_literals(new_statement.statement_x),
+            move_negation_to_literals(new_statement.statement_y),
+            new_statement.operator
+          )
+
+        end
+
+        def eliminate_double_negation(statement)
+          return statement if statement.nil? or statement.atomic?
+
+          # NOTE: oi va voi! This line sets the
+          # current statement equal to the nested non-negated
+          # statement thereby removing the double negation.
+          if statement.operator == "not" and statement.statement_x.operator == "not" and statement.statement_x.statement_x.atomic?
+            statement.statement_x.statement_x
+          else
+            MyKen::Statements::ComplexStatement.new(
+              eliminate_double_negation(statement.statement_x),
+              eliminate_double_negation(statement.statement_y),
+              statement.operator
+            )
+          end
+        end
+
+        def distribute_twice(statement)
+          # NOTE: hack, please fix. Changes to the statement after the first
+          # distribution might make successive distributions necessary.
+          # The algorithm needs to keep distributing until the ORs have
+          # been completely distributed over the ANDs
+          distribute(statement).then do |stmt|
+            distribute(stmt)
+          end
+        end
+
+        def distribute(statement)
+          return statement if statement.nil? or statement.atomic?
+
+          distributed_statement = if statement.operator == "or" and statement.statement_x.operator == "and"
+            MyKen::Statements::ComplexStatement.new(
+              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_x, statement.statement_y, "or"),
+              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_y, statement.statement_y, "or"),
+              "and"
+            )
+          elsif statement.operator == "or" and statement.statement_y.operator == "and"
+            MyKen::Statements::ComplexStatement.new(
+              MyKen::Statements::ComplexStatement.new(statement.statement_x, statement.statement_y.statement_x, "or"),
+              MyKen::Statements::ComplexStatement.new(statement.statement_x, statement.statement_y.statement_y, "or"),
+              "and"
+            )
+          else
+            statement
           end
 
-          new_statement
+          statement_x = if distributed_statement.statement_x.atomic?
+            distributed_statement.statement_x
+          else
+            distribute(distributed_statement.statement_x)
+          end
+
+          statement_y = if distributed_statement.statement_y.nil? or distributed_statement.statement_y.atomic?
+            distributed_statement.statement_y
+          else
+            distribute(distributed_statement.statement_y)
+          end
+
+          MyKen::Statements::ComplexStatement.new(
+            statement_x,
+            statement_y,
+            distributed_statement.operator
+          )
         end
       end
     end
