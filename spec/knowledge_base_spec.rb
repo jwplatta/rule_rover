@@ -1,63 +1,54 @@
 require 'spec_helper'
 
 describe MyKen::KnowledgeBase do
+  let(:statements) do
+    [
+      as1 = MyKen::Statements::AtomicStatement.new(true, :as1),
+      as2 = MyKen::Statements::AtomicStatement.new(false, :as2),
+      as3 = MyKen::Statements::AtomicStatement.new(false, :as3),
+      cs1 = MyKen::Statements::ComplexStatement.new(as1, as2, 'and'),
+      cs2 = MyKen::Statements::ComplexStatement.new(as1, as3, 'or'),
+      cs3 = MyKen::Statements::ComplexStatement.new(cs1, cs2, 'or')
+    ]
+  end
+  let(:kb) do
+    described_class.new do |kb|
+      statements.each { |s| kb.add_fact(s) }
+    end
+  end
   describe '#initialize' do
     it do
-      statements = lambda do |a, b|
-        complex_statements = [(a or b), not(a and b)]
-        ([a, b] + complex_statements).reduce(:'|')
-      end
-
-      kb = MyKen::KnowledgeBase.new(statements: statements)
-      expect(kb.statements).to be_instance_of(Proc)
+      expect(kb.statements.count).to eq statements.count
+      expect(kb.atomic_statements.count).to eq 3
     end
   end
 
+  describe '#to_s' do
+    it do
+      expect(kb.to_s).to eq "as1: true\nas2: false\nas3: false\n(as1 and as2)\n(as1 or as3)\n((as1 and as2) or (as1 or as3))"
+    end
+  end
 
-  describe '#is_true?' do
-    context 'when false for a given model' do
-      it '' do
-        statements = lambda do |a, b|
-          complex_statements = [(a or b)]
-          ([a, b] + complex_statements).reduce(:'|')
-        end
+  describe '#update_model' do
+    it 'changes values of atomic statements' do
+      new_model = [false, true, true]
+      kb.update_model(*new_model)
 
-        kb = MyKen::KnowledgeBase.new(statements: statements)
-        model = [false, false]
+      expect(kb.atomic_statements.map(&:value)).to eq new_model
+    end
+  end
 
-        expect(kb.true?(model)).to eq false
-      end
-
-      context 'when lots of complex statements' do
-        it 'is true' do
-          statements = lambda do |a, b, c|
-            complex_statements = [
-              (a or b),
-              ((c.⊃ b) and not(b.⊃ c))
-            ]
-            ([a, b, c] + complex_statements).reduce(:'|')
-          end
-
-          kb = MyKen::KnowledgeBase.new(statements: statements)
-          model = [false, false, false]
-
-          expect(kb.true?(model)).to eq false
-        end
-      end
+  describe '#value' do
+    it 'returns true' do
+      new_model = [false, false, false]
+      kb.update_model(*new_model)
+      expect(kb.value).to be false
     end
 
-    context 'when false for a given model' do
-      it 'is true' do
-        statements = lambda do |a, b|
-          complex_statements = [(a or b)]
-          ([a, b] + complex_statements).reduce(:'|')
-        end
-
-        kb = MyKen::KnowledgeBase.new(statements: statements)
-        model = [true, false]
-
-        expect(kb.true?(model)).to eq true
-      end
+    it 'returns false' do
+      new_model = [true, true, true]
+      kb.update_model(*new_model)
+      expect(kb.value).to be true
     end
   end
 end
