@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   # spec.add_dependency "example-gem", "~> 1.0"
   spec.add_dependency 'ruby-graphviz'
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'pry'
 
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html
