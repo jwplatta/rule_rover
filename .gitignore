@@ -6,3 +6,5 @@
 /pkg/
 /spec/reports/
 /tmp/
+scratch.rb
+my_ken-*.gem
