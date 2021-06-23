@@ -21,13 +21,22 @@ module MyKen
     def parse(statement_list)
       # remove outer parentheses if any
       statement_list = remove_parentheses(statement_list)
-
       # return if Atomic
       return MyKen::Statements::AtomicStatement.new(true, statement_list[0]) if statement_list.size == 1
 
       # handle negations
       if statement_list[0] == "not"
-        MyKen::Statements::ComplexStatement.new(parse(statement_list[1..]), nil, statement_list[0])
+        # does it negate an next_statement_atomic?
+        if next_statement_atomic?(statement_list[1..]) and statement_list.size > 4
+          # ["not", "(", "pancakes", ")", "and", "flour"]
+          atomic = MyKen::Statements::AtomicStatement.new(true, statement_list[2])
+          negated_atomic = MyKen::Statements::ComplexStatement.new(atomic, nil, statement_list[0])
+          rest_of_statement = parse(statement_list[5..])
+
+          MyKen::Statements::ComplexStatement.new(negated_atomic, rest_of_statement, statement_list[4])
+        else
+          MyKen::Statements::ComplexStatement.new(parse(statement_list[1..]), nil, statement_list[0])
+        end
       else
         # find the outer operator
         # divide the list in statement_x, statement_y and the operator
@@ -39,6 +48,11 @@ module MyKen
 
         MyKen::Statements::ComplexStatement.new(parse(statement_x_list), parse(statement_y_list), statement_list[operator_idx])
       end
+    end
+
+    def next_statement_atomic?(statement_list)
+      # NOTE: statement_list = ["(", "atomic", ")"]
+      statement_list[2] == ")"
     end
 
     def validate_statement(statement_text)

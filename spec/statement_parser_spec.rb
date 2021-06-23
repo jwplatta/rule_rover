@@ -180,6 +180,17 @@ describe MyKen::StatementParser do
 
         expect(parser.run).to eq expected_statement
       end
+      it do
+        parser = described_class.new("not(flour) ⊃ (oatmeal and guargum)")
+
+        flour = MyKen::Statements::AtomicStatement.new(true, "flour")
+        not_flour = MyKen::Statements::ComplexStatement.new(flour, nil, "not")
+        oatmeal = MyKen::Statements::AtomicStatement.new(true, "oatmeal")
+        guargum = MyKen::Statements::AtomicStatement.new(true, "guargum")
+        oatmeal_and_guargum = MyKen::Statements::ComplexStatement.new(oatmeal, guargum, "and")
+        expected_statement = MyKen::Statements::ComplexStatement.new(not_flour, oatmeal_and_guargum, "⊃")
+        expect(parser.run).to eq expected_statement
+      end
     end
   end
 end
