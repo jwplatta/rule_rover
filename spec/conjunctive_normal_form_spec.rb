@@ -326,7 +326,6 @@ describe MyKen::ConjunctiveNormalForm::Converter do
           not_as2_or_as2_and_not_as2_or_not_as1 = MyKen::Statements::ComplexStatement.new(not_as2_or_as2, not_as2_or_not_as1, "and")
 
           expected_statement = MyKen::Statements::ComplexStatement.new(as1_or_as2_and_as1_or_not_as1, not_as2_or_as2_and_not_as2_or_not_as1, "and")
-          # binding.pry
           expect(described_class.run(not_biconditional)).to eq(expected_statement)
         end
       end
