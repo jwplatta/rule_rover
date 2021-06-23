@@ -12,23 +12,29 @@ module MyKen
       # NOTE: has complimentary literals?
       clauses = parse_clauses(to_conjunctive_normal_form)
 
+
       while clauses.any?
         pairs_of_clauses = clauses.combination(2).to_a
         # for each pair of clauses in clauses do
         # resolvents = resolve(clause_one, clause_two)
 
+        start = Time.now
         resolvents = pairs_of_clauses.map do |clause_one, clause_two|
           resolve_clauses(clause_one, clause_two).then do |clauses|
             join_clauses(clauses.uniq)
           end
         end
+        puts "number of clauses: #{clauses.count} / pairs of clauses: #{pairs_of_clauses.count} / number of resolvents: #{resolvents.count}"
+        puts "resolvents time: #{Time.now - start}"
 
         # NOTE: if resolvents contains the Empty Clause, then true
         return true if resolvents.include? []
 
+        start = Time.now
         new_clauses = resolvents.flatten.select do |resolvent|
           !clauses.include? resolvent
         end.uniq
+        puts "new clauses time: #{Time.now - start}"
 
         # NOTE: if not new clauses,, then false
         return false if new_clauses.empty?

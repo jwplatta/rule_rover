@@ -1,12 +1,12 @@
 require 'spec_helper'
 
 describe MyKen::Resolver do
-  let(:b) { MyKen::Statements::AtomicStatement.new(true, :b) }
+  let(:b) { MyKen::Statements::AtomicStatement.new(true, "b") }
   let(:not_b) { MyKen::Statements::ComplexStatement.new(b, nil, "not") }
-  let(:p1) { MyKen::Statements::AtomicStatement.new(true, :p1) }
-  let(:p2) { MyKen::Statements::AtomicStatement.new(true, :p2) }
+  let(:p1) { MyKen::Statements::AtomicStatement.new(true, "p1") }
+  let(:p2) { MyKen::Statements::AtomicStatement.new(true, "p2") }
   let(:not_p2) { MyKen::Statements::ComplexStatement.new(p2, nil, "not") }
-  let(:p3) { MyKen::Statements::AtomicStatement.new(true, :p3) }
+  let(:p3) { MyKen::Statements::AtomicStatement.new(true, "p3") }
   let(:not_p3) { MyKen::Statements::ComplexStatement.new(p3, nil, "not") }
   let(:p1_or_p2) { MyKen::Statements::ComplexStatement.new(p1, p2, "or") }
   let(:p1_or_p2_or_p3) { MyKen::Statements::ComplexStatement.new(p1_or_p2, p3, "or") }
@@ -75,22 +75,82 @@ describe MyKen::Resolver do
         expect(resolver.resolve).to be false
       end
     end
-    context 'complex knowledge base' do
-      let(:complex_kb) do
-        MyKen::KnowledgeBase.new do |kb|
-          kb.add_fact(MyKen::Statements::ComplexStatement.new(p1, p2, '⊃'))
-          kb.add_fact(MyKen::Statements::ComplexStatement.new(p2, p3, '⊃'))
-          kb.add_fact(p1)
+    context 'complex knowledge bases' do
+      context 'complex kb with conditionals' do
+        let(:complex_kb) do
+          MyKen::KnowledgeBase.new do |kb|
+            kb.add_fact(MyKen::Statements::ComplexStatement.new(p1, p2, '⊃'))
+            kb.add_fact(MyKen::Statements::ComplexStatement.new(p2, p3, '⊃'))
+            kb.add_fact(p1)
+          end
+        end
+        it 'resolves to true' do
+          resolver = described_class.new(knowledge_base: complex_kb, statement: p3)
+          expect(resolver.resolve).to be true
+        end
+        it 'resolves to false' do
+          not_p1 = MyKen::Statements::ComplexStatement.new(p1, nil, 'not')
+          resolver = described_class.new(knowledge_base: complex_kb, statement: not_p1)
+          expect(resolver.resolve).to be false
         end
       end
-      it 'resolves to true' do
-        resolver = described_class.new(knowledge_base: complex_kb, statement: p3)
-        expect(resolver.resolve).to be true
+      context 'complex knowledge base with disjunction' do
+        let(:p4) { MyKen::Statements::AtomicStatement.new(true, "p4") }
+
+        let(:complex_kb) do
+          MyKen::KnowledgeBase.new do |kb|
+            p3_and_p4 = MyKen::Statements::ComplexStatement.new(p3, p4, 'and')
+            p1_and_p2 = MyKen::Statements::ComplexStatement.new(p1, p2, 'and')
+            p1_and_p2_or_p3_and_p4 = MyKen::Statements::ComplexStatement.new(p1_and_p2, p3_and_p4, 'or')
+            not_p1_and_p2 = MyKen::Statements::ComplexStatement.new(p1_and_p2, nil, 'not')
+
+            kb.add_fact(p1_and_p2_or_p3_and_p4)
+            kb.add_fact(not_p1_and_p2)
+          end
+        end
+        it 'resolves' do
+          resolver = described_class.new(knowledge_base: complex_kb, statement: p4)
+          expect(resolver.resolve).to be false
+        end
       end
-      it 'resolves to false' do
-        not_p1 = MyKen::Statements::ComplexStatement.new(p1, nil, 'not')
-        resolver = described_class.new(knowledge_base: complex_kb, statement: not_p1)
-        expect(resolver.resolve).to be false
+      context 'knowledge base is slow' do
+        let(:p4) { MyKen::Statements::AtomicStatement.new(true, "p4") }
+        let(:p3_or_p4) { MyKen::Statements::ComplexStatement.new(p3, p4, "or") }
+
+        let(:complex_kb) do
+          # (a ⊃ b) or (e or f)
+          # e or f
+          MyKen::KnowledgeBase.new do |kb|
+            p1_then_p2 = MyKen::Statements::ComplexStatement.new(p1, p2, "⊃")
+
+            p1_then_p2_or_p3_or_p4 = MyKen::Statements::ComplexStatement.new(p1_then_p2, p3_or_p4, "or")
+            kb.add_fact(p1)
+            kb.add_fact(p1_then_p2)
+            kb.add_fact(p1_then_p2_or_p3_or_p4)
+          end
+        end
+        it 'resolves' do
+          resolver = described_class.new(knowledge_base: complex_kb, statement: p3_or_p4)
+          expect(resolver.resolve).to be false
+        end
+      end
+    end
+    context 'when words used as sentential constants' do
+      let(:pancakes) { parse_string_to_statement("Pancakes") }
+      let(:oatmeal) { parse_string_to_statement("Oatmeal") }
+      let(:blueberries) { parse_string_to_statement("Blueberries") }
+      let(:flour) { parse_string_to_statement("Flour") }
+      let(:flour_and_blueberries) { parse_string_to_statement("Flour and Blueberries") }
+      let(:flour_and_blueberries_then_pancakes) { parse_string_to_statement("(Flour and Blueberries) ⊃ Pancakes") }
+      let(:kb) do
+        MyKen::KnowledgeBase.new do |kb|
+          kb.add_fact(flour_and_blueberries_then_pancakes)
+          kb.add_fact(flour_and_blueberries)
+        end
+      end
+      fit 'resolves' do
+        resolver = described_class.new(knowledge_base: kb, statement: pancakes)
+        expect(resolver.resolve).to be true
       end
     end
   end
@@ -175,4 +235,8 @@ describe MyKen::Resolver do
       cnf_statement = resolver.to_conjunctive_normal_form
     end
   end
+end
+
+def parse_string_to_statement(statement_text)
+  MyKen::StatementParser.parse(statement_text)
 end
