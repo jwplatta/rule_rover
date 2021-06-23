@@ -3,43 +3,35 @@ module MyKen
     def initialize(knowledge_base:, statement:)
       @knowledge_base = knowledge_base
       @statement = statement
+      @explored_statements = []
       @not_statement = MyKen::Statements::ComplexStatement.new(statement, nil, "not")
     end
 
     attr_reader :knowledge_base, :statement, :not_statement
 
     def resolve
+      return false unless statement_in_kb?
       # NOTE: has complimentary literals?
-      clauses = parse_clauses(to_conjunctive_normal_form)
+      @explored_statements += parse_clauses(to_conjunctive_normal_form)
 
-
-      while clauses.any?
-        pairs_of_clauses = clauses.combination(2).to_a
-        # for each pair of clauses in clauses do
-        # resolvents = resolve(clause_one, clause_two)
-
-        start = Time.now
-        resolvents = pairs_of_clauses.map do |clause_one, clause_two|
+      while @explored_statements.any?
+        pairs_of_clauses = @explored_statements.combination(2).to_a
+        new_clause_cnt = 0
+        pairs_of_clauses.each do |clause_one, clause_two|
           resolve_clauses(clause_one, clause_two).then do |clauses|
-            join_clauses(clauses.uniq)
+            return true if clauses == []
+
+            new_clause = join_clauses(clauses.uniq)
+
+            unless @explored_statements.include? new_clause
+              new_clause_cnt += 1
+              @explored_statements << new_clause
+            end
           end
         end
-        puts "number of clauses: #{clauses.count} / pairs of clauses: #{pairs_of_clauses.count} / number of resolvents: #{resolvents.count}"
-        puts "resolvents time: #{Time.now - start}"
 
-        # NOTE: if resolvents contains the Empty Clause, then true
-        return true if resolvents.include? []
-
-        start = Time.now
-        new_clauses = resolvents.flatten.select do |resolvent|
-          !clauses.include? resolvent
-        end.uniq
-        puts "new clauses time: #{Time.now - start}"
-
-        # NOTE: if not new clauses,, then false
-        return false if new_clauses.empty?
-
-        clauses += new_clauses
+        # NOTE: if not new clauses, then false
+        return false if new_clause_cnt == 0
       end
     end
 
@@ -145,6 +137,27 @@ module MyKen
           cnf_converter.run(kb_statement)
         end
       end
+    end
+
+    def statement_in_kb?
+      frontier = knowledge_base.statements.map(&:clone)
+
+      while frontier.any?
+        kb_stmt = frontier.pop
+
+        return true if kb_stmt == statement or MyKen::Statements::ComplexStatement.new(kb_stmt, nil, "not") == statement
+
+        unless kb_stmt.atomic?
+          if kb_stmt.operator == "not"
+            frontier.append(kb_stmt.statement_x)
+          else
+            frontier.append(kb_stmt.statement_x)
+            frontier.append(kb_stmt.statement_y)
+          end
+        end
+      end
+
+      false
     end
 
     private

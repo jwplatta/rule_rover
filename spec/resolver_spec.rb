@@ -98,6 +98,11 @@ describe MyKen::Resolver do
         let(:p4) { MyKen::Statements::AtomicStatement.new(true, "p4") }
 
         let(:complex_kb) do
+          # NOTE: proof
+          #   (p3 and p4) or (p1 and p2)
+          #   not(p1 and p2)
+          #   p3 and p4
+          #   p4
           MyKen::KnowledgeBase.new do |kb|
             p3_and_p4 = MyKen::Statements::ComplexStatement.new(p3, p4, 'and')
             p1_and_p2 = MyKen::Statements::ComplexStatement.new(p1, p2, 'and')
@@ -110,28 +115,48 @@ describe MyKen::Resolver do
         end
         it 'resolves' do
           resolver = described_class.new(knowledge_base: complex_kb, statement: p4)
-          expect(resolver.resolve).to be false
+          expect(resolver.resolve).to be true
         end
       end
-      context 'knowledge base is slow' do
-        let(:p4) { MyKen::Statements::AtomicStatement.new(true, "p4") }
-        let(:p3_or_p4) { MyKen::Statements::ComplexStatement.new(p3, p4, "or") }
-
-        let(:complex_kb) do
-          # (a ⊃ b) or (e or f)
-          # e or f
+      context 'slow query' do
+        let(:pancakes) { parse_string_to_statement("pancakes") }
+        let(:blueberries) { parse_string_to_statement("blueberries") }
+        # not(flour) ⊃ (oatmeal and guargum)
+        let(:not_flour_then_oatmeal_and_guargum) do
+          parse_string_to_statement("not(flour) ⊃ (oatmeal and guargum)")
+        end
+        # not(oatmeal and guargum)
+        let(:not_oatmeal_and_guargum) do
+          parse_string_to_statement("not(oatmeal and guargum)")
+        end
+        let(:blueberries_and_flour_then_pancakes) do
+          parse_string_to_statement("(blueberries and flour) ⊃ pancakes")
+        end
+        let(:kb) do
           MyKen::KnowledgeBase.new do |kb|
-            p1_then_p2 = MyKen::Statements::ComplexStatement.new(p1, p2, "⊃")
-
-            p1_then_p2_or_p3_or_p4 = MyKen::Statements::ComplexStatement.new(p1_then_p2, p3_or_p4, "or")
-            kb.add_fact(p1)
-            kb.add_fact(p1_then_p2)
-            kb.add_fact(p1_then_p2_or_p3_or_p4)
+            kb.add_fact(not_oatmeal_and_guargum)
+            kb.add_fact(blueberries)
+            kb.add_fact(not_flour_then_oatmeal_and_guargum)
+            kb.add_fact(blueberries_and_flour_then_pancakes)
           end
         end
         it 'resolves' do
-          resolver = described_class.new(knowledge_base: complex_kb, statement: p3_or_p4)
-          expect(resolver.resolve).to be false
+          resolver = described_class.new(knowledge_base: kb, statement: pancakes)
+          expect(resolver.resolve).to be true
+        end
+        context 'unrelated atomic statement' do
+          let(:lemon) { parse_string_to_statement("lemon") }
+          it 'resolves to false' do
+            resolver = described_class.new(knowledge_base: kb, statement: lemon)
+            expect(resolver.resolve).to be false
+          end
+        end
+        context 'unrelated complex statement' do
+          let(:lemon_or_oatmeal) { parse_string_to_statement("lemon or oatmeal") }
+          it 'resolves to false' do
+            resolver = described_class.new(knowledge_base: kb, statement: lemon_or_oatmeal)
+            expect(resolver.resolve).to be false
+          end
         end
       end
     end
@@ -148,7 +173,7 @@ describe MyKen::Resolver do
           kb.add_fact(flour_and_blueberries)
         end
       end
-      fit 'resolves' do
+      it 'resolves' do
         resolver = described_class.new(knowledge_base: kb, statement: pancakes)
         expect(resolver.resolve).to be true
       end
