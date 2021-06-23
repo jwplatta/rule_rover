@@ -94,6 +94,12 @@ describe MyKen::StatementParser do
     let(:b) { MyKen::Statements::AtomicStatement.new(true, "b") }
     let(:c) { MyKen::Statements::AtomicStatement.new(true, "c") }
     let(:d) { MyKen::Statements::AtomicStatement.new(true, "d") }
+    context 'parses atomic statement' do
+      it do
+        parser = described_class.new("a")
+        expect(parser.run).to eq a
+      end
+    end
     context 'parses conditional statement' do
       it do
         parser = described_class.new("a ⊃ b")
