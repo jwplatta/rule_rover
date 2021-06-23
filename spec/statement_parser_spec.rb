@@ -41,7 +41,7 @@ describe MyKen::StatementParser do
       end
       context 'invalid symbols' do
         it 'raises argument error' do
-          statement_text = "~([A ⊃ B] ≡ C"
+          statement_text = "~([A ⊃ B] ≡ C)"
           expect do
             described_class.new(statement_text)
           end.to raise_error(ArgumentError, "Statement contains an invalid symbol: ~[]")
@@ -151,6 +151,32 @@ describe MyKen::StatementParser do
         c_or_d = MyKen::Statements::ComplexStatement.new(c, d, "or")
         a_or_b_and_c_or_d = MyKen::Statements::ComplexStatement.new(a_or_b, c_or_d, "and")
         expected_statement = MyKen::Statements::ComplexStatement.new(a, a_or_b_and_c_or_d, "or")
+
+        expect(parser.run).to eq expected_statement
+      end
+    end
+    context 'parses words as sentential constants' do
+      it do
+        parser = described_class.new("(Blueberries and Flour) ⊃ Pancakes")
+        blueberries = MyKen::Statements::AtomicStatement.new(true, "blueberries")
+        flour = MyKen::Statements::AtomicStatement.new(true, "flour")
+        pancakes = MyKen::Statements::AtomicStatement.new(true, "pancakes")
+        blueberries_and_flour = MyKen::Statements::ComplexStatement.new(blueberries, flour, "and")
+        blueberries_and_flour_then_pancakes = MyKen::Statements::ComplexStatement.new(blueberries_and_flour, pancakes, "⊃")
+
+        expect(parser.run).to eq blueberries_and_flour_then_pancakes
+      end
+      it do
+        parser = described_class.new("((Blueberries and not(Flour)) and Oatmeal) ≡ (Pancakes and Oatmeal)")
+        oatmeal = MyKen::Statements::AtomicStatement.new(true, "oatmeal")
+        blueberries = MyKen::Statements::AtomicStatement.new(true, "blueberries")
+        flour = MyKen::Statements::AtomicStatement.new(true, "flour")
+        not_flour = MyKen::Statements::ComplexStatement.new(flour, nil, "not")
+        pancakes = MyKen::Statements::AtomicStatement.new(true, "pancakes")
+        blueberries_and_not_flour = MyKen::Statements::ComplexStatement.new(blueberries, not_flour, "and")
+        blueberries_and_not_flour_and_oatmeal = MyKen::Statements::ComplexStatement.new(blueberries_and_not_flour, oatmeal, "and")
+        pancakes_and_oatmeal = MyKen::Statements::ComplexStatement.new(pancakes, oatmeal, "and")
+        expected_statement = MyKen::Statements::ComplexStatement.new(blueberries_and_not_flour_and_oatmeal, pancakes_and_oatmeal, "≡")
 
         expect(parser.run).to eq expected_statement
       end

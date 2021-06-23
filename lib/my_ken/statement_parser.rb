@@ -6,6 +6,10 @@ module MyKen
     VALID_CONSTANTS = /[A-Za-z]/
     VALID_OPERATORS = /⊃|≡|or|and/
 
+    def self.parse(statement_text)
+      self.new(statement_text).run
+    end
+
     def initialize(statement_text)
       @statement_text = validate_statement(statement_text)
     end
@@ -38,37 +42,36 @@ module MyKen
     end
 
     def validate_statement(statement_text)
-      statement_text = statement_text.gsub(/\s+/, '')
+      statement_list = statement_text.scan(/\w+|⊃|≡|\(|\)/)
 
-      if statement_text.gsub(VALID_SYMBOLS, '').size > 0
-        raise ArgumentError.new("Statement contains an invalid symbol: #{statement_text.gsub(VALID_SYMBOLS, '')}")
+      if statement_list.join('') != statement_text.delete(' ')
+        raise ArgumentError.new("Statement contains an invalid symbol: #{statement_text.gsub(VALID_SYMBOLS, '').gsub(' ', '')}")
       end
 
-      statement_text = statement_text.scan(/not|or|and|[A-Za-z]|⊃|≡|\(|\)/)
-
-      statement_text.each_with_index do |item, idx|
+      statement_list.each_with_index do |item, idx|
         if idx == 0
           next
-        elsif idx == (statement_text.size - 1)
+        elsif idx == (statement_list.size - 1)
           next
-        elsif item.match(VALID_CONSTANTS) and !item.match(/[and|or]/)
-          before_item = statement_text[idx-1]
-          after_item = statement_text[idx+1]
-          if before_item.match(VALID_CONSTANTS) and !before_item.match(/and|or/)
+        elsif item.match(/\w+/) and !item.match(/[and|or]/)
+          before_item = statement_list[idx-1]
+          after_item = statement_list[idx+1]
+
+          if before_item.match(/\w+/) and !before_item.match(/and|or/)
             raise ArgumentError.new("Missing connecting operator")
           end
-          if after_item.match(VALID_CONSTANTS) and !after_item.match(/and|or/)
+          if after_item.match(/\w+/) and !after_item.match(/and|or/)
             raise ArgumentError.new("Missing connecting operator")
           end
           if before_item.match(VALID_OPERATORS) and after_item.match(VALID_OPERATORS)
-            raise ArgumentError.new("An Atomic statement cannot be joined to multiple Atomic statements: #{statement_text[idx-1..idx+1]}")
+            raise ArgumentError.new("An Atomic statement cannot be joined to multiple Atomic statements: #{statement_list[idx-1..idx+1]}")
           end
         end
       end
 
-      raise ArgumentError.new("missing parenthesis") if statement_text.count("(") != statement_text.count(")")
+      raise ArgumentError.new("missing parenthesis") if statement_list.count("(") != statement_list.count(")")
 
-      statement_text.map(&:downcase)
+      statement_list.map(&:downcase)
     end
 
     def remove_parentheses(statement_list)
