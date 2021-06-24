@@ -34,7 +34,7 @@ describe MyKen::Resolver do
       resolver = described_class.new(knowledge_base: kb, statement: p2)
     end
   end
-  describe '#statement_clauses' do
+  xdescribe '#statement_clauses' do
     it '' do
       clauses = resolver.parse_clauses(resolver.to_conjunctive_normal_form)
     end
@@ -247,9 +247,9 @@ describe MyKen::Resolver do
   describe '#atomic_statements' do
     it 'returns an array of atomic statements' do
       resolver = described_class.new(knowledge_base: kb, statement: p2)
-      statement = resolver.to_conjunctive_normal_form
+      statement = resolver.knowledge_base_statement
 
-      expect(resolver.atomic_statements(statement).count).to eq 8
+      expect(resolver.atomic_statements(statement).count).to eq 7
     end
   end
 
@@ -264,4 +264,8 @@ end
 
 def parse_string_to_statement(statement_text)
   MyKen::StatementParser.parse(statement_text)
+end
+
+def to_cnf(statement)
+  MyKen::ConjunctiveNormalForm::Converter.run(statement)
 end

@@ -3,8 +3,7 @@ module MyKen
     def initialize(knowledge_base:, statement:)
       @knowledge_base = knowledge_base
       @statement = statement
-      @explored_statements = []
-      @not_statement = MyKen::Statements::ComplexStatement.new(statement, nil, "not")
+      @not_statement = cnf_converter.run(MyKen::Statements::ComplexStatement.new(statement, nil, "not"))
     end
 
     attr_reader :knowledge_base, :statement, :not_statement
@@ -12,10 +11,11 @@ module MyKen
     def resolve
       return false unless statement_in_kb?
       # NOTE: has complimentary literals?
-      @explored_statements += parse_clauses(to_conjunctive_normal_form)
+      explored_statements = parse_clauses(knowledge_base_statement)
 
-      while @explored_statements.any?
-        pairs_of_clauses = @explored_statements.combination(2).to_a
+      while explored_statements.any?
+        pairs_of_clauses = explored_statements.combination(2).to_a
+
         new_clause_cnt = 0
         pairs_of_clauses.each do |clause_one, clause_two|
           resolve_clauses(clause_one, clause_two).then do |clauses|
@@ -23,9 +23,9 @@ module MyKen
 
             new_clause = join_clauses(clauses.uniq)
 
-            unless @explored_statements.include? new_clause
+            unless explored_statements.include? new_clause
               new_clause_cnt += 1
-              @explored_statements << new_clause
+              explored_statements << new_clause
             end
           end
         end
@@ -57,7 +57,7 @@ module MyKen
       clause_one_atomic_stmts = atomic_statements(clause_one)
       clause_two_atomic_stmts = atomic_statements(clause_two)
 
-      complimentary_literals = (clause_one_atomic_stmts + clause_two_atomic_stmts).combination(2).to_a.map do |atomic1, atomic2|
+      complimentary_literals = (clause_one_atomic_stmts + clause_two_atomic_stmts + [not_statement]).combination(2).to_a.map do |atomic1, atomic2|
         unit_resolution(atomic1, atomic2)
       end.flatten
 
@@ -65,6 +65,7 @@ module MyKen
     end
 
     def unit_resolution(clause_one, clause_two)
+      # NOTE: Somewhat confusing, the function returns those clauses that are unit resolvable so that they can be removed in #resolve_clauses
       # NOTE: assumes clause_one and clause_two are atomic or negation of atomic
 
       if clause_one.atomic? and clause_two.operator == "not" and (clause_two.statement_x == clause_one)
@@ -88,6 +89,8 @@ module MyKen
       while frontier.any?
         stmt = frontier.shift
 
+        # NOTE: because the statement is in CNF, we can assume
+        # that NOT is modifying an atomic statement.
         if stmt.atomic? or stmt.operator == "not"
           statements << stmt
         else
@@ -99,13 +102,13 @@ module MyKen
       statements
     end
 
-    def to_conjunctive_normal_form
-      MyKen::Statements::ComplexStatement.new(
-        knowledge_base_statement,
-        cnf_converter.run(not_statement),
-        "and"
-      )
-    end
+    # def to_conjunctive_normal_form
+    #   MyKen::Statements::ComplexStatement.new(
+    #     knowledge_base_statement,
+    #     cnf_converter.run(not_statement),
+    #     "and"
+    #   )
+    # end
 
     def parse_clauses(statement)
       clauses = []
