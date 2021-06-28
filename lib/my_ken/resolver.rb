@@ -23,13 +23,13 @@ module MyKen
 
             new_clause = join_clauses(clauses.uniq)
 
-            unless explored_statements.include? new_clause
+            # REVIEW: this is not actually comparing logically equivalent clauses
+            unless explored_statements.select { |explored| statements_equivalent?(explored, new_clause) }.any?
               new_clause_cnt += 1
               explored_statements << new_clause
             end
           end
         end
-
         # NOTE: if not new clauses, then false
         return false if new_clause_cnt == 0
       end
@@ -75,6 +75,55 @@ module MyKen
       else
         []
       end
+    end
+
+    def statements_equivalent?(statement_x, statement_y)
+      # NOTE: assumes statements are in CNJ
+      if statement_x.atomic?
+        statement_x == statement_y
+      else
+        disjuncts_x = disjunctive_sets(statement_x)
+        disjuncts_y = disjunctive_sets(statement_y)
+
+        disjuncts_x.each do |x_set|
+          return false unless disjuncts_y.select { |y_set| (x_set - y_set).empty? and (y_set - x_set).empty? }.any?
+        end
+        true
+      end
+    end
+
+    def disjunctive_sets(statement)
+      # returns an array of arrays
+      # ((not(as3) or (as1 or as2)) and ((not(as1) or as3) and (not(as2) or as3)))
+      disjunctive_sets = []
+      and_frontier = [statement]
+
+      while and_frontier.any?
+        next_statement = and_frontier.shift
+        if next_statement.atomic? or next_statement.operator == "not"
+          disjunctive_sets << [next_statement]
+        elsif next_statement.operator == "or"
+          or_frontier = [next_statement.statement_x, next_statement.statement_y]
+          disjunct_set = []
+
+          while or_frontier.any?
+            stmt = or_frontier.shift
+            if stmt.atomic? or stmt.operator == "not"
+              disjunct_set << stmt
+            else
+              or_frontier << stmt.statement_x
+              or_frontier << stmt.statement_y
+            end
+          end
+
+          disjunctive_sets << disjunct_set
+        else
+          and_frontier << next_statement.statement_x
+          and_frontier << next_statement.statement_y
+        end
+      end
+
+      disjunctive_sets
     end
 
     def atomic_statements(clause)

@@ -2,9 +2,9 @@ module MyKen
   class StatementParser
     attr_reader :statement_text
 
-    VALID_SYMBOLS = /or|and|[A-Za-z]|⊃|≡|\(|\)/
+    VALID_SYMBOLS = /or$|and$|[A-Za-z]|⊃|≡|\(|\)/
     VALID_CONSTANTS = /[A-Za-z]/
-    VALID_OPERATORS = /⊃|≡|or|and/
+    VALID_OPERATORS = /⊃|≡|or$|and$/
 
     def self.parse(statement_text)
       self.new(statement_text).run
@@ -21,12 +21,13 @@ module MyKen
     def parse(statement_list)
       # remove outer parentheses if any
       statement_list = remove_parentheses(statement_list)
+
       # return if Atomic
       return MyKen::Statements::AtomicStatement.new(true, statement_list[0]) if statement_list.size == 1
 
       # handle negations
       if statement_list[0] == "not"
-        # does it negate an next_statement_atomic?
+        # does it negate a next_statement_atomic?
         if next_statement_atomic?(statement_list[1..]) and statement_list.size > 4
           # ["not", "(", "pancakes", ")", "and", "flour"]
           atomic = MyKen::Statements::AtomicStatement.new(true, statement_list[2])
@@ -39,7 +40,7 @@ module MyKen
         end
       else
         # find the outer operator
-        # divide the list in statement_x, statement_y and the operator
+        # divide the list into statement_x, statement_y and the operator
         # parse(statement_x)
         # parse(statement_y)
         operator_idx = find_outer_operator_idx(statement_list)
@@ -67,14 +68,14 @@ module MyKen
           next
         elsif idx == (statement_list.size - 1)
           next
-        elsif item.match(/\w+/) and !item.match(/[and|or]/)
+        elsif item.match(/\w+/) and !item.match(/and$|or$/)
           before_item = statement_list[idx-1]
           after_item = statement_list[idx+1]
 
-          if before_item.match(/\w+/) and !before_item.match(/and|or/)
+          if before_item.match(/\w+/) and !before_item.match(/and$|or$/)
             raise ArgumentError.new("Missing connecting operator")
           end
-          if after_item.match(/\w+/) and !after_item.match(/and|or/)
+          if after_item.match(/\w+/) and !after_item.match(/and$|or$/)
             raise ArgumentError.new("Missing connecting operator")
           end
           if before_item.match(VALID_OPERATORS) and after_item.match(VALID_OPERATORS)
@@ -130,7 +131,7 @@ module MyKen
 
         if forward
           symbol = statement_text[forward_idx]
-          if symbol.match(/⊃|≡|or|and/)
+          if symbol.match(/⊃|≡|or$|and$/)
             return forward_idx
           elsif symbol.match(/[A-Za-z]/)
             forward_idx += 1

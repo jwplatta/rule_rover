@@ -18,8 +18,6 @@ describe MyKen::Resolver do
       kb.add_fact(b_bicond_p1_or_p2)
     end
   end
-  let(:resolver) { resolver = described_class.new(knowledge_base: kb, statement: p2) }
-
   describe '#initialize' do
     context 'when not provided a knowledge base and a statement' do
       it 'it raises' do
@@ -37,6 +35,22 @@ describe MyKen::Resolver do
   xdescribe '#statement_clauses' do
     it '' do
       clauses = resolver.parse_clauses(resolver.to_conjunctive_normal_form)
+    end
+  end
+
+  describe '#statements_equivalent?' do
+    # NOTE: KB and statement are just needed to initialize the resolver.
+    # They are not needed for testing #statements_equivalent?
+    let(:resolver) { described_class.new(knowledge_base: kb, statement: p2) }
+    context 'when statements are equivalent' do
+      it '' do
+        statement_y = parse_string_to_statement("(orange or lemon) and (waffles or pancakes)")
+        statement_x = parse_string_to_statement("(pancakes or waffles) and (lemon or orange)")
+        expect(resolver.statements_equivalent?(statement_x, statement_y)).to eq true
+      end
+    end
+    context 'when statements are not equal' do
+      it 'returns false'
     end
   end
 
@@ -118,7 +132,7 @@ describe MyKen::Resolver do
           expect(resolver.resolve).to be true
         end
       end
-      context 'slow query' do
+      context 'slow queries' do
         let(:pancakes) { parse_string_to_statement("pancakes") }
         let(:blueberries) { parse_string_to_statement("blueberries") }
         # not(flour) ⊃ (oatmeal and guargum)
@@ -132,22 +146,30 @@ describe MyKen::Resolver do
         let(:blueberries_and_flour_then_pancakes) do
           parse_string_to_statement("(blueberries and flour) ⊃ pancakes")
         end
+        let(:blueberries_and_flour) do
+          parse_string_to_statement("blueberries and flour")
+        end
+        let(:maple_or_honey) do
+          parse_string_to_statement("maple or honey")
+        end
         let(:kb) do
           MyKen::KnowledgeBase.new do |kb|
-            kb.add_fact(not_oatmeal_and_guargum)
-            kb.add_fact(blueberries)
-            kb.add_fact(not_flour_then_oatmeal_and_guargum)
             kb.add_fact(blueberries_and_flour_then_pancakes)
+            kb.add_fact(not_flour_then_oatmeal_and_guargum)
+            kb.add_fact(not_oatmeal_and_guargum)
+            kb.add_fact(blueberries_and_flour)
+            kb.add_fact(blueberries)
+            kb.add_fact(maple_or_honey)
           end
         end
-        it 'resolves' do
+        it 'resolves to true' do
           resolver = described_class.new(knowledge_base: kb, statement: pancakes)
           expect(resolver.resolve).to be true
         end
         context 'unrelated atomic statement' do
-          let(:lemon) { parse_string_to_statement("lemon") }
-          it 'resolves to false' do
-            resolver = described_class.new(knowledge_base: kb, statement: lemon)
+          let(:not_honey) { parse_string_to_statement("not(honey)") }
+          xit 'resolves to false' do
+            resolver = described_class.new(knowledge_base: kb, statement: not_honey)
             expect(resolver.resolve).to be false
           end
         end
@@ -181,6 +203,7 @@ describe MyKen::Resolver do
   end
 
   describe '#join_clauses' do
+    let(:resolver) { described_class.new(knowledge_base: kb, statement: p2) }
     context 'when not passed an array' do
       it 'raises' do
         expect do
@@ -210,6 +233,7 @@ describe MyKen::Resolver do
   end
 
   describe '#resolve_clauses' do
+    let(:resolver) { described_class.new(knowledge_base: kb, statement: p2) }
     context 'when clauses contain complimentary literals' do
       context 'when only complimentary literals' do
         it 'removes the complimentary literals' do
@@ -232,6 +256,7 @@ describe MyKen::Resolver do
   end
 
   describe '#unit_resolution' do
+    let(:resolver) { described_class.new(knowledge_base: kb, statement: p2) }
     context 'when complimentary literals' do
       it 'returns complimentary literals' do
         expect(resolver.unit_resolution(p2, not_p2)).to eq ([p2, not_p2])
@@ -250,14 +275,6 @@ describe MyKen::Resolver do
       statement = resolver.knowledge_base_statement
 
       expect(resolver.atomic_statements(statement).count).to eq 7
-    end
-  end
-
-  # REVIEW:
-  xdescribe '#to_conjunctive_normal_form' do
-    it 'converters the knowledge base and the not statement to CNF' do
-      resolver = described_class.new(knowledge_base: kb, statement: p2)
-      cnf_statement = resolver.to_conjunctive_normal_form
     end
   end
 end

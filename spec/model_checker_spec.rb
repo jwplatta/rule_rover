@@ -3,10 +3,10 @@ require 'spec_helper'
 describe MyKen::ModelChecker do
   context 'simple knowledge base' do
     let(:as1) do
-      MyKen::Statements::AtomicStatement.new(true)
+      MyKen::Statements::AtomicStatement.new(true, "as1")
     end
     let(:as2) do
-      MyKen::Statements::AtomicStatement.new(true)
+      MyKen::Statements::AtomicStatement.new(true, "as2")
     end
     let(:statements) do
       [
