@@ -1,23 +1,43 @@
 module MyKen
   module Statements
     VALID_CONSTANTS = /A-Z/
-    VALID_OPERATORS = /⊃|≡|not|or$|and$/
+    VALID_OPERATORS = /⊃|≡|not|^or$|^and$/
     VALID_VARIABLES = /a-z/
 
-    def substitute(); end
-    def unify(); end
+    def self.conjuncts(statement)
+      # NOTE: assumes the top-level operator of the statement is a conjunction
+      if statement.identifier == "and"
+        [
+          conjuncts(statement.statements[0]),
+          conjuncts(statement.statements[1])
+        ].flatten
+      else
+        [statement]
+      end
+    end
+
+    def self.disjuncts(statement)
+      # NOTE: assumes the top-level operator of the statement is a disjunction
+      if statement.identifier == "or"
+        [
+          disjuncts(statement.statements[0]),
+          disjuncts(statement.statements[1])
+        ].flatten
+      else
+        [statement]
+      end
+    end
 
     def self.to_conjunctive_normal_form(statement)
       raise ArgumentError.new("statement is not an instance of #{Statement.class}") unless statement.is_a? Statement
 
-      # STEP: eliminate biconditionals
-      statement = eliminate_biconditionals(statement)
-      # STEP: eliminate conditionals
-      statement = eliminate_conditionals(statement)
-      # STEP: move_negation_to_literals
-      statement = move_negation_to_literals(statement)
-      # STEP: distribute AND over OR
-      distribute(statement)
+      eliminate_biconditionals(statement).then do |stmt|
+        eliminate_conditionals(stmt)
+      end.then do |stmt|
+        move_negation_to_literals(stmt)
+      end.then do |stmt|
+        distribute(stmt)
+      end
     end
 
     def self.eliminate_biconditionals(statement)
@@ -171,7 +191,6 @@ module MyKen
 
       def initialize(identifier, *statements)
         raise ArgumentError.new("Not a valid statement") if identifier.match(VALID_OPERATORS) and statements.empty?
-
         @identifier = identifier
         @statements = statements
       end
@@ -196,6 +215,32 @@ module MyKen
         Statement.new("≡", self, other)
       end
 
+      def ==(other)
+        if other.statements.empty? and statements.empty?
+          self.to_s == other.to_s
+        elsif other.identifier == identifier
+          if identifier == "not"
+            statements[0] == other.statements[0]
+          else
+            self_cnf = MyKen::Statements.to_conjunctive_normal_form(self)
+            other_cnf = MyKen::Statements.to_conjunctive_normal_form(other)
+
+            self_groups_disjuncts = MyKen::Statements.conjuncts(self_cnf).map do |cnjncts|
+              MyKen::Statements.disjuncts(cnjncts)
+            end.map { |grp| grp.sort { |a, b| a.to_s <=> b.to_s } }
+
+            other_groups_disjuncts = MyKen::Statements.conjuncts(other_cnf).map do |cnjncts|
+              MyKen::Statements.disjuncts(cnjncts)
+            end.map { |grp| grp.sort { |a, b| a.to_s <=> b.to_s } }
+
+            other_groups_disjuncts.all? { |el| self_groups_disjuncts.include? el } and \
+              self_groups_disjuncts.all? { |el| other_groups_disjuncts.include? el }
+          end
+        else
+          false
+        end
+      end
+
       def to_s
         if statements.size > 1
           statements.map(&:to_s).join(" #{identifier} ").then { |stmts| "(#{stmts})" }
@@ -209,6 +254,305 @@ module MyKen
         else
           "#{identifier}"
         end
+      end
+    end
+
+    def self.variable?(symbol)
+      return false unless symbol.is_a? String
+
+      not(symbol[/^[a-z]$/].nil?)
+    end
+
+    def self.constant?(symbol)
+      not(symbol[/^[A-Z][A-Za-z]*/].nil?)
+    end
+
+    def self.definite_clause?(clause)
+      clause_cnf = to_conjunctive_normal_form(clause)
+
+      return true if clause_cnf.statements.empty?
+      return false if clause_cnf.identifier != "or"
+
+      sub_stmts = [clause_cnf]
+      cnt_pos = 0
+
+      while sub_stmts.any? and cnt_pos < 2
+        stmt = sub_stmts.pop
+
+        lhs = stmt.statements[0]
+        rhs = stmt.statements[1]
+
+        cnt_pos += 1 if lhs.statements.empty?
+        cnt_pos += 1 if rhs.statements.empty?
+
+        sub_stmts << lhs if lhs.identifier != "not" and lhs.statements.any?
+        sub_stmts << rhs if rhs.identifier != "not" and rhs.statements.any?
+      end
+
+      cnt_pos == 1
+    end
+
+    def self.standardize_apart()
+    end
+
+    def self.unify(expression_x, expression_y, assignment)
+      # REVIEW: assumes expressions x and y do not have conflicting variable names.
+      # TODO: implement .standardize_apart
+      # REVIEW: check before .unify
+      #   1. Do the expressions have the same predicates?
+      #   2. Are the predicates in the correct order, e.g. the algo will not work for "A(x) and B(y)" and "B(z) and A(w)"
+      #   3. Have the variables been standardized apart?
+
+      if assignment.nil?
+        {}
+      elsif expression_x.is_a? Predicate and expression_y.is_a? Predicate
+        new_assignment = assignment.merge(
+          expression_x.assignments.filter { |_, v| !(v.nil?) },
+          expression_y.assignments.filter { |_, v| !(v.nil?) }
+        )
+
+        unify(
+          expression_x.variables,
+          expression_y.variables,
+          unify(
+            expression_x.identifier,
+            expression_y.identifier,
+            new_assignment
+          )
+        )
+      elsif variable? expression_x
+        if assignment.keys.include? expression_x
+          unify(assignment[expression_x], expression_y, assignment)
+        elsif assignment.keys.include? expression_y
+          unify(expression_x, assignment[expression_y], assignment)
+        elsif occurs?(expression_x, expression_y, assignment)
+          nil
+        else
+          # NOTE: substitute for complex terms
+          assignment.select { |k, v| v.is_a? ComplexTerm and v.variable == expression_x }.each do |_, v|
+            v.substitute({ expression_x => expression_y })
+          end
+          assignment.merge({ expression_x => expression_y })
+        end
+      elsif expression_x == expression_y
+        assignment
+      elsif variable? expression_y
+        if assignment.keys.include? expression_y
+          unify(assignment[expression_y], expression_x, assignment)
+        elsif assignment.keys.include? expression_x
+          unify(expression_y, assignment[expression_x], assignment)
+        elsif occurs?(expression_y, expression_x, assignment)
+          nil
+        else
+          # NOTE: substitute for complex terms
+          assignment.select { |k, v| v.is_a? ComplexTerm and v.variable == expression_y }.each do |_, v|
+            v.substitute({ expression_y => expression_x })
+          end
+          assignment.merge({ expression_y => expression_x })
+        end
+      elsif expression_x.is_a? Statement and expression_y.is_a? Statement
+        unify(
+          expression_x.statements,
+          expression_y.statements,
+          unify(expression_x.identifier, expression_y.identifier, assignment)
+        )
+      elsif expression_x.is_a? Array and expression_y.is_a? Array
+        # NOTE: assumes statements are in the correct order, i.e. the
+        # implementation is not smart enough associativity and recognize "A(x) and B(y)"
+        # is logically equivalent to "B(y) and A(x)".
+        first_unified = unify(expression_x.pop, expression_y.pop, assignment)
+
+        if first_unified.nil? or first_unified.empty?
+          # NOTE: stop if unable to unify the first expressions
+          {}
+        else
+          # NOTE: keep unifying the rest of the complex statement
+          unify(
+            expression_x,
+            expression_y,
+            first_unified
+          )
+        end
+      end
+    end
+
+    def self.occurs?(var, expression, assignments)
+      return false unless variable?(var)
+
+      if expression.is_a? Predicate
+        expression.variables.include? var
+      elsif expression.is_a? Statement
+        if expression.statements.empty?
+          var == assignments.select { |var, const| const == expression.identifier }.keys[0]
+        elsif expression.identifier == "not"
+          occurs?(var, expression.statements[0], assignments)
+        else
+          (occurs?(var, expression.statements[0], assignments) or \
+            occurs?(var, expression.statements[1], assignments))
+        end
+      else
+        false
+      end
+    end
+
+    def self.substitute(statement, assignments)
+      if statement.is_a? Predicate
+        statement.substitute(assignments)
+        statement
+      elsif statement.identifier == "not"
+        Statement.new(
+          "not",
+          substitute(statement.statements[0], assignments)
+        )
+      elsif statement.statements.count == 2
+        Statement.new(
+          statement.identifier,
+          substitute(statement.statements[0], assignments),
+          substitute(statement.statements[1], assignments)
+        )
+      else
+        statement
+      end
+    end
+
+    class ComplexTerm < Statement
+      attr_reader :assignments
+
+      def initialize(identifier:, assignments: {"x" => nil})
+        @identifier = identifier #complex_term[/(\w+)/, 1]
+        @assignments = assignments
+        @statements = []
+      end
+
+      def variable
+        assignments.keys.first
+      end
+
+      def substitute(new_assignments)
+        new_assignments.each do |var, const|
+          if assignments.has_key? var
+            @assignments[var] = const
+          end
+        end
+      end
+
+      def ==(other)
+        other.is_a? ComplexTerm and \
+        to_s == other.to_s
+      end
+
+      def to_s
+        var, val = assignments.first
+
+        if val.nil?
+          "#{identifier}[#{var}]"
+        else
+          "#{identifier}[#{val}]"
+        end
+      end
+    end
+
+    # REVIEW: why try to parse strings inside the predicate class
+    # Should do this elsewhere and keep teh Predicate class focused on
+    # just beign a Predicate.
+    # NOTE: the order of the variables matter
+    class Predicate < Statement
+      attr_reader :assignments
+
+      def initialize(identifier:, assignments: {})
+        @identifier = identifier
+        @assignments = assignments
+        @statements = []
+
+        # @var_cnt = 0
+        # predicate_statement = extract_complex_terms(predicate_statement)
+
+        # unless predicate_statement[/^[A-Z][A-Za-z]*\(([A-Za-z_]*|[[A-Za-z_]*, ])*\)/].to_s == predicate_statement
+        #   raise ArgumentError.new("Invalid predicate")
+        # end
+
+        # @identifier = predicate_statement[/(\w+)/, 1]
+        # vars_and_consts = predicate_statement[/\((.*?)\)/, 1].gsub(" ", "").split(",")
+        # build_var_assignment(vars_and_consts)
+      end
+
+      def substitute(new_assignments)
+        new_assignments.each do |var, const|
+          if assignments.has_key? var
+            @assignments[var] = const
+          end
+        end
+      end
+
+      def variables
+        assignments.keys
+      end
+
+      def constants
+        assignments.values
+      end
+
+      def arity
+        assignments.keys.count
+      end
+
+      def ==(other)
+        other.is_a? Predicate and \
+        other.identifier == identifier and \
+        other.assignments == assignments
+      end
+
+      def to_s
+        assignments.map { |k, v| v.nil? ? k : v }.then do |symbols|
+          "#{identifier}(#{symbols.join(", ")})"
+        end
+      end
+
+      private
+
+      attr_reader :var_cnt
+
+      # REVIEW: move these methods to some sort of
+      # Predicate parser class
+
+      def extract_complex_terms(predicate_statement)
+        complex_terms = predicate_statement.scan(/[A-Za-z]*\[[A-Za-z]*\]/)
+
+        return predicate_statement if complex_terms.empty?
+
+        complex_terms.each_with_index.map do |ct, idx|
+          @assignments[next_variable] = ComplexTerm.new(ct)
+          predicate_statement.gsub!(ct, "_")
+        end
+      end
+
+      def build_var_assignment(vars_and_consts)
+        vars_and_consts.each do |symbol|
+          if variable?(symbol)
+            @assignments[next_variable] = nil
+          elsif constant?(symbol)
+            @assignments[next_variable] = symbol
+          else
+            raise StandardError.new("unrecognized symbol")
+          end
+        end
+      end
+
+      def next_variable
+        # REVIEW: not great, but works
+        variable_symbols = ('a'..'z').to_a
+        index = var_cnt % variable_symbols.size
+        mult = (var_cnt / variable_symbols.size) + 1
+        @var_cnt += 1
+        variable_symbols[index] * mult
+      end
+
+      def variable?(symbol)
+        MyKen::Statements.variable?(symbol)
+      end
+
+      def constant?(symbol)
+        MyKen::Statements.constant?(symbol)
       end
     end
 
@@ -245,6 +589,10 @@ module MyKen
         "".freeze
       end
     end
+
+    ####################################
+    ### REMOVE: OG Statement structs ###
+    ####################################
 
     AtomicStatement = Struct.new(:value, :name) do
       def atomic?
