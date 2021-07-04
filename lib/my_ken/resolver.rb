@@ -1,4 +1,49 @@
 module MyKen
+  def self.tautology?(statement)
+    pl_resolve(knowledge_base: MyKen::PropositionalKB.new, statement: statement)
+  end
+
+  def self.pl_resolve(knowledge_base:, statement:)
+    all_clauses = knowledge_base.clauses + \
+      MyKen::Statements.conjuncts(
+        MyKen::Statements.to_conjunctive_normal_form(statement.not)
+      )
+
+    while true
+      new_clauses = []
+      all_clauses.combination(2).to_a.each do |cls1, cls2|
+        # STEP: resolve clauses
+        cls1_disjuncts = MyKen::Statements.disjuncts(cls1)
+        cls2_disjuncts = MyKen::Statements.disjuncts(cls2)
+
+        resolvents = []
+        cls1_disjuncts.each do |cls1_disj|
+          cls2_disjuncts.each do |cls2_disj|
+            # STEP: complimentary literals?
+            if cls1_disj.not == cls2_disj or cls1_disj == cls2_disj.not
+              # STEP: remove the literals
+              temp = (cls1_disjuncts.reject { |cls| cls == cls1_disj } + cls2_disjuncts.reject { |cls| cls == cls2_disj }).uniq
+              # STEP:
+              if temp.count > 1
+                resolvents << temp[1..].reduce(temp[0]) { |stmt, cls| stmt.or(cls) }
+              elsif temp.count == 1
+                resolvents << temp.first
+              elsif temp.empty?
+                return true
+              end
+            end
+          end
+        end
+        new_clauses = (new_clauses + resolvents).uniq
+      end
+
+      # STEP: is subset?
+      return false if (new_clauses - all_clauses).empty?
+
+      all_clauses = (all_clauses + new_clauses.reject { |ncls| all_clauses.include? ncls })
+    end
+  end
+
   class Resolver
     def initialize(knowledge_base:, statement:)
       @knowledge_base = knowledge_base

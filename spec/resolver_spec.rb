@@ -277,6 +277,53 @@ describe MyKen::Resolver do
       expect(resolver.atomic_statements(statement).count).to eq 7
     end
   end
+
+  ###################
+  ### PL Resolver ###
+  ###################
+
+  describe '.pl_resolve' do
+    it do
+      a = MyKen::Statements::Statement.new("A")
+      b = MyKen::Statements::Statement.new("B")
+      c = MyKen::Statements::Statement.new("C")
+
+      prop_kb = MyKen::PropositionalKB.new
+      prop_kb.assert(a.⊃(b))
+      prop_kb.assert(b.⊃(c))
+      prop_kb.assert(a)
+
+      result =  MyKen.pl_resolve(knowledge_base: prop_kb, statement: c)
+
+      expect(result).to be true
+    end
+    it do
+      a = MyKen::Statements::Statement.new("A")
+      b = MyKen::Statements::Statement.new("B")
+      c = MyKen::Statements::Statement.new("C")
+
+      prop_kb = MyKen::PropositionalKB.new
+      prop_kb.assert(a.or(b.not).⊃(c))
+      prop_kb.assert(a)
+
+      result = MyKen.pl_resolve(knowledge_base: prop_kb, statement: c)
+
+      expect(result).to be true
+    end
+    it do
+      a = MyKen::Statements::Statement.new("A")
+      b = MyKen::Statements::Statement.new("B")
+      c = MyKen::Statements::Statement.new("C")
+
+      prop_kb = MyKen::PropositionalKB.new
+      prop_kb.assert(b.and(a))
+      prop_kb.assert(b.⊃(c))
+
+      result = MyKen.pl_resolve(knowledge_base: prop_kb, statement: c.not)
+
+      expect(result).to be false
+    end
+  end
 end
 
 def parse_string_to_statement(statement_text)
