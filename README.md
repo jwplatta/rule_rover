@@ -1,28 +1,43 @@
-# MyKen
+# RuleRover
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/my_ken`. To experiment with that code, run `bin/console` for an interactive prompt.
+### TODO
 
-TODO: Delete this and the text above, and describe your gem
+- The Resolution module is broken for `PropositionalKB`
+- ForwardChaining for `PropositionalKB`
+- Backtracking for `PropositionalKB`
+- Move the Predicate class from `statements.rb` to `statements/predicate.rb`
+- Add PredicateKB class
+- Refactor CNF and other `#entails?` algos for predicates
+- Implement Rete algorithm for `PredicateKB`
+
+## Notes
+
+- Currently, it's assumed that the KnowledgeBase will have a truth value for all AtomicStatments in the model. Perhaps, it should be possible for the KnowledgeBase to "know about" fewer AtomicStatements than are in the model.
+- https://ulfurinn.github.io/wongi-engine/docs/basics/starting-up/
+
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'my_ken'
+gem 'rule_rover'
 ```
 
 And then execute:
 
-    $ bundle install
+$ bundle install
 
 Or install it yourself as:
 
-    $ gem install my_ken
+$ gem install rule_rover
+
+```sh
+$ gem build rule_rover.gemspec
+$ gem install rule_rover-0.1.0.gem
+```
 
 ## Usage
-
-TODO: Write usage instructions here
 
 ## Development
 
@@ -32,7 +47,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/my_ken.
+Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rule_rover.
 
 ## License
 

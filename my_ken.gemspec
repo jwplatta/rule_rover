@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "lib/my_ken/version"
+require_relative "lib/rule_rover/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "my_ken"
-  spec.version       = MyKen::VERSION
+  spec.name          = "rule_rover"
+  spec.version       = RuleRover::VERSION
   spec.authors       = ["Joseph Platta"]
   spec.email         = ["jwplatta@gmail.com"]
 

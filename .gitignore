@@ -7,5 +7,5 @@
 /spec/reports/
 /tmp/
 scratch.rb
-my_ken-*.gem
+rule_rover-*.gem
 .rspec_status
