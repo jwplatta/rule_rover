@@ -1,8 +1,14 @@
-module MyKen
+module RuleRover
   module Statements
-    VALID_CONSTANTS = /A-Z/
+    VALID_CONSTANTS = /[A-Z]/
     VALID_OPERATORS = /⊃|≡|not|^or$|^and$/
     VALID_VARIABLES = /a-z/
+
+    class NotWellFormedFormula < StandardError
+      def initialize(logic_symbol="", statements=[])
+        super("Not a well formed formula\n\tlogic_symbol: #{logic_symbol}\n\tstatements: #{statements}")
+      end
+    end
 
     def self.conjuncts(statement)
       # NOTE: assumes the top-level operator of the statement is a conjunction
@@ -54,16 +60,8 @@ module MyKen
 
         Statement.new(
           "and",
-          Statement.new(
-            "⊃",
-            cond_x,
-            cond_y
-          ),
-          Statement.new(
-            "⊃",
-            cond_y,
-            cond_x
-          )
+          Statement.new("⊃", cond_x, cond_y),
+          Statement.new("⊃", cond_y, cond_x)
         )
       else
         Statement.new(
@@ -215,6 +213,29 @@ module MyKen
         Statement.new("≡", self, other)
       end
 
+      def predicate?
+        self.class == Predicate
+      end
+
+      def substitute(assignment)
+        Statement.new(
+          identifier,
+          *statements.map { |stmt| stmt.substitute(assignment) }.flatten
+        )
+      end
+
+      def variables
+        # NOTE: you're starting to use this pattern a lot: init array -> loop to get vals -> uniq.
+        # Is there a better way to do this in ruby?
+        statements.map do |stmt|
+          stmt.variables
+        end.flatten.uniq
+      end
+
+      def eql?(other)
+        self.==(other)
+      end
+
       def ==(other)
         if other.statements.empty? and statements.empty?
           self.to_s == other.to_s
@@ -222,19 +243,18 @@ module MyKen
           if identifier == "not"
             statements[0] == other.statements[0]
           else
-            self_cnf = MyKen::Statements.to_conjunctive_normal_form(self)
-            other_cnf = MyKen::Statements.to_conjunctive_normal_form(other)
+            self_cnf = RuleRover::Statements.to_conjunctive_normal_form(self)
+            other_cnf = RuleRover::Statements.to_conjunctive_normal_form(other)
 
-            self_groups_disjuncts = MyKen::Statements.conjuncts(self_cnf).map do |cnjncts|
-              MyKen::Statements.disjuncts(cnjncts)
+            self_groups_disjuncts = RuleRover::Statements.conjuncts(self_cnf).map do |cnjncts|
+              RuleRover::Statements.disjuncts(cnjncts)
             end.map { |grp| grp.sort { |a, b| a.to_s <=> b.to_s } }
 
-            other_groups_disjuncts = MyKen::Statements.conjuncts(other_cnf).map do |cnjncts|
-              MyKen::Statements.disjuncts(cnjncts)
+            other_groups_disjuncts = RuleRover::Statements.conjuncts(other_cnf).map do |cnjncts|
+              RuleRover::Statements.disjuncts(cnjncts)
             end.map { |grp| grp.sort { |a, b| a.to_s <=> b.to_s } }
 
-            other_groups_disjuncts.all? { |el| self_groups_disjuncts.include? el } and \
-              self_groups_disjuncts.all? { |el| other_groups_disjuncts.include? el }
+            (other_groups_disjuncts.flatten - self_groups_disjuncts.flatten).empty?
           end
         else
           false
@@ -292,7 +312,22 @@ module MyKen
       cnt_pos == 1
     end
 
-    def self.standardize_apart()
+    def self.standardize_apart(*statements)
+      # NOTE: assumes statements are Predicates
+      variable_symbols = ('a'..'z').to_a
+      var_cnt = 0
+
+      statements.map do |stmt|
+        updated_assignments = stmt.assignments.map do |k, v|
+          index = var_cnt % variable_symbols.size
+          mult = (var_cnt / variable_symbols.size) + 1
+          var_cnt += 1
+
+          [variable_symbols[index] * mult, v]
+        end.to_h
+
+        Predicate.new(identifier: stmt.identifier, assignments: updated_assignments)
+      end
     end
 
     def self.unify(expression_x, expression_y, assignment)
@@ -396,9 +431,8 @@ module MyKen
     end
 
     def self.substitute(statement, assignments)
-      if statement.is_a? Predicate
+      if statement.is_a? Predicate or statement.is_a? ComplexTerm
         statement.substitute(assignments)
-        statement
       elsif statement.identifier == "not"
         Statement.new(
           "not",
@@ -429,11 +463,10 @@ module MyKen
       end
 
       def substitute(new_assignments)
-        new_assignments.each do |var, const|
-          if assignments.has_key? var
-            @assignments[var] = const
-          end
-        end
+        ComplexTerm.new(
+          identifier: self.identifier,
+          assignments: new_assignments.select { |k, v| variable == k }
+        )
       end
 
       def ==(other)
@@ -477,11 +510,10 @@ module MyKen
       end
 
       def substitute(new_assignments)
-        new_assignments.each do |var, const|
-          if assignments.has_key? var
-            @assignments[var] = const
-          end
-        end
+        Predicate.new(
+          identifier: self.identifier,
+          assignments: assignments.merge(new_assignments.select { |k, v| variables.include? k })
+        )
       end
 
       def variables
@@ -489,7 +521,7 @@ module MyKen
       end
 
       def constants
-        assignments.values
+        assignments.values.reject { |val| val.nil? }
       end
 
       def arity
@@ -510,11 +542,22 @@ module MyKen
 
       private
 
-      attr_reader :var_cnt
+      # def validate_assignment(assignment)
+      #   assignment.each do |k, v|
+      #     if v.is_a? ComplexTerm and not(assignment.keys.include? v.assignments.first[0])
+      #       raise StandardError.new("Variables of ComplexTerms must exist in the Predicate variables")
+      #     end
+      #   end
+      # end
 
-      # REVIEW: move these methods to some sort of
-      # Predicate parser class
+      def complex_terms_with_var(var)
+        assignments.select do |k, v|
+          v.is_a? ComplexTerm and v.assignments.has_key? var
+        end
+      end
 
+      # attr_reader :var_cnt
+      # REVIEW: move these methods to some sort of Predicate parser class
       def extract_complex_terms(predicate_statement)
         complex_terms = predicate_statement.scan(/[A-Za-z]*\[[A-Za-z]*\]/)
 
@@ -548,25 +591,31 @@ module MyKen
       end
 
       def variable?(symbol)
-        MyKen::Statements.variable?(symbol)
+        RuleRover::Statements.variable?(symbol)
       end
 
       def constant?(symbol)
-        MyKen::Statements.constant?(symbol)
+        RuleRover::Statements.constant?(symbol)
       end
     end
 
     class NullStatement
-      def atomic?
-        false
-      end
-
-      def clause?
-        false
-      end
-
       def nil?
         true
+      end
+
+      def identifier; end
+
+      def predicate?
+        false
+      end
+
+      def substitute(_)
+        NullStatement.new
+      end
+
+      def variables
+        []
       end
 
       def operator
@@ -575,6 +624,10 @@ module MyKen
 
       def value
         nil
+      end
+
+      def statements
+        []
       end
 
       def statement_x

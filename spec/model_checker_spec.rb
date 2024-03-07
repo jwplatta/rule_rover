@@ -1,162 +1,107 @@
 require 'spec_helper'
 
-describe MyKen::ModelChecker do
-  describe '.literals' do
+describe RuleRover::ModelChecker do
+  describe '#literals' do
     it do
-      a = MyKen::Statements::Statement.new("A")
-      b = MyKen::Statements::Statement.new("B")
-      c = MyKen::Statements::Statement.new("C")
-      d = MyKen::Statements::Statement.new("D")
-
-      literals = MyKen::ModelChecker.literals(a.and(b).or(c.not).and(d).and(a.not).or(b))
-      expect(literals.count).to eq(4)
+      kb = RuleRover::PropositionalKB.build("(((((A and B) or not(C)) and D) and not(A)) or B)")
+      literals = RuleRover::ModelChecker.new.literals(kb.to_statement)
+      expect(literals.sort).to eq ["A", "B", "C", "D"]
+    end
+    it do
+      kb = RuleRover::PropositionalKB.build("((C or C) and (C or C))")
+      literals = RuleRover::ModelChecker.new(nil, nil).literals(kb.to_statement)
+      expect(literals.sort).to eq ["C"]
     end
   end
-  describe '.true_in_model?' do
-    it do
-      a = MyKen::Statements::Statement.new("A")
+  describe '#true_in_model?' do
+    it 'returns true for atomic proposition' do
+      prop = RuleRover::Statements::Proposition.parse("A")
       model = {
         "A" => true
       }
 
-      result = MyKen::ModelChecker.true_in_model?(a, model)
+      result = RuleRover::ModelChecker.new.true_in_model?(prop, model)
       expect(result).to be true
     end
-    context 'negation statement' do
-      it do
-        a = MyKen::Statements::Statement.new("A")
-        model = {
-          "A" => true
-        }
+    it 'returns false for negated atomic proposition' do
+      prop = RuleRover::Statements::Proposition.parse("not(A)")
+      model = {
+        "A" => true
+      }
 
-        result = MyKen::ModelChecker.true_in_model?(a.not, model)
-        expect(result).to be false
-      end
+      result = RuleRover::ModelChecker.new.true_in_model?(prop, model)
+      expect(result).to be false
     end
-    context 'conjunction statement' do
-      it do
-        a = MyKen::Statements::Statement.new("A")
-        b = MyKen::Statements::Statement.new("B")
-        model = {
-          "A" => true,
-          "B" => false
-        }
+    it 'returns false when one conjunct is false' do
+      prop = RuleRover::Statements::Proposition.parse("A and B")
+      model = {
+        "A" => true,
+        "B" => false
+      }
 
-        result = MyKen::ModelChecker.true_in_model?(a.and(b), model)
-        expect(result).to be false
-      end
+      result = RuleRover::ModelChecker.new.true_in_model?(prop, model)
+      expect(result).to be false
     end
-    context 'disjunction statement' do
-      it do
-        a = MyKen::Statements::Statement.new("A")
-        b = MyKen::Statements::Statement.new("B")
-        model = {
-          "A" => true,
-          "B" => false
-        }
+    it 'returns true when one disjunct is true' do
+      model = {
+        "A" => true,
+        "B" => false
+      }
+      prop = RuleRover::Statements::Proposition.parse("A or B")
 
-        result = MyKen::ModelChecker.true_in_model?(a.or(b), model)
-        expect(result).to be true
-      end
+      result = RuleRover::ModelChecker.new.true_in_model?(prop, model)
+      expect(result).to be true
     end
-    context 'complex statement' do
-      it do
-        a = MyKen::Statements::Statement.new("A")
-        b = MyKen::Statements::Statement.new("B")
-        c = MyKen::Statements::Statement.new("C")
-        d = MyKen::Statements::Statement.new("D")
+    it 'returns true for a long statement' do
+      model = {
+        "A" => true,
+        "B" => false,
+        "C" => false,
+        "D" => true
+      }
+      prop = RuleRover::Statements::Proposition.parse("((A or B) and (C or not(D)))")
+
+      result = RuleRover::ModelChecker.new.true_in_model?(prop, model)
+      expect(result).to be false
+    end
+    context 'when the model is missing a literal' do
+      it 'raises' do
         model = {
           "A" => true,
           "B" => false,
-          "C" => false,
-          "D" => true
+          "C" => false
         }
-
-        stmt = a.or(b).and(c.or(d.not))
-        # True and False => False
-        result = MyKen::ModelChecker.true_in_model?(stmt, model)
-        expect(result).to be false
+        prop = RuleRover::Statements::Proposition.parse("((A or B) and (C or not(D)))")
+        expect do
+          RuleRover::ModelChecker.new.true_in_model?(prop, model)
+        end.to raise_error(RuleRover::UnassignedLiteral)
       end
     end
   end
   describe '.entail?' do
     it do
-      a = MyKen::Statements::Statement.new("A")
-      b = MyKen::Statements::Statement.new("B")
-
-      prop_kb = MyKen::PropositionalKB.new
-      prop_kb.assert(a.⊃(b))
-      prop_kb.assert(a)
-
-      expect(MyKen::ModelChecker.entail?(prop_kb, b)).to be true
+      prop_kb = RuleRover::PropositionalKB.build("A ⊃ B", "A")
+      expect(RuleRover::ModelChecker.entail?(prop_kb, "B")).to be true
     end
     it do
-      a = MyKen::Statements::Statement.new("A")
-      b = MyKen::Statements::Statement.new("B")
-
-      prop_kb = MyKen::PropositionalKB.new
-      prop_kb.assert(a.⊃(b))
-      prop_kb.assert(b.not)
-
-      expect(MyKen::ModelChecker.entail?(prop_kb, a.not)).to be true
+      prop_kb = RuleRover::PropositionalKB.build("A ⊃ B", "not(B)")
+      expect(RuleRover::ModelChecker.entail?(prop_kb, "not(A)")).to be true
     end
     it do
-      a = MyKen::Statements::Statement.new("A")
-      b = MyKen::Statements::Statement.new("B")
-      c = MyKen::Statements::Statement.new("C")
-
-      prop_kb = MyKen::PropositionalKB.new
-      prop_kb.assert(a.⊃(b))
-      prop_kb.assert(b.⊃(c))
-      prop_kb.assert(a)
-
-      expect(MyKen::ModelChecker.entail?(prop_kb, c)).to be true
+      prop_kb = RuleRover::PropositionalKB.build("A ⊃ B", "B ⊃ C", "A")
+      expect(RuleRover::ModelChecker.entail?(prop_kb, "C")).to be true
     end
     it do
-      a = MyKen::Statements::Statement.new("A")
-      b = MyKen::Statements::Statement.new("B")
-      c = MyKen::Statements::Statement.new("C")
-
-      prop_kb = MyKen::PropositionalKB.new
-      prop_kb.assert(a.⊃(b))
-      prop_kb.assert(b.⊃(c))
-      prop_kb.assert(c.not)
-
-      expect(MyKen::ModelChecker.entail?(prop_kb, a.not)).to be true
+      prop_kb = RuleRover::PropositionalKB.build("A ⊃ B", "B ⊃ C", "A")
+      expect(RuleRover::ModelChecker.entail?(prop_kb, "A ⊃ C")).to be true
     end
-  end
-  context 'simple knowledge base' do
-    let(:as1) do
-      MyKen::Statements::AtomicStatement.new(true, "as1")
+    it do
+      prop_kb = RuleRover::PropositionalKB.build("A ⊃ B", "B ⊃ C", "not(A)")
+      expect(RuleRover::ModelChecker.entail?(prop_kb, "not(A)")).to be true
     end
-    let(:as2) do
-      MyKen::Statements::AtomicStatement.new(true, "as2")
-    end
-    let(:statements) do
-      [
-        as1,
-        as2,
-        cs1 = MyKen::Statements::ComplexStatement.new(as1, as2, '⊃')
-      ]
-    end
-    let(:cs2) do
-      not_as2 = MyKen::Statements::ComplexStatement.new(as2, nil, 'not')
-      MyKen::Statements::ComplexStatement.new(as1, not_as2, 'and')
-    end
-    let(:kb) do
-      MyKen::KnowledgeBase.new do |kb|
-        statements.each { |s| kb.add_fact(s) }
-      end
-    end
-    context 'KB entails alpha' do
-      it 'returns true' do
-        expect(MyKen::ModelChecker.run(kb, as2)).to be true
-      end
-    end
-    context 'KB does not entail alpha' do
-      it 'returns false' do
-        expect(MyKen::ModelChecker.run(kb, cs2)).to be false
-      end
+    it do
+      prop_kb = RuleRover::PropositionalKB.build("A ⊃ B", "B ⊃ C", "not(A)")
+      expect(RuleRover::ModelChecker.entail?(prop_kb, "X")).to be false
     end
   end
 end

@@ -1,4 +1,4 @@
-module MyKen
+module RuleRover
   module BooleanMonkeyPatch
     def ⊃(other)
       not(self) or other
@@ -10,5 +10,5 @@ module MyKen
   end
 end
 
-TrueClass.include MyKen::BooleanMonkeyPatch
-FalseClass.include MyKen::BooleanMonkeyPatch
+TrueClass.include RuleRover::BooleanMonkeyPatch
+FalseClass.include RuleRover::BooleanMonkeyPatch

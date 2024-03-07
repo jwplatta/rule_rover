@@ -1,4 +1,4 @@
-module MyKen
+module RuleRover
   module Statements
     class ToCNF
       class << self

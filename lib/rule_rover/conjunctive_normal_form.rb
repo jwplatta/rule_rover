@@ -1,4 +1,4 @@
-module MyKen
+module RuleRover
   module ConjunctiveNormalForm
     class Converter
       class << self
@@ -32,13 +32,13 @@ module MyKen
           end
 
           if statement.operator == "≡"
-            MyKen::Statements::ComplexStatement.new(
-              MyKen::Statements::ComplexStatement.new(statement_x, statement_y, "⊃"),
-              MyKen::Statements::ComplexStatement.new(statement_y, statement_x, "⊃"),
+            RuleRover::Statements::ComplexStatement.new(
+              RuleRover::Statements::ComplexStatement.new(statement_x, statement_y, "⊃"),
+              RuleRover::Statements::ComplexStatement.new(statement_y, statement_x, "⊃"),
               "and"
             )
           else
-            MyKen::Statements::ComplexStatement.new(
+            RuleRover::Statements::ComplexStatement.new(
               statement_x,
               statement_y,
               statement.operator
@@ -62,13 +62,13 @@ module MyKen
           end
 
           if statement.operator == "⊃"
-            MyKen::Statements::ComplexStatement.new(
-              MyKen::Statements::ComplexStatement.new(statement_x, nil, "not"),
+            RuleRover::Statements::ComplexStatement.new(
+              RuleRover::Statements::ComplexStatement.new(statement_x, nil, "not"),
               statement_y,
               "or"
             )
           else
-            MyKen::Statements::ComplexStatement.new(
+            RuleRover::Statements::ComplexStatement.new(
               statement_x,
               statement_y,
               statement.operator
@@ -81,22 +81,22 @@ module MyKen
           return statement if statement.nil? or statement.atomic?
 
           new_statement = if statement.operator == "not" and statement.statement_x.operator == "or"
-            MyKen::Statements::ComplexStatement.new(
-              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_x, nil, "not"),
-              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_y, nil, "not"),
+            RuleRover::Statements::ComplexStatement.new(
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x.statement_x, nil, "not"),
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x.statement_y, nil, "not"),
               "and"
             )
           elsif statement.operator == "not" and statement.statement_x.operator == "and"
-            MyKen::Statements::ComplexStatement.new(
-              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_x, nil, "not"),
-              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_y, nil, "not"),
+            RuleRover::Statements::ComplexStatement.new(
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x.statement_x, nil, "not"),
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x.statement_y, nil, "not"),
               "or"
             )
           else
             statement
           end
 
-          MyKen::Statements::ComplexStatement.new(
+          RuleRover::Statements::ComplexStatement.new(
             move_negation_to_literals(new_statement.statement_x),
             move_negation_to_literals(new_statement.statement_y),
             new_statement.operator
@@ -113,7 +113,7 @@ module MyKen
           if statement.operator == "not" and statement.statement_x.operator == "not" and statement.statement_x.statement_x.atomic?
             statement.statement_x.statement_x
           else
-            MyKen::Statements::ComplexStatement.new(
+            RuleRover::Statements::ComplexStatement.new(
               eliminate_double_negation(statement.statement_x),
               eliminate_double_negation(statement.statement_y),
               statement.operator
@@ -135,15 +135,15 @@ module MyKen
           return statement if statement.nil? or statement.atomic?
 
           distributed_statement = if statement.operator == "or" and statement.statement_x.operator == "and"
-            MyKen::Statements::ComplexStatement.new(
-              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_x, statement.statement_y, "or"),
-              MyKen::Statements::ComplexStatement.new(statement.statement_x.statement_y, statement.statement_y, "or"),
+            RuleRover::Statements::ComplexStatement.new(
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x.statement_x, statement.statement_y, "or"),
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x.statement_y, statement.statement_y, "or"),
               "and"
             )
           elsif statement.operator == "or" and statement.statement_y.operator == "and"
-            MyKen::Statements::ComplexStatement.new(
-              MyKen::Statements::ComplexStatement.new(statement.statement_x, statement.statement_y.statement_x, "or"),
-              MyKen::Statements::ComplexStatement.new(statement.statement_x, statement.statement_y.statement_y, "or"),
+            RuleRover::Statements::ComplexStatement.new(
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x, statement.statement_y.statement_x, "or"),
+              RuleRover::Statements::ComplexStatement.new(statement.statement_x, statement.statement_y.statement_y, "or"),
               "and"
             )
           else
@@ -162,7 +162,7 @@ module MyKen
             distribute(distributed_statement.statement_y)
           end
 
-          MyKen::Statements::ComplexStatement.new(
+          RuleRover::Statements::ComplexStatement.new(
             statement_x,
             statement_y,
             distributed_statement.operator

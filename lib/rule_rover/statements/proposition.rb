@@ -1,4 +1,4 @@
-module MyKen
+module RuleRover
   module Statements
     class Proposition
       attr_reader :operator, :terms, :symbol
