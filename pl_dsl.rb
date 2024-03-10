@@ -9,10 +9,15 @@ end
 
 class Sentence
   def evaluate(model)
+    raise NotImplementedError
+  end
+
+  def symbols
+    raise NotImplementedError
   end
 end
 
-class Conjunction
+class Conjunction < Sentence
   def initialize(left, right)
     @left_sentence = left
     @right_sentence = right
@@ -20,24 +25,16 @@ class Conjunction
 
   attr_reader :left_sentence, :right_sentence, :operator
 
-  def true?
-    left_sentence.true? and right_sentence.true?
-  end
-
-  def is_atomic?
-    false
+  def evaluate(model)
+    left_sentence.evaluate(model) and right_sentence.evaluate(model)
   end
 
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
-
-  def evaluate(model)
-    left_sentence.evaluate(model) and right_sentence.evaluate(model)
-  end
 end
 
-class Disjunction
+class Disjunction < Sentence
   def initialize(left, right)
     @left_sentence = left
     @right_sentence = right
@@ -49,16 +46,12 @@ class Disjunction
     left_sentence.evaluate(model) or right_sentence.evaluate(model)
   end
 
-  def is_atomic?
-    false
-  end
-
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
 end
 
-class Conditional
+class Conditional < Sentence
   def initialize(left, right)
     @left_sentence = left
     @right_sentence = right
@@ -70,16 +63,12 @@ class Conditional
     !left_sentence.evaluate(model) or right_sentence.evaluate(model)
   end
 
-  def is_atomic?
-    false
-  end
-
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
 end
 
-class Biconditional
+class Biconditional < Sentence
   def initialize(left, right)
     @left_sentence = left
     @right_sentence = right
@@ -91,16 +80,12 @@ class Biconditional
     left_sentence.evaluate(model) == right_sentence.evaluate(model)
   end
 
-  def is_atomic?
-    false
-  end
-
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
 end
 
-class Negation
+class Negation < Sentence
   def initialize(sentence)
     @sentence = sentence
   end
@@ -111,16 +96,12 @@ class Negation
     not sentence.evaluate(model)
   end
 
-  def is_atomic?
-    true
-  end
-
   def symbols
     Set.new(sentence.symbols)
   end
 end
 
-class Atomic
+class Atomic < Sentence
   def initialize(sentence)
     @sentence = sentence
   end
@@ -131,20 +112,8 @@ class Atomic
     model[sentence]
   end
 
-  def is_atomic?
-    true
-  end
-
-  def eql?(other)
-    other.is_a? Atomic and sentence == other.sentence
-  end
-
   def ==(other)
     other.is_a? Atomic and sentence == other.sentence
-  end
-
-  def hash
-    @sentence.hash
   end
 
   def symbols
@@ -153,23 +122,6 @@ class Atomic
 
   def to_s
     sentence
-  end
-end
-
-class Model
-  def initialize(symobls)
-    @symobls = {}
-    symbols.each do |symbol|
-      @symbols[symbol.to_s] = symbol
-    end
-  end
-
-  attr_reader :symbols
-
-  def assign(sentence, value)
-    raise ArgumentError if not value.is_a?(boolean)
-
-    @symobls[sentence] = value
   end
 end
 
@@ -233,7 +185,6 @@ class KnowledgeBase
       )
     end
 
-    puts "Asserting: #{sentence.inspect}"
     Sentence.factory(*sentence).then do |sentence|
       @symbols = Set.new(@symbols + sentence.symbols)
       @sentences << sentence
