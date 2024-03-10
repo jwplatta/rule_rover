@@ -7,6 +7,18 @@ Tuple = Struct.new(:predicate, :constants) do
   def cardinality
     constants.size
   end
+
+  def self.create_attributes(num_constants)
+    num_constants.times do |i|
+      define_method("constant_#{i+1}") do
+        constants[i]
+      end
+
+      define_method("constant_#{i+1}=") do |value|
+        constants[i] = value
+      end
+    end
+  end
 end
 
 Rule = Struct.new(:antecedent, :consequent)
@@ -58,6 +70,11 @@ kb = knowledge_base do
   add_rule [:human, :X], [:mortal, :X]
   add_rule [:taught, :X, :Y], [:student, :Y, :X]
   add_rule [:friend, :X, :Y], [:friend, :Y, :X]
+end
+
+kb2 = knowledge_base do
+  assert "a", :or, "b"
+  assert [["a", :or, "b"], :and, "c"]
 end
 
 puts kb.facts
