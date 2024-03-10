@@ -7,6 +7,11 @@ class SentenceNotWellFormedError < StandardError
   end
 end
 
+class Sentence
+  def evaluate(model)
+  end
+end
+
 class Conjunction
   def initialize(left, right)
     @left_sentence = left
@@ -26,6 +31,10 @@ class Conjunction
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
+
+  def evaluate(model)
+    left_sentence.evaluate(model) and right_sentence.evaluate(model)
+  end
 end
 
 class Disjunction
@@ -36,8 +45,8 @@ class Disjunction
 
   attr_reader :left_sentence, :right_sentence, :operator
 
-  def true?
-    left_sentence.true? or right_sentence.true?
+  def evaluate(model)
+    left_sentence.evaluate(model) or right_sentence.evaluate(model)
   end
 
   def is_atomic?
@@ -57,8 +66,8 @@ class Conditional
 
   attr_reader :left_sentence, :right_sentence, :operator
 
-  def true?
-    !left_sentence.true? or right_sentence.true?
+  def evaluate(model)
+    !left_sentence.evaluate(model) or right_sentence.evaluate(model)
   end
 
   def is_atomic?
@@ -78,8 +87,8 @@ class Biconditional
 
   attr_reader :left_sentence, :right_sentence, :operator
 
-  def true?
-    left_sentence.true? == right_sentence.true?
+  def evaluate(model)
+    left_sentence.evaluate(model) == right_sentence.evaluate(model)
   end
 
   def is_atomic?
@@ -98,8 +107,8 @@ class Negation
 
   attr_reader :sentence, :operator
 
-  def true?
-    !sentence.true?
+  def evaluate(model)
+    not sentence.evaluate(model)
   end
 
   def is_atomic?
@@ -114,18 +123,12 @@ end
 class Atomic
   def initialize(sentence)
     @sentence = sentence
-    @truth_value = nil
   end
 
   attr_reader :sentence
 
-  def set_truth_value(value)
-    @truth_value = value
-  end
-
-  def true?
-    raise StandardError.new("Truth value not set") if @truth_value.nil?
-    @truth_value == true
+  def evaluate(model)
+    model[sentence]
   end
 
   def is_atomic?
@@ -145,21 +148,28 @@ class Atomic
   end
 
   def symbols
-    Set.new([self])
+    Set.new([sentence])
+  end
+
+  def to_s
+    sentence
   end
 end
 
 class Model
   def initialize(symobls)
     @symobls = {}
+    symbols.each do |symbol|
+      @symbols[symbol.to_s] = symbol
+    end
   end
+
+  attr_reader :symbols
 
   def assign(sentence, value)
-    raise ArgumentError unless value.is_a?(boolean)
-    @truth_values[sentence] = value
-  end
+    raise ArgumentError if not value.is_a?(boolean)
 
-  def evaluate(sentence)
+    @symobls[sentence] = value
   end
 end
 
@@ -170,7 +180,7 @@ class Sentence
         Atomic.new(args.first)
       elsif args.size == 2
         Negation.new(factory(*args[1]))
-      elsif args.size >= 3
+      elsif args.size >= 3 and args.size <= 5
         connective_index = args.find_index do |elm|
           [:and, :or, :then, :iff].include?(elm)
         end
@@ -210,11 +220,11 @@ class KnowledgeBase
   def initialize
     @connectives = [:and, :or, :then, :iff]
     @operators = [:not, :and, :or, :then, :iff]
-    @atomic_sentences = Set.new
+    @symbols = Set.new([])
     @sentences = []
   end
 
-  attr_reader :atomic_sentences, :connectives, :sentences
+  attr_reader :symbols, :connectives, :sentences
 
   def assert(*sentence)
     unless wff?(*sentence)
@@ -225,7 +235,7 @@ class KnowledgeBase
 
     puts "Asserting: #{sentence.inspect}"
     Sentence.factory(*sentence).then do |sentence|
-      @atomic_sentences = Set.new(@atomic_sentences + sentence.symbols)
+      @symbols = Set.new(@symbols + sentence.symbols)
       @sentences << sentence
     end
   end
@@ -238,14 +248,29 @@ class KnowledgeBase
     element.is_a?(String)
   end
 
-  def entail?(sentence)
+  def entail?(*sentence)
     Sentence.factory(*sentence).then do |query|
-      Model.new(atomic_sentences).evaluate(query)
+      check_truth_tables(
+        query,
+        Set.new(symbols + query.symbols).to_a,
+        {}
+      )
     end
   end
 
-  def entails?(sentence)
-    return true
+  def check_truth_tables(query, symbols=[], model={})
+    if symbols.empty?
+      !evaluate(model) or query.evaluate(model)
+    else
+      check_truth_tables(query, symbols[1..], model.merge({symbols.first => false})) \
+        and check_truth_tables(query, symbols[1..], model.merge({symbols.first => true}))
+    end
+  end
+
+  def evaluate(model)
+    @sentences.all? do |sentence|
+      sentence.evaluate(model)
+    end
   end
 
   def wff?(*sentence)
@@ -272,26 +297,15 @@ def knowledge_base(kb=nil, &block)
 end
 
 kb = knowledge_base do
-  assert "a"
-  assert "b"
-  # puts true_in_model? ["a", :and, "b"], { "a" => true, "b" => true }
-  # puts true_in_model? ["a", :and, "b"], { "a" => true, "b" => false }
-  # puts true_in_model? ["a", :or, "b"], { "a" => false, "b" => true }
-  # puts true_in_model? ["a", :or, "b"], { "a" => false, "b" => false }
-  # puts true_in_model? ["a", :iff, "b"], { "a" => true, "b" => false }
-  # puts true_in_model? ["a", :iff, "b"], { "a" => false, "b" => false }
-  # puts true_in_model? ["a", :then, "b"], { "a" => true, "b" => false }
-  # puts true_in_model? ["a", :then, "b"], { "a" => false, "b" => false }
-  # puts true_in_model? ["a", :then, "b"], { "a" => true, "b" => true }
-  assert "a", :and, "b"
-  assert "c", :or, "d"
-  assert "e", :then, "f"
-  assert "g", :iff, "h"
-  assert :not, "i"
-  assert "j"
-  assert ["k", :and, "l"], :or, "m"
-  assert [["k", :and, "l"], :or, ["n", :and, "o"]], :then, "p"
-  assert ["matt", :and, "ben"], :and, "joe"
+  assert ["a", :and, "b"], :then, "c"
+  assert :not, "c"
+  # assert "e", :then, "f"
+  # assert "g", :iff, "h"
+  # assert :not, "i"
+  # assert "j"
+  # assert ["k", :and, "l"], :or, "m"
+  # assert [["k", :and, "l"], :or, ["n", :and, "o"]], :then, "p"
+  # assert ["matt", :and, "ben"], :and, "joe"
   # wff? "a"
   # wff? :not, "a"
   # wff? "b", :and, "b"
@@ -305,11 +319,11 @@ kb = knowledge_base do
   # wff? :not, "a", :and, :not, "b"
   # wff? "c", :and, :not, "d"
   # wff? [["a", :and, "b"], :or, ["c", :and, :not, "d"]], :then, :not, "e"
-  # entail? "a", :and, "b"
+  puts entail? :not, ["a", :and, "b"]
 end
 
-binding.pry
+# binding.pry
 
-puts kb.atomic_sentences
-puts "----------------------"
-puts kb.sentences.inspect
+# puts kb.symbols
+# puts "----------------------"
+# puts kb.sentences.inspect
