@@ -11,6 +11,7 @@ require_relative "./rule_rover/model_checker"
 require_relative "./rule_rover/conjunctive_normal_form"
 require_relative "./rule_rover/resolver"
 require_relative "./rule_rover/forward_chaining.rb"
+require_relative "./rule_rover/propositional_logic/knowledge_base.rb"
 
 module RuleRover
   class Error < StandardError; end
