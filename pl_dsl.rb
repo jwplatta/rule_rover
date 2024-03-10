@@ -15,6 +15,10 @@ class Sentence
   def symbols
     raise NotImplementedError
   end
+
+  def to_s
+    raise NotImplementedError
+  end
 end
 
 class Conjunction < Sentence
@@ -31,6 +35,10 @@ class Conjunction < Sentence
 
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
+  end
+
+  def to_s
+    [left_sentence.to_s, :and, right_sentence.to_s].inspect
   end
 end
 
@@ -49,6 +57,10 @@ class Disjunction < Sentence
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
+
+  def to_s
+    [left_sentence.to_s, :or, right_sentence.to_s].inspect
+  end
 end
 
 class Conditional < Sentence
@@ -65,6 +77,10 @@ class Conditional < Sentence
 
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
+  end
+
+  def to_s
+    [left_sentence.to_s, :then, right_sentence.to_s].inspect
   end
 end
 
@@ -83,6 +99,10 @@ class Biconditional < Sentence
   def symbols
     Set.new(left_sentence.symbols + right_sentence.symbols)
   end
+
+  def to_s
+    [left_sentence.to_s, :iff, right_sentence.to_s].inspect
+  end
 end
 
 class Negation < Sentence
@@ -98,6 +118,10 @@ class Negation < Sentence
 
   def symbols
     Set.new(sentence.symbols)
+  end
+
+  def to_s
+    [:not, sentence.to_s].inspect
   end
 end
 
@@ -209,6 +233,14 @@ class KnowledgeBase
     end
   end
 
+  # Determine if the query is true given the knowledge base by enumerating all truth tables.
+  #
+  # @param query [Sentence] The query to be evaluated.
+  # @param symbols [Array] The list of symbols used in the query.
+  # @param model [Hash] The model representing the truth values of the symbols.
+  # @return [Boolean] Returns true if the query is true all models that the knowledge base is true.
+  #
+  # @note The time complexity of this method is O(2^n), where n is the number of unique symbols contained in the query and the knowledge base.
   def check_truth_tables(query, symbols=[], model={})
     if symbols.empty?
       !evaluate(model) or query.evaluate(model)
@@ -250,6 +282,7 @@ end
 kb = knowledge_base do
   assert ["a", :and, "b"], :then, "c"
   assert :not, "c"
+  assert "a"
   # assert "e", :then, "f"
   # assert "g", :iff, "h"
   # assert :not, "i"
@@ -270,8 +303,12 @@ kb = knowledge_base do
   # wff? :not, "a", :and, :not, "b"
   # wff? "c", :and, :not, "d"
   # wff? [["a", :and, "b"], :or, ["c", :and, :not, "d"]], :then, :not, "e"
-  puts entail? :not, ["a", :and, "b"]
+  entail? :not, ["a", :and, "b"]
 end
+
+puts kb.entail? :not, ["a", :and, "b"]
+puts kb.entail? :not, "b"
+
 
 # binding.pry
 
