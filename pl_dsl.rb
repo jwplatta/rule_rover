@@ -1,3 +1,4 @@
+require 'pry'
 require 'set'
 
 class SentenceNotWellFormedError < StandardError
@@ -6,14 +7,114 @@ class SentenceNotWellFormedError < StandardError
   end
 end
 
-# class Sentence
-#   def initialize(sentence, knowledge_base)
-#     @elements = elements
-#     @knowledge_base = knowledge_base
-#   end
+class Conjunction
+  def initialize(left, right)
+    @left_sentence = left
+    @right_sentence = right
+  end
 
-#   attr_reader :sentence
-# end
+  attr_reader :left_sentence, :right_sentence, :operator
+
+  def true?
+    left_sentence.true? and right_sentence.true?
+  end
+
+  def is_atomic?
+    false
+  end
+end
+
+class Disjunction
+  def initialize(left, right)
+    @left_sentence = left
+    @right_sentence = right
+  end
+
+  attr_reader :left_sentence, :right_sentence, :operator
+
+  def true?
+    left_sentence.true? or right_sentence.true?
+  end
+
+  def is_atomic?
+    false
+  end
+end
+
+class Conditional
+  def initialize(left, right)
+    @left_sentence = left
+    @right_sentence = right
+  end
+
+  attr_reader :left_sentence, :right_sentence, :operator
+
+  def true?
+    !left_sentence.true? or right_sentence.true?
+  end
+
+  def is_atomic?
+    false
+  end
+end
+
+class Biconditional
+  def initialize(left, right)
+    @left_sentence = left
+    @right_sentence = right
+  end
+
+  attr_reader :left_sentence, :right_sentence, :operator
+
+  def true?
+    left_sentence.true? == right_sentence.true?
+  end
+
+  def is_atomic?
+    false
+  end
+end
+
+class Negation
+  def initialize(sentence)
+    @sentence = sentence
+  end
+
+  attr_reader :sentence, :operator
+
+  def true?
+    !sentence.true?
+  end
+
+  def is_atomic?
+    true
+  end
+end
+
+class Atomic
+  def initialize(sentence)
+    @sentence = sentence
+    @truth_value = nil
+  end
+
+  attr_reader :sentence
+
+  def set_truth_value(value)
+    @truth_value = value
+  end
+
+  def true?
+    @truth_value == true
+  end
+
+  def is_atomic?
+    true
+  end
+
+  def ==(other)
+    other.is_a? Atomic and sentence == other.sentence
+  end
+end
 
 class Model
   def initialize(knowledge_base)
@@ -26,6 +127,35 @@ class Model
   end
 
   def evaluate(sentence)
+  end
+end
+
+class Sentence
+  class << self
+    def factory(*args)
+      puts args.inspect
+      if args.size == 3
+        if args[1] == :and
+          Conjunction.new(args[0], args[2])
+        elsif args[1] == :or
+          Disjunction.new(args[0], args[2])
+        elsif args[1] == :then
+          Conditional.new(args[0], args[2])
+        elsif args[1] == :iff
+          Biconditional.new(args[0], args[2])
+        else
+          raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
+        end
+      elsif args[0] == :not and args.size == 2
+        Negation.new(args[1])
+      elsif args[0] == :not and args.size > 2
+        Negation.new(factory(*args[1..]))
+      elsif args.size == 1
+        Atomic.new(args[0])
+      else
+        raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
+      end
+    end
   end
 end
 
@@ -42,11 +172,8 @@ class KnowledgeBase
   def assert(*sentence)
     wff?(*sentence)
 
-    sentence.flatten.each do |element|
-      @atomic_sentences << element if is_atomic?(element)
-    end
 
-    @sentences << sentence
+    sentence
   end
 
   def is_connective?(element)
@@ -62,24 +189,6 @@ class KnowledgeBase
   end
 
   def true_in_model?(sentence, model)
-    if sentence.length == 1 and is_atomic?(sentence[0])
-      model.fetch(sentence[0], false)
-    elsif sentence.length == 2 and sentence[0] == :not
-      !true_in_model?(sentence[1], model)
-    elsif sentence.length == 3
-      if sentence[1] == :and
-        model.fetch(sentence[0], false) and model.fetch(sentence[2], false)
-      elsif sentence[1] == :or
-        model.fetch(sentence[0], false) or model.fetch(sentence[2], false)
-      elsif sentence[1] == :then
-        !(model.fetch(sentence[0], false) and !model.fetch(sentence[2], false))
-      elsif sentence[1] == :iff
-        model.fetch(sentence[0], false) == model.fetch(sentence[2], false)
-      end
-    # TODO:  elsif sentence.length > 3
-    else
-      raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{sentence.inspect}")
-    end
   end
 
   def entails?(sentence)
@@ -145,6 +254,10 @@ kb = knowledge_base do
   # wff? [["a", :and, "b"], :or, ["c", :and, :not, "d"]], :then, :not, "e"
   # entail? "a", :and, "b"
 end
+
+
+binding.pry
+
 
 puts kb.atomic_sentences
 puts kb.sentences.inspect
