@@ -22,6 +22,10 @@ class Conjunction
   def is_atomic?
     false
   end
+
+  def symbols
+    Set.new(left_sentence.symbols + right_sentence.symbols)
+  end
 end
 
 class Disjunction
@@ -38,6 +42,10 @@ class Disjunction
 
   def is_atomic?
     false
+  end
+
+  def symbols
+    Set.new(left_sentence.symbols + right_sentence.symbols)
   end
 end
 
@@ -56,6 +64,10 @@ class Conditional
   def is_atomic?
     false
   end
+
+  def symbols
+    Set.new(left_sentence.symbols + right_sentence.symbols)
+  end
 end
 
 class Biconditional
@@ -73,6 +85,10 @@ class Biconditional
   def is_atomic?
     false
   end
+
+  def symbols
+    Set.new(left_sentence.symbols + right_sentence.symbols)
+  end
 end
 
 class Negation
@@ -89,6 +105,10 @@ class Negation
   def is_atomic?
     true
   end
+
+  def symbols
+    Set.new(sentence.symbols)
+  end
 end
 
 class Atomic
@@ -104,6 +124,7 @@ class Atomic
   end
 
   def true?
+    raise StandardError.new("Truth value not set") if @truth_value.nil?
     @truth_value == true
   end
 
@@ -111,14 +132,26 @@ class Atomic
     true
   end
 
+  def eql?(other)
+    other.is_a? Atomic and sentence == other.sentence
+  end
+
   def ==(other)
     other.is_a? Atomic and sentence == other.sentence
+  end
+
+  def hash
+    @sentence.hash
+  end
+
+  def symbols
+    Set.new([self])
   end
 end
 
 class Model
-  def initialize(knowledge_base)
-    @truth_values = {}
+  def initialize(symobls)
+    @symobls = {}
   end
 
   def assign(sentence, value)
@@ -133,25 +166,39 @@ end
 class Sentence
   class << self
     def factory(*args)
-      puts args.inspect
-      if args.size == 3
-        if args[1] == :and
-          Conjunction.new(args[0], args[2])
-        elsif args[1] == :or
-          Disjunction.new(args[0], args[2])
-        elsif args[1] == :then
-          Conditional.new(args[0], args[2])
-        elsif args[1] == :iff
-          Biconditional.new(args[0], args[2])
+      if args.size == 1 and args.first.is_a? String
+        Atomic.new(args.first)
+      elsif args.size == 2
+        Negation.new(factory(*args[1]))
+      elsif args.size >= 3
+        connective_index = args.find_index do |elm|
+          [:and, :or, :then, :iff].include?(elm)
+        end
+        connective = args[connective_index]
+
+        if connective == :and
+          Conjunction.new(
+            factory(*args[0...connective_index].first),
+            factory(*args[connective_index+1..].first)
+          )
+        elsif connective == :or
+          Disjunction.new(
+            factory(*args[0...connective_index].first),
+            factory(*args[connective_index+1..].first)
+          )
+        elsif connective == :then
+          Conditional.new(
+            factory(*args[0...connective_index].first),
+            factory(*args[connective_index+1..].first)
+          )
+        elsif connective == :iff
+          Biconditional.new(
+            factory(*args[0...connective_index].first),
+            factory(*args[connective_index+1..].first)
+          )
         else
           raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
         end
-      elsif args[0] == :not and args.size == 2
-        Negation.new(args[1])
-      elsif args[0] == :not and args.size > 2
-        Negation.new(factory(*args[1..]))
-      elsif args.size == 1
-        Atomic.new(args[0])
       else
         raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
       end
@@ -170,25 +217,31 @@ class KnowledgeBase
   attr_reader :atomic_sentences, :connectives, :sentences
 
   def assert(*sentence)
-    wff?(*sentence)
+    unless wff?(*sentence)
+      raise SentenceNotWellFormedError.new(
+        "Sentence is not a well-formed formula: #{sentence.inspect}"
+      )
+    end
 
-
-    sentence
+    puts "Asserting: #{sentence.inspect}"
+    Sentence.factory(*sentence).then do |sentence|
+      @atomic_sentences = Set.new(@atomic_sentences + sentence.symbols)
+      @sentences << sentence
+    end
   end
 
   def is_connective?(element)
     @connectives.include?(element)
   end
 
-  def is_operator?(element)
-    @operators.include?(element)
-  end
-
   def is_atomic?(element)
     element.is_a?(String)
   end
 
-  def true_in_model?(sentence, model)
+  def entail?(sentence)
+    Sentence.factory(*sentence).then do |query|
+      Model.new(atomic_sentences).evaluate(query)
+    end
   end
 
   def entails?(sentence)
@@ -207,7 +260,7 @@ class KnowledgeBase
     elsif sentence.size >= 2 and sentence[0] == :not and is_connective?(sentence[2])
       wff?(*sentence[0..1]) and wff?(*sentence[3..])
     else
-      raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{sentence.inspect}")
+      false
     end
   end
 end
@@ -219,26 +272,26 @@ def knowledge_base(kb=nil, &block)
 end
 
 kb = knowledge_base do
-  # assert "a"
-  # assert "b"
-  puts true_in_model? ["a", :and, "b"], { "a" => true, "b" => true }
-  puts true_in_model? ["a", :and, "b"], { "a" => true, "b" => false }
-  puts true_in_model? ["a", :or, "b"], { "a" => false, "b" => true }
-  puts true_in_model? ["a", :or, "b"], { "a" => false, "b" => false }
-  puts true_in_model? ["a", :iff, "b"], { "a" => true, "b" => false }
-  puts true_in_model? ["a", :iff, "b"], { "a" => false, "b" => false }
-  puts true_in_model? ["a", :then, "b"], { "a" => true, "b" => false }
-  puts true_in_model? ["a", :then, "b"], { "a" => false, "b" => false }
-  puts true_in_model? ["a", :then, "b"], { "a" => true, "b" => true }
-  # assert "a", :and, "b"
-  # assert "c", :or, "d"
-  # assert "e", :then, "f"
-  # assert "g", :iff, "h"
-  # assert :not, "i"
-  # assert "j"
-  # assert ["k", :and, "l"], :or, "m"
-  # assert [["k", :and, "l"], :or, ["n", :and, "o"]], :then, "p"
-  # assert ["matt", :and, "ben"], :and, "joe"
+  assert "a"
+  assert "b"
+  # puts true_in_model? ["a", :and, "b"], { "a" => true, "b" => true }
+  # puts true_in_model? ["a", :and, "b"], { "a" => true, "b" => false }
+  # puts true_in_model? ["a", :or, "b"], { "a" => false, "b" => true }
+  # puts true_in_model? ["a", :or, "b"], { "a" => false, "b" => false }
+  # puts true_in_model? ["a", :iff, "b"], { "a" => true, "b" => false }
+  # puts true_in_model? ["a", :iff, "b"], { "a" => false, "b" => false }
+  # puts true_in_model? ["a", :then, "b"], { "a" => true, "b" => false }
+  # puts true_in_model? ["a", :then, "b"], { "a" => false, "b" => false }
+  # puts true_in_model? ["a", :then, "b"], { "a" => true, "b" => true }
+  assert "a", :and, "b"
+  assert "c", :or, "d"
+  assert "e", :then, "f"
+  assert "g", :iff, "h"
+  assert :not, "i"
+  assert "j"
+  assert ["k", :and, "l"], :or, "m"
+  assert [["k", :and, "l"], :or, ["n", :and, "o"]], :then, "p"
+  assert ["matt", :and, "ben"], :and, "joe"
   # wff? "a"
   # wff? :not, "a"
   # wff? "b", :and, "b"
@@ -255,9 +308,8 @@ kb = knowledge_base do
   # entail? "a", :and, "b"
 end
 
-
 binding.pry
 
-
 puts kb.atomic_sentences
+puts "----------------------"
 puts kb.sentences.inspect
