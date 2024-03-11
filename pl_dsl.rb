@@ -1,10 +1,16 @@
 require 'pry'
 require 'set'
 
+module PropositionalLogic
+end
+
 class SentenceNotWellFormedError < StandardError
   def initialize(message = "Sentence is not a well-formed formula.")
     super(message)
   end
+end
+
+class EmptyClause
 end
 
 class Sentence
@@ -13,95 +19,252 @@ class Sentence
   end
 
   def symbols
-    raise NotImplementedError
+    Set.new(left.symbols + right.symbols)
+  end
+
+  def is_atomic?
+    false
   end
 
   def to_s
     raise NotImplementedError
+  end
+
+  def ==(other)
+    to_s == other.to_s
+  end
+
+  def eql?(other)
+    self == other
+  end
+
+  def hash
+    to_s.hash
   end
 end
 
 class Conjunction < Sentence
   def initialize(left, right)
-    @left_sentence = left
-    @right_sentence = right
+    @left = left
+    @right = right
   end
 
-  attr_reader :left_sentence, :right_sentence, :operator
+  attr_reader :left, :right, :operator
 
   def evaluate(model)
-    left_sentence.evaluate(model) and right_sentence.evaluate(model)
+    left.evaluate(model) and right.evaluate(model)
   end
 
-  def symbols
-    Set.new(left_sentence.symbols + right_sentence.symbols)
+  def eliminate_biconditionals
+    Conjunction.new(
+      left.eliminate_biconditionals,
+      right.eliminate_biconditionals
+    )
+  end
+
+  def eliminate_conditionals
+    Conjunction.new(
+      left.eliminate_conditionals,
+      right.eliminate_conditionals
+    )
+  end
+
+  def elim_double_negations
+    Conjunction.new(
+      left.elim_double_negations,
+      right.elim_double_negations
+    )
+  end
+
+  def de_morgans_laws
+    Conjunction.new(
+      left.de_morgans_laws,
+      right.de_morgans_laws
+    )
+  end
+
+  def distribute
+    Conjunction.new(
+      left.distribute,
+      right.distribute
+    )
+  end
+
+  def atomics
+    left.atomics + right.atomics
   end
 
   def to_s
-    [left_sentence.to_s, :and, right_sentence.to_s].inspect
+    "[#{left} :and #{right}]"
   end
 end
 
 class Disjunction < Sentence
   def initialize(left, right)
-    @left_sentence = left
-    @right_sentence = right
+    @left = left
+    @right = right
   end
 
-  attr_reader :left_sentence, :right_sentence, :operator
+  attr_reader :left, :right, :operator
 
   def evaluate(model)
-    left_sentence.evaluate(model) or right_sentence.evaluate(model)
+    left.evaluate(model) or right.evaluate(model)
   end
 
-  def symbols
-    Set.new(left_sentence.symbols + right_sentence.symbols)
+  def eliminate_biconditionals
+    Disjunction.new(
+      left.eliminate_biconditionals,
+      right.eliminate_biconditionals
+    )
+  end
+
+  def eliminate_conditionals
+    Disjunction.new(
+      left.eliminate_conditionals,
+      right.eliminate_conditionals
+    )
+  end
+
+  def elim_double_negations
+    Disjunction.new(
+      left.elim_double_negations,
+      right.elim_double_negations
+    )
+  end
+
+  def de_morgans_laws
+    Disjunction.new(
+      left.de_morgans_laws,
+      right.de_morgans_laws
+    )
+  end
+
+  def distribute
+    if left.is_a? Conjunction and right.is_a? Conjunction
+      Conjunction.new(
+        Disjunction.new(left.left, right.distribute),
+        Disjunction.new(left.right, right.distribute)
+      )
+    elsif left.is_a? Conjunction
+      Conjunction.new(
+        Disjunction.new(left.left, right),
+        Disjunction.new(left.right, right)
+      )
+    elsif right.is_a? Conjunction
+      Conjunction.new(
+        Disjunction.new(left, right.left),
+        Disjunction.new(left, right.right)
+      )
+    else
+      self
+    end
+  end
+
+  def clauses
+    if left.atomic? or left.is_a? Negation
+      [self]
+    else
+      left.clauses + right.clauses
+    end
+  end
+
+  def atomics
+    left.atomics + right.atomics
   end
 
   def to_s
-    [left_sentence.to_s, :or, right_sentence.to_s].inspect
+    "[#{left} :or #{right}]"
   end
 end
 
 class Conditional < Sentence
   def initialize(left, right)
-    @left_sentence = left
-    @right_sentence = right
+    @left = left
+    @right = right
   end
 
-  attr_reader :left_sentence, :right_sentence, :operator
+  attr_reader :left, :right, :operator
 
   def evaluate(model)
-    !left_sentence.evaluate(model) or right_sentence.evaluate(model)
+    !left.evaluate(model) or right.evaluate(model)
   end
 
-  def symbols
-    Set.new(left_sentence.symbols + right_sentence.symbols)
+  def eliminate_biconditionals
+    Conditional.new(
+      @left.eliminate_biconditionals,
+      @right.eliminate_biconditionals
+    )
+  end
+
+  def eliminate_conditionals
+    Disjunction.new(
+      Negation.new(@left.eliminate_conditionals),
+      @right.eliminate_conditionals
+    )
+  end
+
+  def elim_double_negations
+    Conditional.new(
+      left.elim_double_negations,
+      right.elim_double_negations
+    )
+  end
+
+  def de_morgans_laws
+    Conditional.new(
+      left.de_morgans_laws,
+      right.de_morgans_laws
+    )
+  end
+
+  def atomics
+    left.atomics + right.atomics
   end
 
   def to_s
-    [left_sentence.to_s, :then, right_sentence.to_s].inspect
+    "[#{left} :then #{right}]"
   end
 end
 
 class Biconditional < Sentence
   def initialize(left, right)
-    @left_sentence = left
-    @right_sentence = right
+    @left = left
+    @right = right
   end
 
-  attr_reader :left_sentence, :right_sentence, :operator
+  attr_reader :left, :right, :operator
 
   def evaluate(model)
-    left_sentence.evaluate(model) == right_sentence.evaluate(model)
+    left.evaluate(model) == right.evaluate(model)
   end
 
-  def symbols
-    Set.new(left_sentence.symbols + right_sentence.symbols)
+  def eliminate_biconditionals
+    Conjunction.new(
+      Conditional.new(left.eliminate_biconditionals, right.eliminate_biconditionals),
+      Conditional.new(right.eliminate_biconditionals, left.eliminate_biconditionals)
+    )
+  end
+
+  def elim_double_negations
+    Biconditional.new(
+      left.elim_double_negations,
+      right.elim_double_negations
+    )
+  end
+
+  def de_morgans_laws
+    Biconditional.new(
+      left.de_morgans_laws,
+      right.de_morgans_laws
+    )
+  end
+
+  def atomics
+    left.atomics + right.atomics
   end
 
   def to_s
-    [left_sentence.to_s, :iff, right_sentence.to_s].inspect
+    "[#{left.to_s} :iff #{right}]"
   end
 end
 
@@ -120,8 +283,56 @@ class Negation < Sentence
     Set.new(sentence.symbols)
   end
 
+  def eliminate_biconditionals
+    Negation.new(sentence.eliminate_biconditionals)
+  end
+
+  def eliminate_conditionals
+    Negation.new(sentence.eliminate_conditionals)
+  end
+
+  def distribute
+    self
+  end
+
+  def elim_double_negations
+    if sentence.is_a? self.class and sentence.sentence.is_atomic?
+      sentence.sentence
+    else
+      Negation.new(sentence.elim_double_negations)
+    end
+  end
+
+  def de_morgans_laws
+    if sentence.is_a? Conjunction
+      Disjunction.new(
+        Negation.new(sentence.left),
+        Negation.new(sentence.right)
+      )
+    elsif sentence.is_a? Disjunction
+      Conjunction.new(
+        Negation.new(sentence.left),
+        Negation.new(sentence.right)
+      )
+    else
+      Negation.new(sentence.de_morgans_laws)
+    end
+  end
+
+  def is_atomic?
+    sentence.is_atomic?
+  end
+
+  def atomics
+    if is_atomic?
+      [self]
+    else
+      sentence.atomics
+    end
+  end
+
   def to_s
-    [:not, sentence.to_s].inspect
+    "[:not #{sentence}]"
   end
 end
 
@@ -144,6 +355,34 @@ class Atomic < Sentence
     Set.new([sentence])
   end
 
+  def eliminate_biconditionals
+    self
+  end
+
+  def eliminate_conditionals
+    self
+  end
+
+  def elim_double_negations
+    self
+  end
+
+  def de_morgans_laws
+    self
+  end
+
+  def distribute
+    self
+  end
+
+  def atomics
+    [self]
+  end
+
+  def is_atomic?
+    true
+  end
+
   def to_s
     sentence
   end
@@ -152,6 +391,7 @@ end
 class Sentence
   class << self
     def factory(*args)
+      puts args.inspect
       if args.size == 1 and args.first.is_a? String
         Atomic.new(args.first)
       elsif args.size == 2
@@ -223,8 +463,133 @@ class KnowledgeBase
     element.is_a?(String)
   end
 
-  def entail?(*sentence)
-    Sentence.factory(*sentence).then do |query|
+  def resolve(*query)
+    prove_sent = Sentence.factory(:not, query)
+
+    puts "prove_sent: ", prove_sent
+
+    Sentence.factory(:not, query).then do |query|
+      sentences + [query]
+    end.then do |all_sentences|
+      all_sent_cnf = all_sentences.map do |sentence|
+        to_cnf(*sentence)
+      end
+      puts "all_sent_cnf: ", all_sent_cnf
+      all_sent_cnf
+    end.then do |all_sent_cnf|
+      clauses = Set.new([])
+      while not all_sent_cnf.empty?
+        sent = all_sent_cnf.shift
+
+        if sent.is_a? Conjunction
+          all_sent_cnf << sent.left
+          all_sent_cnf << sent.right
+        else
+          clauses << sent
+        end
+      end
+      puts "clauses: ", clauses.to_a.map(&:to_s)
+      clauses.to_a
+    end.then do |clauses|
+      while true
+        new_clauses = []
+        clauses.combination(2).to_a.each do |cls_a, cls_b|
+
+          complements = find_complements(cls_a, cls_b)
+          if complements.empty?
+            next
+          else
+            resolvents = resolve_clauses(cls_a, cls_b, complements)
+            if resolvents.is_a? EmptyClause
+              puts "clauses: ", cls_a, cls_b, " returned the empty clause"
+              return true
+            elsif not new_clauses.include? resolvents
+              new_clauses << resolvents
+            end
+          end
+        end
+
+        if new_clauses.all? { |new_cls| clauses.include? new_cls }
+          return false
+        else
+          clauses = clauses + new_clauses.select { |new_cls| not clauses.include? new_cls }
+        end
+        puts "updated clause count: ", clauses.size
+      end
+    end
+  end
+
+  def resolve_clauses(cls_a, cls_b, complements)
+    comp_a, comp_b = complements
+
+    cls_a_atomics = cls_a.atomics
+    cls_b_atomics = cls_b.atomics
+
+    cls_a_atomics.delete_at(cls_a_atomics.index(comp_a))
+    cls_b_atomics.delete_at(cls_b_atomics.index(comp_b))
+
+    if cls_a_atomics.empty? and cls_b_atomics.empty?
+      return EmptyClause.new
+    end
+
+    Set.new(cls_a_atomics + cls_b_atomics).to_a.then do |new_atomics|
+      if new_atomics.size == 1
+        return new_atomics.first
+      else
+        left, right = new_atomics.shift(2)
+        new_clause = Disjunction.new(left, right)
+        while not new_atomics.empty?
+          new_clause = Disjunction.new(new_clause, new_atomics.shift)
+        end
+        new_clause
+      end
+    end
+  end
+
+  def find_complements(clause_a, clause_b)
+    clause_a.atomics.product(clause_b.atomics).each do |atom_a, atom_b|
+      if complements?(atom_a, atom_b)
+        return [atom_a, atom_b]
+      end
+    end
+    []
+  end
+
+  def complements?(a, b)
+    (a.is_a?(Negation) and a.sentence == b) or (b.is_a?(Negation) and b.sentence == a)
+  end
+
+  def to_cnf(sentence)
+    puts "to_cnf: ", sentence
+
+    sentence.eliminate_biconditionals.then do |sent|
+      # puts "eliminate_biconditionals: ", sent
+      sent.eliminate_conditionals
+    end.then do |prev|
+      # puts "eliminate_conditionals: ", prev
+      changing = true
+      until not changing
+        updated = prev.elim_double_negations
+        updated = updated.de_morgans_laws
+
+        if updated.to_s == prev.to_s
+          changing = false
+        else
+          prev = updated
+        end
+      end
+      # puts "handle negations: ", updated
+      updated
+    end.then do |sent|
+      # STEP: find nested conjunctions
+      distributed_sent = sent.distribute
+      puts "distribute: ", distributed_sent
+      distributed_sent
+    end
+  end
+
+  def entail?(*query)
+    Sentence.factory(*query).then do |query|
       check_truth_tables(
         query,
         Set.new(symbols + query.symbols).to_a,
@@ -280,16 +645,19 @@ def knowledge_base(kb=nil, &block)
 end
 
 kb = knowledge_base do
-  assert ["a", :and, "b"], :then, "c"
-  assert :not, "c"
-  assert "a"
+  # NOTE: testing asserts
+  # assert ["a", :and, "b"], :then, "c"
+  # assert :not, "c"
+  # assert [:not, "a"], :or, [:not, "b"]
+  # assert "a"
   # assert "e", :then, "f"
   # assert "g", :iff, "h"
   # assert :not, "i"
   # assert "j"
   # assert ["k", :and, "l"], :or, "m"
   # assert [["k", :and, "l"], :or, ["n", :and, "o"]], :then, "p"
-  # assert ["matt", :and, "ben"], :and, "joe"
+  # assert ["matt", :and, [:not, "ben"]], :and, "joe"
+
   # wff? "a"
   # wff? :not, "a"
   # wff? "b", :and, "b"
@@ -303,11 +671,32 @@ kb = knowledge_base do
   # wff? :not, "a", :and, :not, "b"
   # wff? "c", :and, :not, "d"
   # wff? [["a", :and, "b"], :or, ["c", :and, :not, "d"]], :then, :not, "e"
-  entail? :not, ["a", :and, "b"]
+
+  # entail? :not, ["a", :and, "b"]
+
+  # TODO: to_cnf should only accept a Sentence object
+  # to_cnf Sentence.factory([:not, [:not, "a"]], :iff, [:not, [:not, "b"]])
+  # to_cnf Sentence.factory([[:not, "b"], :or, "c"], :then, "a")
+  # to_cnf Sentence.factory(["a", :iff, "b"], :or, ["d", :iff, "c"])
+  # to_cnf Sentence.factory(:not, ["a", :and, "b"])
+  # to_cnf Sentence.factory(:not, ["a", :or, "b"])
+  # to_cnf Sentence.factory(:not, [["a", :then, "c"], :and, ["b", :then, "d"]])
+  # puts to_cnf Sentence.factory(["a", :and, "b"], :iff, "c")
+
+  # NOTE: setting resolution
+  # assert :not, ["a", :and, "b"]
+  assert ["a", :and, "c"], :iff, "b"
+  assert "b"
+  # assert "c", :then, "d"
+  puts resolve "d"
+  puts resolve "a", :and, "c"
+  # puts complements? Negation.new(Atomic.new("a")), Atomic.new("a")
+  # puts complements? Atomic.new("a"), Negation.new(Atomic.new("a"))
+  # puts complements? Atomic.new("a"), Negation.new(Atomic.new("b"))
 end
 
-puts kb.entail? :not, ["a", :and, "b"]
-puts kb.entail? :not, "b"
+# puts kb.entail? :not, ["a", :and, "b"]
+# puts kb.entail? :not, "b"
 
 
 # binding.pry
