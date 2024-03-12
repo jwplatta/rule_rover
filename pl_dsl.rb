@@ -90,8 +90,8 @@ class Conjunction < Sentence
     )
   end
 
-  def atomics
-    left.atomics + right.atomics
+  def atoms
+    left.atoms + right.atoms
   end
 
   def to_s
@@ -168,8 +168,8 @@ class Disjunction < Sentence
     end
   end
 
-  def atomics
-    left.atomics + right.atomics
+  def atoms
+    left.atoms + right.atoms
   end
 
   def to_s
@@ -217,8 +217,8 @@ class Conditional < Sentence
     )
   end
 
-  def atomics
-    left.atomics + right.atomics
+  def atoms
+    left.atoms + right.atoms
   end
 
   def to_s
@@ -259,8 +259,8 @@ class Biconditional < Sentence
     )
   end
 
-  def atomics
-    left.atomics + right.atomics
+  def atoms
+    left.atoms + right.atoms
   end
 
   def to_s
@@ -323,11 +323,11 @@ class Negation < Sentence
     sentence.is_atomic?
   end
 
-  def atomics
+  def atoms
     if is_atomic?
       [self]
     else
-      sentence.atomics
+      sentence.atoms
     end
   end
 
@@ -375,7 +375,7 @@ class Atomic < Sentence
     self
   end
 
-  def atomics
+  def atoms
     [self]
   end
 
@@ -463,96 +463,85 @@ class KnowledgeBase
     element.is_a?(String)
   end
 
-  def resolve(*query)
-    prove_sent = Sentence.factory(:not, query)
-
-    puts "prove_sent: ", prove_sent
-
+  def resolution(*query)
     Sentence.factory(:not, query).then do |query|
       sentences + [query]
     end.then do |all_sentences|
-      all_sent_cnf = all_sentences.map do |sentence|
-        to_cnf(*sentence)
-      end
-      puts "all_sent_cnf: ", all_sent_cnf
-      all_sent_cnf
+      all_sentences.map { |sentence| to_cnf(*sentence) }
     end.then do |all_sent_cnf|
-      clauses = Set.new([])
-      while not all_sent_cnf.empty?
-        sent = all_sent_cnf.shift
-
-        if sent.is_a? Conjunction
-          all_sent_cnf << sent.left
-          all_sent_cnf << sent.right
-        else
-          clauses << sent
-        end
-      end
-      puts "clauses: ", clauses.to_a.map(&:to_s)
-      clauses.to_a
+      find_clauses(all_sent_cnf)
     end.then do |clauses|
-      while true
-        new_clauses = []
-        clauses.combination(2).to_a.each do |cls_a, cls_b|
+      resolve(clauses)
+    end
+  end
 
-          complements = find_complements(cls_a, cls_b)
-          if complements.empty?
-            next
-          else
-            resolvents = resolve_clauses(cls_a, cls_b, complements)
-            if resolvents.is_a? EmptyClause
-              puts "clauses: ", cls_a, cls_b, " returned the empty clause"
-              return true
-            elsif not new_clauses.include? resolvents
-              new_clauses << resolvents
-            end
+  def resolve(clauses)
+    new_clauses = []
+    clauses.combination(2).to_a.each do |cls_a, cls_b|
+      complements = first_complements(cls_a, cls_b)
+      if complements.empty?
+        next
+      else
+        resolve_clauses(cls_a.atoms, cls_b.atoms, *complements).then do |new_clause|
+          if new_clause.is_a? EmptyClause
+            return true
+          elsif not new_clauses.include? new_clause
+            new_clauses << new_clause
           end
         end
+      end
+    end
 
-        if new_clauses.all? { |new_cls| clauses.include? new_cls }
-          return false
+    if new_clauses.all? { |new_cls| clauses.include? new_cls }
+      return false
+    else
+      resolve(clauses + new_clauses.select { |new_cls| not clauses.include? new_cls })
+    end
+  end
+
+  def find_clauses(sentences)
+    # NOTE: assumes that the sentences are in CNF
+    clauses = []
+    while not sentences.empty?
+      sent = sentences.shift
+
+      if sent.is_a? Conjunction
+        sentences << sent.left
+        sentences << sent.right
+      elsif not clauses.include? sent
+        clauses << sent
+      end
+    end
+    clauses
+  end
+
+  def resolve_clauses(cls_a_atoms, cls_b_atoms, comp_a, comp_b)
+    cls_a_atoms.delete_at(cls_a_atoms.index(comp_a))
+    cls_b_atoms.delete_at(cls_b_atoms.index(comp_b))
+
+    if cls_a_atoms.empty? and cls_b_atoms.empty?
+      EmptyClause.new
+    else
+      Set.new(cls_a_atoms + cls_b_atoms).to_a.then do |new_atoms|
+        if new_atoms.size == 1
+          new_atoms.first
         else
-          clauses = clauses + new_clauses.select { |new_cls| not clauses.include? new_cls }
+          left, right = new_atoms.shift(2)
+
+          new_clause = Disjunction.new(left, right)
+          while not new_atoms.empty?
+            new_clause = Disjunction.new(new_clause, new_atoms.shift)
+          end
+          new_clause
         end
-        puts "updated clause count: ", clauses.size
       end
     end
   end
 
-  def resolve_clauses(cls_a, cls_b, complements)
-    comp_a, comp_b = complements
-
-    cls_a_atomics = cls_a.atomics
-    cls_b_atomics = cls_b.atomics
-
-    cls_a_atomics.delete_at(cls_a_atomics.index(comp_a))
-    cls_b_atomics.delete_at(cls_b_atomics.index(comp_b))
-
-    if cls_a_atomics.empty? and cls_b_atomics.empty?
-      return EmptyClause.new
-    end
-
-    Set.new(cls_a_atomics + cls_b_atomics).to_a.then do |new_atomics|
-      if new_atomics.size == 1
-        return new_atomics.first
-      else
-        left, right = new_atomics.shift(2)
-        new_clause = Disjunction.new(left, right)
-        while not new_atomics.empty?
-          new_clause = Disjunction.new(new_clause, new_atomics.shift)
-        end
-        new_clause
-      end
-    end
-  end
-
-  def find_complements(clause_a, clause_b)
-    clause_a.atomics.product(clause_b.atomics).each do |atom_a, atom_b|
-      if complements?(atom_a, atom_b)
-        return [atom_a, atom_b]
-      end
-    end
-    []
+  def first_complements(clause_a, clause_b)
+    clause_a.atoms.product(clause_b.atoms).find do |atomic_a, atomic_b|
+      complements?(atomic_a, atomic_b)
+    end || []
   end
 
   def complements?(a, b)
@@ -560,17 +549,14 @@ class KnowledgeBase
   end
 
   def to_cnf(sentence)
-    puts "to_cnf: ", sentence
-
     sentence.eliminate_biconditionals.then do |sent|
-      # puts "eliminate_biconditionals: ", sent
       sent.eliminate_conditionals
     end.then do |prev|
-      # puts "eliminate_conditionals: ", prev
       changing = true
       until not changing
-        updated = prev.elim_double_negations
-        updated = updated.de_morgans_laws
+        updated = prev.elim_double_negations.then do |sent|
+          sent.de_morgans_laws
+        end
 
         if updated.to_s == prev.to_s
           changing = false
@@ -578,13 +564,9 @@ class KnowledgeBase
           prev = updated
         end
       end
-      # puts "handle negations: ", updated
       updated
     end.then do |sent|
-      # STEP: find nested conjunctions
-      distributed_sent = sent.distribute
-      puts "distribute: ", distributed_sent
-      distributed_sent
+      sent.distribute
     end
   end
 
@@ -685,11 +667,15 @@ kb = knowledge_base do
 
   # NOTE: setting resolution
   # assert :not, ["a", :and, "b"]
+  assert "x", :then, "y"
+  assert :not, "y"
+  puts resolution :not, "x"
+
   assert ["a", :and, "c"], :iff, "b"
   assert "b"
-  # assert "c", :then, "d"
-  puts resolve "d"
-  puts resolve "a", :and, "c"
+  puts resolution "a", :and, "c"
+  puts resolution "a"
+  puts resolution "d"
   # puts complements? Negation.new(Atomic.new("a")), Atomic.new("a")
   # puts complements? Atomic.new("a"), Negation.new(Atomic.new("a"))
   # puts complements? Atomic.new("a"), Negation.new(Atomic.new("b"))
