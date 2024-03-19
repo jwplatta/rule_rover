@@ -13,8 +13,8 @@ require_relative "./rule_rover/resolver"
 require_relative "./rule_rover/forward_chaining.rb"
 require_relative "./rule_rover/propositional_logic/knowledge_base.rb"
 require_relative "./rule_rover/constants.rb"
+require_relative "./rule_rover/sentence_not_well_formed_error.rb"
 
 module RuleRover
   class Error < StandardError; end
-  # Your code goes here...
 end

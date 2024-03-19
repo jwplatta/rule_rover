@@ -1,4 +1,4 @@
-module PropositionalLogic
+module RuleRover
   class SentenceNotWellFormedError < StandardError
     def initialize(message = "Sentence is not a well-formed formula.")
       super(message)
