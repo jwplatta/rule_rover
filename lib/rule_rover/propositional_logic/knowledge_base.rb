@@ -3,9 +3,9 @@ require 'set'
 
 module RuleRover::PropositionalLogic
   class KnowledgeBase
-    def initialize(engine=:model_checking)
+    def initialize(engine: :model_checking, sentences: [])
       @symbols = Set.new([])
-      @sentences = []
+      @sentences = sentences
       @engine = engine
     end
 
@@ -34,6 +34,36 @@ module RuleRover::PropositionalLogic
 
     def operators
       @operators ||= RuleRover::OPERATORS
+    end
+
+    def to_cnf
+      sentences.map(&:to_cnf).then do |cnf_sentences|
+        cnf_sentences.map do |sent|
+          frontier = [sent]
+          disjunctions = []
+          while frontier.any?
+            sent = frontier.shift
+            if sent.is_a? Sentences::Conjunction
+              frontier << sent.left
+              frontier << sent.right
+            elsif sent.is_a? Sentences::Disjunction or sent.is_atomic?
+              disjunctions << sent
+            else
+              raise StandardError.new("Unexpected sentence type: #{sent.class}")
+            end
+          end
+          disjunctions
+        end.flatten.uniq
+      end.then do |disjunctions|
+        KnowledgeBase.new(
+          engine: engine,
+          sentences: disjunctions
+        )
+      end
+    end
+
+    def is_definite?
+      @is_definite ||= sentences.all?(&:is_definite?)
     end
 
     private

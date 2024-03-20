@@ -27,4 +27,50 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
       expect(subject.symbols).to eq(Set.new(["a", "b", "c", "d"]))
     end
   end
+  describe '#to_cnf' do
+    it do
+      subject.assert("a", :iff, "b")
+      subject.assert("a", :and, "f")
+      subject.assert("c", :then, "d")
+      subject.assert("e", :and, "f")
+      new_kb = subject.to_cnf
+
+      expected = [
+        sentence_factory.build([:not, "a"], :or, "b"),
+        sentence_factory.build("f"),
+        sentence_factory.build([:not, "b"], :or, "a"),
+        sentence_factory.build("a"),
+        sentence_factory.build([:not, "c"], :or, "d"),
+        sentence_factory.build("e"),
+      ]
+      expect(new_kb.sentences).to match_array(expected)
+    end
+  end
+
+  describe '#is_definite?' do
+    describe 'when all clauses are definite' do
+      it do
+        subject.assert("a", :iff, "b")
+        subject.assert("a", :and, "f")
+        subject.assert("c", :then, "d")
+        subject.assert("e", :and, "f")
+        new_kb = subject.to_cnf
+        expect(new_kb.is_definite?).to be true
+      end
+    end
+    describe 'when some clauses are not definite' do
+      it do
+        subject.assert("a", :iff, "b")
+        subject.assert(:not, "a", :and, :not, "f")
+        subject.assert("c", :then, "d")
+        subject.assert("e", :and, "f")
+        new_kb = subject.to_cnf
+        expect(new_kb.is_definite?).to be false
+      end
+    end
+  end
+
+  def sentence_factory
+    RuleRover::PropositionalLogic::Sentences::Factory
+  end
 end
