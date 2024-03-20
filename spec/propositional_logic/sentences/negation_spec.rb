@@ -5,7 +5,7 @@ describe RuleRover::PropositionalLogic::Sentences::Negation do
     expect { described_class.new(nil) }.not_to raise_error
   end
 
-  fdescribe '#de_moorgans_laws' do
+  describe '#de_moorgans_laws' do
     it 'returns a disjunction of negations' do
       sentence = sentence_factory.build(:not, ["a", :and, "b"])
       expects = sentence_factory.build(:not, "a", :or, :not, "b")
