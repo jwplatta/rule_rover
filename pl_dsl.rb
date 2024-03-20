@@ -1,8 +1,8 @@
 require 'pry'
 require 'set'
 
-module PropositionalLogic
-end
+CONNECTIVES=[:and, :or, :then, :iff]
+OPERATORS=[:not, :and, :or, :then, :iff]
 
 class SentenceNotWellFormedError < StandardError
   def initialize(message = "Sentence is not a well-formed formula.")
@@ -24,6 +24,36 @@ class Sentence
 
   def is_atomic?
     false
+  end
+
+  def is_definite?
+    false
+  end
+
+  def is_positive?
+    false
+  end
+
+  def to_cnf
+    self.eliminate_biconditionals.then do |sent|
+      sent.eliminate_conditionals
+    end.then do |prev_sent|
+      changing = true
+      until not changing
+        updated = prev_sent.elim_double_negations.then do |sent|
+          sent.de_morgans_laws
+        end
+
+        if updated.to_s == prev_sent.to_s
+          changing = false
+        else
+          prev_sent = updated
+        end
+      end
+      updated
+    end.then do |sent|
+      sent.distribute
+    end
   end
 
   def to_s
@@ -105,7 +135,7 @@ class Disjunction < Sentence
     @right = right
   end
 
-  attr_reader :left, :right, :operator
+  attr_reader :left, :right
 
   def evaluate(model)
     left.evaluate(model) or right.evaluate(model)
@@ -160,6 +190,47 @@ class Disjunction < Sentence
     end
   end
 
+  def is_definite?
+    sents = [left, right]
+    post_cnt = 0
+    while not sents.empty?
+      sent sents.unshift
+      if sent.positive?
+        post_cnt += 1
+      elsif (sent.left.is_a? Disjunction or sent.left.is_atomic?) \
+        and (sent.right.is_a? Disjunction or sent.right.is_atomic?)
+        sents << sent.left
+        sents << sent.right
+      end
+
+      return false if post_cnt > 1
+    end
+
+    if post_cnt == 1
+      true
+    else
+      false
+    end
+  end
+
+  def is_horn?
+    sents = [left, right]
+    post_cnt = 0
+    while not sents.empty?
+      sent sents.unshift
+      if sent.positive?
+        post_cnt += 1
+      elsif (sent.left.is_a? Disjunction or sent.left.is_atomic?) \
+        and (sent.right.is_a? Disjunction or sent.right.is_atomic?)
+        sents << sent.left
+        sents << sent.right
+      end
+
+      return false if post_cnt > 1
+    end
+    true
+  end
+
   def clauses
     if left.atomic? or left.is_a? Negation
       [self]
@@ -183,7 +254,7 @@ class Conditional < Sentence
     @right = right
   end
 
-  attr_reader :left, :right, :operator
+  attr_reader :left, :right
 
   def evaluate(model)
     !left.evaluate(model) or right.evaluate(model)
@@ -215,6 +286,14 @@ class Conditional < Sentence
       left.de_morgans_laws,
       right.de_morgans_laws
     )
+  end
+
+  def is_definite?
+    false
+  end
+
+  def is_positive?
+    false
   end
 
   def atoms
@@ -261,6 +340,10 @@ class Biconditional < Sentence
 
   def atoms
     left.atoms + right.atoms
+  end
+
+  def is_positive?
+    false
   end
 
   def to_s
@@ -317,6 +400,10 @@ class Negation < Sentence
     else
       Negation.new(sentence.de_morgans_laws)
     end
+  end
+
+  def is_positive?
+    false
   end
 
   def is_atomic?
@@ -379,6 +466,14 @@ class Atomic < Sentence
     [self]
   end
 
+  def is_positive?
+    true
+  end
+
+  def is_definite?
+    true
+  end
+
   def is_atomic?
     true
   end
@@ -391,7 +486,10 @@ end
 class Sentence
   class << self
     def factory(*args)
-      puts args.inspect
+      unless wff?(*args)
+        raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
+      end
+
       if args.size == 1 and args.first.is_a? String
         Atomic.new(args.first)
       elsif args.size == 2
@@ -429,51 +527,101 @@ class Sentence
         raise SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
       end
     end
+
+    def wff?(*sentence)
+      if sentence.length == 1 and sentence[0].is_a? String
+        true
+      elsif sentence.length == 2 and sentence[0] == :not
+        sentence[1].is_a? String or wff?(*sentence[1])
+      elsif sentence.size == 3 and CONNECTIVES.include?(sentence[1])
+        wff?(*sentence[0]) and wff?(*sentence[2])
+      elsif sentence.size == 4 and CONNECTIVES.include?(sentence[1])
+        wff?(*sentence[0]) and wff?(*sentence[2..])
+      elsif sentence.size >= 2 and sentence[0] == :not and CONNECTIVES.include?(sentence[2])
+        wff?(*sentence[0..1]) and wff?(*sentence[3..])
+      else
+        false
+      end
+    end
   end
 end
 
 class KnowledgeBase
-  def initialize
+  def initialize(engine=:model_checking)
     @connectives = [:and, :or, :then, :iff]
     @operators = [:not, :and, :or, :then, :iff]
     @symbols = Set.new([])
     @sentences = []
+    @engine = engine
   end
 
-  attr_reader :symbols, :connectives, :sentences
+  attr_reader :symbols, :connectives, :sentences, :engine
 
   def assert(*sentence)
-    unless wff?(*sentence)
-      raise SentenceNotWellFormedError.new(
-        "Sentence is not a well-formed formula: #{sentence.inspect}"
-      )
-    end
-
-    Sentence.factory(*sentence).then do |sentence|
+    sentence_factory(*sentence).then do |sentence|
       @symbols = Set.new(@symbols + sentence.symbols)
       @sentences << sentence
     end
   end
 
-  def is_connective?(element)
-    @connectives.include?(element)
+  def entail?(*query)
+    if engine == :model_checking
+      ModelChecking.run(self, *query)
+    elsif engine == :resolution
+      Resolution.run(self, *query)
+    else
+      raise ArgumentError.new("Engine not supported: #{engine}")
+    end
   end
 
-  def is_atomic?(element)
-    element.is_a?(String)
+  private
+
+  def sentence_factory(*args)
+    Sentence.factory(*args)
+  end
+end
+
+class InferenceAlgorithm
+  class << self
+    def run(kb, *query)
+      self.new(kb, *query).entail?
+    end
   end
 
-  def resolution(*query)
-    Sentence.factory(:not, query).then do |query|
-      sentences + [query]
+  def initialize(kb, *query)
+    @kb = kb
+    @query = query
+  end
+
+  attr_reader :kb, :query
+
+  def entail?
+    raise NotImplementedError
+  end
+
+  private
+
+  def sentence_factory(*args)
+    Sentence.factory(*args)
+  end
+end
+
+class Resolution < InferenceAlgorithm
+  def entail?
+    sentence_factory(:not, query).then do |query|
+      kb.sentences + [query]
     end.then do |all_sentences|
-      all_sentences.map { |sentence| to_cnf(*sentence) }
+      all_sentences.map do |sentence|
+        sentence.to_cnf
+      end
     end.then do |all_sent_cnf|
       find_clauses(all_sent_cnf)
     end.then do |clauses|
       resolve(clauses)
     end
   end
+
+  private
 
   def resolve(clauses)
     new_clauses = []
@@ -547,38 +695,21 @@ class KnowledgeBase
   def complements?(a, b)
     (a.is_a?(Negation) and a.sentence == b) or (b.is_a?(Negation) and b.sentence == a)
   end
+end
 
-  def to_cnf(sentence)
-    sentence.eliminate_biconditionals.then do |sent|
-      sent.eliminate_conditionals
-    end.then do |prev|
-      changing = true
-      until not changing
-        updated = prev.elim_double_negations.then do |sent|
-          sent.de_morgans_laws
-        end
 
-        if updated.to_s == prev.to_s
-          changing = false
-        else
-          prev = updated
-        end
-      end
-      updated
-    end.then do |sent|
-      sent.distribute
-    end
-  end
-
-  def entail?(*query)
-    Sentence.factory(*query).then do |query|
+class ModelChecking < InferenceAlgorithm
+  def entail?
+    sentence_factory(*query).then do |query|
       check_truth_tables(
         query,
-        Set.new(symbols + query.symbols).to_a,
+        Set.new(kb.symbols + query.symbols).to_a,
         {}
       )
     end
   end
+
+  private
 
   # Determine if the query is true given the knowledge base by enumerating all truth tables.
   #
@@ -598,30 +729,14 @@ class KnowledgeBase
   end
 
   def evaluate(model)
-    @sentences.all? do |sentence|
+    kb.sentences.all? do |sentence|
       sentence.evaluate(model)
-    end
-  end
-
-  def wff?(*sentence)
-    if sentence.length == 1 and is_atomic?(sentence[0])
-      true
-    elsif sentence.length == 2 and sentence[0] == :not
-      is_atomic?(sentence[1]) or wff?(*sentence[1])
-    elsif sentence.size == 3 and is_connective?(sentence[1])
-      wff?(*sentence[0]) and wff?(*sentence[2])
-    elsif sentence.size == 4 and is_connective?(sentence[1])
-      wff?(*sentence[0]) and wff?(*sentence[2..])
-    elsif sentence.size >= 2 and sentence[0] == :not and is_connective?(sentence[2])
-      wff?(*sentence[0..1]) and wff?(*sentence[3..])
-    else
-      false
     end
   end
 end
 
 def knowledge_base(kb=nil, &block)
-  kb = KnowledgeBase.new if kb.nil?
+  kb = KnowledgeBase.new(engine=:resolution) if kb.nil?
   kb.instance_eval(&block)
   kb
 end
@@ -639,6 +754,8 @@ kb = knowledge_base do
   # assert ["k", :and, "l"], :or, "m"
   # assert [["k", :and, "l"], :or, ["n", :and, "o"]], :then, "p"
   # assert ["matt", :and, [:not, "ben"]], :and, "joe"
+  # puts sentences
+  # assert "ben", :and, :or, "matt"
 
   # wff? "a"
   # wff? :not, "a"
@@ -654,28 +771,28 @@ kb = knowledge_base do
   # wff? "c", :and, :not, "d"
   # wff? [["a", :and, "b"], :or, ["c", :and, :not, "d"]], :then, :not, "e"
 
-  # entail? :not, ["a", :and, "b"]
+  # puts entail? :not, ["a", :and, "b"]
 
   # TODO: to_cnf should only accept a Sentence object
-  # to_cnf Sentence.factory([:not, [:not, "a"]], :iff, [:not, [:not, "b"]])
-  # to_cnf Sentence.factory([[:not, "b"], :or, "c"], :then, "a")
-  # to_cnf Sentence.factory(["a", :iff, "b"], :or, ["d", :iff, "c"])
-  # to_cnf Sentence.factory(:not, ["a", :and, "b"])
-  # to_cnf Sentence.factory(:not, ["a", :or, "b"])
-  # to_cnf Sentence.factory(:not, [["a", :then, "c"], :and, ["b", :then, "d"]])
+  # puts to_cnf Sentence.factory([:not, [:not, "a"]], :iff, [:not, [:not, "b"]])
+  # puts to_cnf Sentence.factory([[:not, "b"], :or, "c"], :then, "a")
+  # puts to_cnf Sentence.factory(["a", :iff, "b"], :or, ["d", :iff, "c"])
+  # puts to_cnf Sentence.factory(:not, ["a", :and, "b"])
+  # puts to_cnf Sentence.factory(:not, ["a", :or, "b"])
+  # puts to_cnf Sentence.factory(:not, [["a", :then, "c"], :and, ["b", :then, "d"]])
   # puts to_cnf Sentence.factory(["a", :and, "b"], :iff, "c")
 
   # NOTE: setting resolution
-  # assert :not, ["a", :and, "b"]
+  assert :not, ["a", :and, "b"]
   assert "x", :then, "y"
   assert :not, "y"
-  puts resolution :not, "x"
+  puts entail? :not, "x"
 
   assert ["a", :and, "c"], :iff, "b"
   assert "b"
-  puts resolution "a", :and, "c"
-  puts resolution "a"
-  puts resolution "d"
+  puts entail? "a", :and, "c"
+  # puts resolution "a"
+  # puts resolution "d"
   # puts complements? Negation.new(Atomic.new("a")), Atomic.new("a")
   # puts complements? Atomic.new("a"), Negation.new(Atomic.new("a"))
   # puts complements? Atomic.new("a"), Negation.new(Atomic.new("b"))
