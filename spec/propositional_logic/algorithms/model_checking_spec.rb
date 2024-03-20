@@ -5,10 +5,10 @@ describe RuleRover::PropositionalLogic::Algorithms::ModelChecking do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
 
-  fdescribe '.run' do
-    let(:kb) { RuleRover::PropositionalLogic::KnowledgeBase.new }
+  describe '.run' do
+    let(:kb) { RuleRover::PropositionalLogic::KnowledgeBase.new(engine=:model_checking) }
 
-    it '' do
+    it do
       kb.assert("a", :then, "b")
       kb.assert("a")
       expect(described_class.run(kb, "b")).to be true
