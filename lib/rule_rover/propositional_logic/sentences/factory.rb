@@ -2,10 +2,6 @@ module RuleRover::PropositionalLogic::Sentences
   class Factory
     class << self
       def build(*args)
-        unless wff?(*args)
-          raise RuleRover::SentenceNotWellFormedError.new("Sentence is not a well-formed formula: #{args.inspect}")
-        end
-
         if args.size == 1 and args.first.is_a? String
           Atomic.new(args.first)
         elsif args.size == 2
@@ -51,22 +47,6 @@ module RuleRover::PropositionalLogic::Sentences
           sentence.first
         else
           sentence
-        end
-      end
-
-      def wff?(*sentence)
-        if sentence.length == 1 and sentence[0].is_a? String
-          true
-        elsif sentence.length == 2 and sentence[0] == :not
-          sentence[1].is_a? String or wff?(*sentence[1])
-        elsif sentence.size == 3 and RuleRover::CONNECTIVES.include?(sentence[1])
-          wff?(*sentence[0]) and wff?(*sentence[2])
-        elsif sentence.size == 4 and RuleRover::CONNECTIVES.include?(sentence[1])
-          wff?(*sentence[0]) and wff?(*sentence[2..])
-        elsif sentence.size >= 2 and sentence[0] == :not and RuleRover::CONNECTIVES.include?(sentence[2])
-          wff?(*sentence[0..1]) and wff?(*sentence[3..])
-        else
-          false
         end
       end
     end
