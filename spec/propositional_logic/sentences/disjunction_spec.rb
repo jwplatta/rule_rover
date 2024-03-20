@@ -4,4 +4,32 @@ describe RuleRover::PropositionalLogic::Sentences::Disjunction do
   it 'does not raise' do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
+
+  describe '#distribute' do
+    describe 'when both disjuncts are conjunctions' do
+      it 'returns a conjunction of disjunctions' do
+        sentence = sentence_factory.build(["a", :and, "b"], :or, ["c", :and, "d"])
+        expects = sentence_factory.build(["a", :or, ["c", :and, "d"]], :and, ["b", :or, ["c", :and, "d"]])
+        expect(sentence.distribute).to eq(expects)
+      end
+    end
+    describe 'when only the left disjunct is a conjunction' do
+      it 'returns a conjunction of disjunctions' do
+        sentence = sentence_factory.build(["a", :and, "b"], :or, "c")
+        expects = sentence_factory.build(["a", :or, "c"], :and, ["b", :or, "c"])
+        expect(sentence.distribute).to eq(expects)
+      end
+    end
+    describe 'when only the right disjunct is a conjunction' do
+      it 'returns a conjunction of disjunctions' do
+        sentence = sentence_factory.build("a", :or, ["c", :and, "d"])
+        expects = sentence_factory.build(["a", :or, "c"], :and, ["a", :or, "d"])
+        expect(sentence.distribute).to eq(expects)
+      end
+    end
+  end
+
+  def sentence_factory
+    RuleRover::PropositionalLogic::Sentences::Factory
+  end
 end
