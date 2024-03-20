@@ -26,6 +26,22 @@ describe RuleRover::PropositionalLogic::Sentences::Negation do
     end
   end
 
+  describe '#elim_double_negations' do
+    it do
+      sentence = sentence_factory.build(:not, [:not, "a"])
+      expects = sentence_factory.build("a")
+      expect(sentence.elim_double_negations).to eq(expects)
+    end
+    it do
+      sentence = sentence_factory.build(:not, "a")
+      expect(sentence.elim_double_negations).to eq(sentence)
+    end
+    it 'ignores non-atomic sentences' do
+      sentence = sentence_factory.build(:not, [:not, ["a", :and, "b"]])
+      expect(sentence.elim_double_negations).to eq(sentence)
+    end
+  end
+
   def sentence_factory
     RuleRover::PropositionalLogic::Sentences::Factory
   end
