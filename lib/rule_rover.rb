@@ -17,5 +17,12 @@ require_relative "./rule_rover/propositional_logic/algorithms/model_checking.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/resolution.rb"
 
 module RuleRover
-  class Error < StandardError; end
+  def knowledge_base(engine: :model_checking, &block)
+    puts "rule_rover knowledge_base"
+    kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine=:model_checking)
+    kb.instance_eval(&block)
+    kb
+  end
+
+  module_function :knowledge_base
 end
