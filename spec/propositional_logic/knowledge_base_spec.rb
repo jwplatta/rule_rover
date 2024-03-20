@@ -1,46 +1,30 @@
 require 'spec_helper'
 
-describe PropositionalLogic::KnowledgeBase do
+describe RuleRover::PropositionalLogic::KnowledgeBase do
   it 'does not raise' do
-    expect { PropositionalLogic::KnowledgeBase.new }.not_to raise_error
+    expect { described_class.new }.not_to raise_error
   end
-  describe 'wff?' do
-    it 'returns true for atomic sentences' do
-      expect(subject.wff?('A')).to be true
-      expect(subject.wff?('a')).to be true
-      expect(subject.wff?('Peter Pan')).to be true
-      expect(subject.wff?(:xyz)).not_to be true
+  describe '#connectives' do
+    it do
+      expect(subject.connectives).to eq RuleRover::CONNECTIVES
     end
-
-    it 'returns true for negated atomic sentences' do
-      expect(subject.wff?(:not, "a")).to be true
-      expect(subject.wff?(:not, "A")).to be true
-      expect(subject.wff?(:not, "Peter Pan")).to be true
-      expect(subject.wff?("A", :not, "Peter Pan")).not_to be true
+  end
+  describe '#operators' do
+    it do
+      expect(subject.operators).to eq RuleRover::OPERATORS
     end
-
-    it 'returns true for conjunctions' do
-      expect(subject.wff?("A", :and, "B")).to be true
-      expect(subject.wff?(["A", :and, "B"], :and, "C")).to be true
-      expect(subject.wff?([:and, "A", "B"], :and, "C")).not_to be true
+  end
+  describe '#assert' do
+    it 'it saves a set of sentences' do
+      subject.assert("a", :and, "b")
+      subject.assert("a", :and, "b")
+      expect(subject.sentences.size).to eq 1
     end
-
-    it 'returns true for disjunctions' do
-      expect(subject.wff?("A", :or, "B")).to be true
-      expect(subject.wff?(["A", :or, "B"], :or, "C")).to be true
-      expect(subject.wff?([:or, "A", "B"], :or, "C")).not_to be true
-    end
-
-    it 'returns true for conditionals' do
-      expect(subject.wff?("A", :then, "B")).to be true
-      expect(subject.wff?(["A", :then, "B"], :then, "C")).to be true
-      expect(subject.wff?([:then, "A", "B"], :then, "C")).not_to be true
-    end
-
-    it 'returns true for biconditionals' do
-      expect(subject.wff?("A", :iff, "B")).to be true
-      expect(subject.wff?(["A", :iff, "B"], :iff, "C")).to be true
-      expect(subject.wff?([:iff, "A", "B"], :iff, "C")).not_to be true
+    it 'saves a set of symbols' do
+      subject.assert("a", :and, "b")
+      subject.assert("a", :or, "c")
+      subject.assert("d", :then, "b")
+      expect(subject.symbols).to eq(Set.new(["a", "b", "c", "d"]))
     end
   end
 end
