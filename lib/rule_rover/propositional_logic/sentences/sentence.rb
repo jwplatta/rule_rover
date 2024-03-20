@@ -83,8 +83,17 @@ module RuleRover::PropositionalLogic::Sentences
           end
         end
         updated
-      end.then do |sent|
-        sent.distribute
+      end.then do |prev_sent|
+        changing = true
+        until not changing
+          updated = prev_sent.distribute
+          if updated.to_s == prev_sent.to_s
+            changing = false
+          else
+            prev_sent = updated
+          end
+        end
+        prev_sent
       end
     end
 
