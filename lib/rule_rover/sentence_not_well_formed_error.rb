@@ -1,7 +1,5 @@
-module RuleRover
-  class SentenceNotWellFormedError < StandardError
-    def initialize(message = "Sentence is not a well-formed formula.")
-      super(message)
-    end
+class RuleRover::SentenceNotWellFormedError < StandardError
+  def initialize(message = "Sentence is not a well-formed formula.")
+    super(message)
   end
 end
