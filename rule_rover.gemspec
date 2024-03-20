@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Joseph Platta"]
   spec.email         = ["jwplatta@gmail.com"]
 
-  spec.summary       = "Simple library for building exerpt systems in ruby."
+  spec.summary       = "Experimental library for building exerpt systems in ruby."
   spec.description   = "Actually it's a complex library for building exerpt systems in ruby."
   # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"
