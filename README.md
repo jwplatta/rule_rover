@@ -12,11 +12,15 @@ gem 'rule_rover'
 
 And then execute:
 
+```sh
 $ bundle install
+```
 
 Or install it yourself as:
 
+```sh
 $ gem install rule_rover
+```
 
 ```sh
 $ gem build rule_rover.gemspec
