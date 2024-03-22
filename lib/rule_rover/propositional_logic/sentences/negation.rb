@@ -50,10 +50,6 @@ module RuleRover::PropositionalLogic::Sentences
       end
     end
 
-    def is_positive?
-      false
-    end
-
     def is_atomic?
       sentence.is_atomic?
     end

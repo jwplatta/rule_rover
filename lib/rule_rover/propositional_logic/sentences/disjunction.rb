@@ -28,10 +28,14 @@ module RuleRover::PropositionalLogic::Sentences
     def is_definite?
       sents = [left, right]
       post_cnt = 0
+
       while not sents.empty?
-        sent sents.unshift
-        if sent.positive?
+        sent = sents.shift
+
+        if sent.is_positive?
           post_cnt += 1
+        elsif sent.is_atomic?
+          next
         elsif (sent.left.is_a? Disjunction or sent.left.is_atomic?) \
           and (sent.right.is_a? Disjunction or sent.right.is_atomic?)
           sents << sent.left
@@ -52,9 +56,12 @@ module RuleRover::PropositionalLogic::Sentences
       sents = [left, right]
       post_cnt = 0
       while not sents.empty?
-        sent sents.unshift
-        if sent.positive?
+        sent = sents.shift
+
+        if sent.is_positive?
           post_cnt += 1
+        elsif sent.is_atomic?
+          next
         elsif (sent.left.is_a? Disjunction or sent.left.is_atomic?) \
           and (sent.right.is_a? Disjunction or sent.right.is_atomic?)
           sents << sent.left
