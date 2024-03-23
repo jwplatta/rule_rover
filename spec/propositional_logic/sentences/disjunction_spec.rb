@@ -52,6 +52,26 @@ describe RuleRover::PropositionalLogic::Sentences::Disjunction do
     end
   end
 
+  describe '#premise_and_conclusion' do
+    it 'raises error' do
+      # expect(sentence.premise_and_conclusion).to eq([["a", "b", "c"], "a"])
+      expect { sentence_factory.build("a", :or, ["b", :or, "c"]).premise_and_conclusion.premise_and_conclusion }.to raise_error(RuleRover::PropositionalLogic::Sentences::NotDefiniteClause)
+    end
+    it 'returns the premise and conclusion' do
+      sentence = sentence_factory.build(:not, "a", :or, [:not, "b", :or, "c"])
+      expected_premises = [
+        sentence_factory.build(:not, "a"),
+        sentence_factory.build(:not, "b")
+      ]
+      expected_conlusion = sentence_factory.build("c")
+      expected = [expected_premises, expected_conlusion]
+
+
+      expect(sentence.premise_and_conclusion).to eq(expected)
+    end
+  end
+
+
   def sentence_factory
     RuleRover::PropositionalLogic::Sentences::Factory
   end

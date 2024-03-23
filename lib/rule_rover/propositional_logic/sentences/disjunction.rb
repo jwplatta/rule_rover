@@ -1,4 +1,5 @@
 module RuleRover::PropositionalLogic::Sentences
+  class NotDefiniteClause < StandardError; end
   class Disjunction < Sentence
     def evaluate(model)
       left.evaluate(model) or right.evaluate(model)
@@ -25,11 +26,36 @@ module RuleRover::PropositionalLogic::Sentences
       end
     end
 
+    def premise_and_conclusion
+      raise NotDefiniteClause.new unless is_definite?
+
+      sents = [left, right]
+
+      conclusion = nil
+      premise = []
+
+      while sents.any?
+        sent = sents.shift
+
+        if sent.is_positive?
+          conclusion = sent
+        elsif sent.is_atomic?
+          premise << sent
+        elsif (sent.left.is_a? Disjunction or sent.left.is_atomic?) \
+          and (sent.right.is_a? Disjunction or sent.right.is_atomic?)
+          sents << sent.left
+          sents << sent.right
+        end
+      end
+
+      [premise, conclusion]
+    end
+
     def is_definite?
       sents = [left, right]
       post_cnt = 0
 
-      while not sents.empty?
+      while sents.any?
         sent = sents.shift
 
         if sent.is_positive?
@@ -55,7 +81,7 @@ module RuleRover::PropositionalLogic::Sentences
     def is_horn?
       sents = [left, right]
       post_cnt = 0
-      while not sents.empty?
+      while sents.any?
         sent = sents.shift
 
         if sent.is_positive?
