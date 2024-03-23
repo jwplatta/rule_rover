@@ -47,7 +47,7 @@ module RuleRover::PropositionalLogic::Sentences
     end
 
     def symbols
-      Set.new(left.symbols + right.symbols)
+      left.symbols.merge(right.symbols)
     end
 
     def atoms

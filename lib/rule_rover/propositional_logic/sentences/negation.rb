@@ -11,7 +11,7 @@ module RuleRover::PropositionalLogic::Sentences
     end
 
     def symbols
-      Set.new(sentence.symbols)
+      sentence.symbols
     end
 
     def eliminate_biconditionals
