@@ -68,6 +68,38 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
         expect(new_kb.is_definite?).to be false
       end
     end
+    describe '#entail?' do
+      describe 'forward_chaining' do
+        it do
+          kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
+          kb.assert("a", :then, "b")
+          kb.assert("a")
+
+          expect(kb.entail?("b")).to be true
+        end
+        describe 'when query is not a single symbol' do
+          it 'raises' do
+            kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
+            kb.assert("a", :then, "b")
+            kb.assert("a")
+
+            expect { kb.entail?("b", :or, "b") }.to raise_error(
+              RuleRover::PropositionalLogic::QueryNotSinglePropositionSymbol
+            )
+          end
+        end
+        describe 'when knowledge base is not definite' do
+          it 'raises' do
+            kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
+            kb.assert("a", :then, :not, "b")
+            kb.assert("a")
+            expect { kb.entail?("b") }.to raise_error(
+              RuleRover::PropositionalLogic::KnowledgeBaseNotDefinite
+            )
+          end
+        end
+      end
+    end
   end
 
   def sentence_factory

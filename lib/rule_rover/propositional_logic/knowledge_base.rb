@@ -2,9 +2,12 @@
 require 'set'
 
 module RuleRover::PropositionalLogic
+  class QueryNotSinglePropositionSymbol < StandardError; end
+  class KnowledgeBaseNotDefinite < StandardError; end
+
   class KnowledgeBase
     def initialize(engine: :model_checking, sentences: [])
-      @symbols = Set.new([])
+      @symbols = sentences.any? ? sentences.reduce(Set.new) { |acc, sent| acc.merge(sent.symbols) } : Set.new
       @sentences = sentences
       @engine = engine
     end
@@ -13,16 +16,33 @@ module RuleRover::PropositionalLogic
 
     def assert(*sentence)
       sentence_factory.build(*sentence).then do |sentence|
-        @symbols = Set.new(symbols + sentence.symbols)
+        @symbols.merge(sentence.symbols)
         @sentences << sentence if sentences.include?(sentence) == false
       end
     end
 
     def entail?(*query)
+      puts "entail? query: #{query}"
       if engine == :model_checking
-        ModelChecking.run(self, *query)
+        ModelChecking.run(
+          kb: self,
+          query: sentence_factory.build(*query)
+        )
       elsif engine == :resolution
-        Resolution.run(self, *query)
+        Resolution.run(
+          kb: self,
+          query: sentence_factory.build(*query)
+        )
+      elsif engine == :forward_chaining
+        unless query.size == 1 and query.first.is_a? String
+          raise QueryNotSinglePropositionSymbol.new("Query must be a single proposition symbol")
+        end
+
+        to_cnf.then do |cnf_kb|
+          raise KnowledgeBaseNotDefinite.new("Knowledge base is not definite") unless cnf_kb.is_definite?
+
+          forward_chain.run(kb: cnf_kb, query: sentence_factory.build(*query))
+        end
       else
         raise ArgumentError.new("Engine not supported: #{engine}")
       end
@@ -70,6 +90,10 @@ module RuleRover::PropositionalLogic
 
     def sentence_factory
       Sentences::Factory
+    end
+
+    def forward_chain
+      RuleRover::PropositionalLogic::Algorithms::ForwardChaining
     end
   end
 end

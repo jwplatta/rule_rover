@@ -2,11 +2,11 @@ module RuleRover::PropositionalLogic::Algorithms
   class LogicAlgorithmBase
     class << self
       def run(kb: nil, query: [])
-        self.new(kb, *query).entail?
+        self.new(kb, query).entail?
       end
     end
 
-    def initialize(kb, *query)
+    def initialize(kb, query)
       @kb = kb
       @query = query
     end
