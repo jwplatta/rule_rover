@@ -22,17 +22,15 @@ module RuleRover::PropositionalLogic
     end
 
     def entail?(*query)
-      puts "entail? query: #{query}"
       if engine == :model_checking
-        ModelChecking.run(
+        model_checking.run(
           kb: self,
           query: sentence_factory.build(*query)
         )
       elsif engine == :resolution
-        Resolution.run(
-          kb: self,
-          query: sentence_factory.build(*query)
-        )
+        to_cnf.then do |cnf_kb|
+          resolution.run(kb: cnf_kb, query: sentence_factory.build(*query))
+        end
       elsif engine == :forward_chaining
         unless query.size == 1 and query.first.is_a? String
           raise QueryNotSinglePropositionSymbol.new("Query must be a single proposition symbol")
@@ -40,8 +38,7 @@ module RuleRover::PropositionalLogic
 
         to_cnf.then do |cnf_kb|
           raise KnowledgeBaseNotDefinite.new("Knowledge base is not definite") unless cnf_kb.is_definite?
-
-          forward_chain.run(kb: cnf_kb, query: sentence_factory.build(*query))
+          forward_chaining.run(kb: cnf_kb, query: sentence_factory.build(*query))
         end
       else
         raise ArgumentError.new("Engine not supported: #{engine}")
@@ -92,7 +89,15 @@ module RuleRover::PropositionalLogic
       Sentences::Factory
     end
 
-    def forward_chain
+    def resolution
+      RuleRover::PropositionalLogic::Algorithms::Resolution
+    end
+
+    def model_checking
+      RuleRover::PropositionalLogic::Algorithms::ModelChecking
+    end
+
+    def forward_chaining
       RuleRover::PropositionalLogic::Algorithms::ForwardChaining
     end
   end

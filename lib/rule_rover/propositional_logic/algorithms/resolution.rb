@@ -3,12 +3,9 @@ module RuleRover::PropositionalLogic::Algorithms
     class EmptyClause; end
 
     def entail?
-      sentence_factory.build(:not, query).then do |query|
-        kb.sentences + [query]
-      end.then do |all_sentences|
-        all_sentences.map do |sentence|
-          sentence.to_cnf
-        end
+      all_sentences = kb.sentences + [negation.new(query)]
+      all_sentences.map do |sentence|
+        sentence.to_cnf
       end.then do |all_sent_cnf|
         find_clauses(all_sent_cnf)
       end.then do |clauses|

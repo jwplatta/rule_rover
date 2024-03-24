@@ -10,35 +10,38 @@ describe RuleRover::PropositionalLogic::Algorithms::Resolution do
     it do
       kb.assert("a", :then, "b")
       kb.assert("a")
-      expect(described_class.run(kb: kb, query: "b")).to be true
+      query = sentence_factory.build("b")
+      expect(described_class.run(kb: kb, query: query)).to be true
     end
     it do
       kb.assert("a", :then, "b")
       kb.assert("b")
-      expect(described_class.run(kb: kb, query: "a")).to be false
+      query = sentence_factory.build("a")
+      expect(described_class.run(kb: kb, query: query)).to be false
     end
     it do
       kb.assert("a", :or, "b")
       kb.assert(:not, "b")
-      expect(described_class.run(kb: kb, query: "a")).to be true
+      query = sentence_factory.build("a")
+      expect(described_class.run(kb: kb, query: query)).to be true
     end
     it do
       kb.assert(["matt", :and, "ben"], :then, "joe")
       kb.assert(:not, "joe")
-      query1 = ["matt", :and, "ben"]
+      query1 = sentence_factory.build("matt", :and, "ben")
       expect(described_class.run(kb: kb, query: query1)).to be false
 
-      query2 = [:not, ["matt", :and, "ben"]]
+      query2 = sentence_factory.build(:not, ["matt", :and, "ben"])
       expect(described_class.run(kb: kb, query: query2)).to be true
 
-      query3 = [:not, "matt", :or, :not, "ben"]
+      query3 = sentence_factory.build(:not, "matt", :or, :not, "ben")
       expect(described_class.run(kb: kb, query: query3)).to be true
     end
     it do
       kb.assert(:not, ["a", :and, "b"])
       kb.assert("x", :then, "y")
       kb.assert(:not, "y")
-      query = [:not, "x"]
+      query = sentence_factory.build(:not, "x")
       expect(described_class.run(kb: kb, query: query)).to be true
     end
     describe 'when sentence is not proveable' do
@@ -56,9 +59,10 @@ describe RuleRover::PropositionalLogic::Algorithms::Resolution do
       it 'explore all possible clauses' do
         kb.assert ["a", :and, "c"], :iff, "b"
         kb.assert "b"
-        query1 = ["a", :and, "c"]
+        query1 = sentence_factory.build("a", :and, "c")
         expect(described_class.run(kb: kb, query: query1)).to be true
-        expect(described_class.run(kb: kb, query: "d")).to be false
+        query2 = sentence_factory.build("d")
+        expect(described_class.run(kb: kb, query: query2)).to be false
       end
     end
   end

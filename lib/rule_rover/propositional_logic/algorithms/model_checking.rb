@@ -1,13 +1,11 @@
 module RuleRover::PropositionalLogic::Algorithms
   class ModelChecking < LogicAlgorithmBase
     def entail?
-      sentence_factory.build(*query).then do |query|
-        check_truth_tables(
-          query,
-          Set.new(kb.symbols + query.symbols).to_a,
-          {}
-        )
-      end
+      check_truth_tables(
+        query,
+        Set.new(kb.symbols + query.symbols).to_a,
+        {}
+      )
     end
 
     private

@@ -11,29 +11,32 @@ describe RuleRover::PropositionalLogic::Algorithms::ModelChecking do
     it do
       kb.assert("a", :then, "b")
       kb.assert("a")
-      expect(described_class.run(kb: kb, query: "b")).to be true
+      query = sentence_factory.build("b")
+      expect(described_class.run(kb: kb, query: query)).to be true
     end
     it do
       kb.assert("a", :then, "b")
       kb.assert("b")
-      expect(described_class.run(kb: kb, query: "a")).to be false
+      query = sentence_factory.build("a")
+      expect(described_class.run(kb: kb, query: query)).to be false
     end
     it do
       kb.assert("a", :or, "b")
       kb.assert(:not, "b")
-      expect(described_class.run(kb: kb, query: "a")).to be true
+      query = sentence_factory.build("a")
+      expect(described_class.run(kb: kb, query: query)).to be true
     end
     it do
       kb.assert(["matt", :and, "ben"], :then, "joe")
       kb.assert(:not, "joe")
 
-      query1 = ["matt", :and, "ben"]
+      query1 = sentence_factory.build("matt", :and, "ben")
       expect(described_class.run(kb: kb, query: query1)).to be false
 
-      query2 = [:not, ["matt", :and, "ben"]]
+      query2 = sentence_factory.build(:not, ["matt", :and, "ben"])
       expect(described_class.run(kb: kb, query: query2)).to be true
 
-      query3 = [:not, "matt", :or, :not, "ben"]
+      query3 = sentence_factory.build(:not, "matt", :or, :not, "ben")
       expect(described_class.run(kb: kb, query: query3)).to be true
     end
   end

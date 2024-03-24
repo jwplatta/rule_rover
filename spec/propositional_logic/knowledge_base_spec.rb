@@ -69,6 +69,22 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
       end
     end
     describe '#entail?' do
+      describe 'model_checking' do
+        it do
+          kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :model_checking)
+          kb.assert("a", :then, "b")
+          kb.assert("a")
+          expect(kb.entail?("b")).to be true
+        end
+      end
+      describe 'resolution' do
+        it do
+          kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :resolution)
+          kb.assert("a", :then, "b")
+          kb.assert("a")
+          expect(kb.entail?("b")).to be true
+        end
+      end
       describe 'forward_chaining' do
         it do
           kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
