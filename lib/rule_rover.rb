@@ -15,6 +15,7 @@ require_relative "./rule_rover/propositional_logic/sentences/factory.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/logic_algorithm_base.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/model_checking.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/resolution.rb"
+require_relative "./rule_rover/propositional_logic/algorithms/forward_chaining.rb"
 
 module RuleRover
   def knowledge_base(engine: :model_checking, &block)
