@@ -10,7 +10,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
       kb.assert("a", :or, "b")
       kb.assert(:not, "b", :or, "c")
-      clauses = kb.to_cnf.sentences
+      clauses = kb.to_clauses.sentences
       model = { "c" => false, "b" => false}
 
       expect(
@@ -24,7 +24,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       kb.assert("a", :or, :not, "b") #ignores
       kb.assert("a", :or, "c")
       kb.assert(:not, "a", :or, "d")
-      clauses = kb.to_cnf.sentences
+      clauses = kb.to_clauses.sentences
       model = { "b" => false }
 
       expect(
@@ -40,7 +40,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       kb.assert(:not, "a", :or, "d")
       kb.assert("e", :or, "f")
 
-      clauses = kb.to_cnf.sentences
+      clauses = kb.to_clauses.sentences
       model = { "a" => false, "b" => false, "c" => true }
 
       expect(
@@ -56,7 +56,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb.assert("a", :or, "c")
         kb.assert(:not, "a", :or, :not, "c")
 
-        clauses = kb.to_cnf.sentences
+        clauses = kb.to_clauses.sentences
 
 
         expect(
@@ -70,7 +70,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb.assert("a", :or, :not, "b")
         kb.assert("a", :or, "c")
 
-        clauses = kb.to_cnf.sentences
+        clauses = kb.to_clauses.sentences
         model = {"a" => true, "b" => false, "c" => false}
 
         expect(
@@ -82,7 +82,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
         kb.assert("a", :then, "b")
         kb.assert("a")
-        clauses = kb.to_cnf.sentences
+        clauses = kb.to_clauses.sentences
         model = { "b" => true }
 
         expect(
@@ -188,7 +188,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
       kb.assert("a", :then, "b")
       kb.assert("a")
-      kb = kb.to_cnf
+      kb = kb.to_clauses
       query = sentence_factory.build("b")
 
       expect(described_class.run(kb: kb, query: query)).to be true
@@ -202,7 +202,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       kb.assert("d", :then, [:not, "e", :or, "f"])
       kb.assert("a")
       kb.assert("e")
-      kb = kb.to_cnf
+      kb = kb.to_clauses
       query = sentence_factory.build("f")
 
       expect(described_class.run(kb: kb, query: query)).to be true
@@ -214,7 +214,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb.assert("a", :then, "b")
         kb.assert("a")
         kb.assert(:not, "b")
-        kb = kb.to_cnf
+        kb = kb.to_clauses
         query = sentence_factory.build("b")
 
         expect(described_class.run(kb: kb, query: query)).to be false
@@ -228,7 +228,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb.assert("a")
         kb.assert(:not, "b")
 
-        kb = kb.to_cnf
+        kb = kb.to_clauses
         query = sentence_factory.build("f")
 
         expect(described_class.run(kb: kb, query: query)).to be false

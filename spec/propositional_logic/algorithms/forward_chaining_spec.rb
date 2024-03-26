@@ -10,7 +10,7 @@ describe RuleRover::PropositionalLogic::Algorithms::ForwardChaining do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
       kb.assert("a", :then, "b")
       kb.assert("a")
-      kb = kb.to_cnf
+      kb = kb.to_clauses
       query = sentence_factory.build("b")
 
       expect(described_class.run(kb: kb, query: query)).to be true
@@ -24,7 +24,7 @@ describe RuleRover::PropositionalLogic::Algorithms::ForwardChaining do
       kb.assert("d", :then, [:not, "e", :or, "f"])
       kb.assert("a")
       kb.assert("e")
-      kb = kb.to_cnf
+      kb = kb.to_clauses
       query = sentence_factory.build("f")
 
       expect(described_class.run(kb: kb, query: query)).to be true

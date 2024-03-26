@@ -33,7 +33,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
       subject.assert("a", :and, "f")
       subject.assert("c", :then, "d")
       subject.assert("e", :and, "f")
-      new_kb = subject.to_cnf
+      new_kb = subject.to_clauses
 
       expected = [
         sentence_factory.build([:not, "a"], :or, "b"),
@@ -54,7 +54,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
         subject.assert("a", :and, "f")
         subject.assert("c", :then, "d")
         subject.assert("e", :and, "f")
-        new_kb = subject.to_cnf
+        new_kb = subject.to_clauses
         expect(new_kb.is_definite?).to be true
       end
     end
@@ -64,7 +64,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
         subject.assert(:not, "a", :and, :not, "f")
         subject.assert("c", :then, "d")
         subject.assert("e", :and, "f")
-        new_kb = subject.to_cnf
+        new_kb = subject.to_clauses
         expect(new_kb.is_definite?).to be false
       end
     end
@@ -113,6 +113,26 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
               RuleRover::PropositionalLogic::KnowledgeBaseNotDefinite
             )
           end
+        end
+      end
+      describe 'backward_chaining' do
+        it do
+          kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
+          kb.assert("a", :then, "b")
+          kb.assert("a")
+
+          expect(kb.entail?("b")).to be true
+        end
+        it do
+          kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
+          kb.assert("a", :iff, "b")
+          kb.assert("b", :then, "c")
+          kb.assert("c", :then, "d")
+          kb.assert("d", :then, [:not, "e", :or, "f"])
+          kb.assert("a")
+          kb.assert("e")
+
+          expect(kb.entail?("f")).to be true
         end
       end
     end
