@@ -1,7 +1,7 @@
 module RuleRover::PropositionalLogic::Sentences
   class Conditional < Sentence
     def evaluate(model)
-      !left.evaluate(model) or right.evaluate(model)
+      not left.evaluate(model) or right.evaluate(model)
     end
 
     def eliminate_conditionals
