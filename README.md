@@ -42,7 +42,6 @@ RuleRover.knowledge_base(engine: :model_checking) do
 end
 ```
 
-Compare four inference engines: `:model_checking`, `:resolution`, `:forward_chaining`, `:backward_chaining`.
 ```rb
 RuleRover.knowledge_base(engine: :backward_chaining) do
   assert "rainy", :or, "cloudy"
