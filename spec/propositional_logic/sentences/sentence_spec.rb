@@ -14,6 +14,19 @@ describe RuleRover::PropositionalLogic::Sentences::Sentence do
     expect(described_class.new(nil, nil).is_positive?).to be false
   end
 
+  describe '#atoms' do
+    it 'returns the atoms of the sentence' do
+      sentence = sentence_factory.build("a")
+      expect(sentence.atoms).to match_array([sentence_factory.build("a")])
+
+      sentence = sentence_factory.build("a", :and, :not, "b")
+      expect(sentence.atoms).to match_array([sentence_factory.build("a"), sentence_factory.build(:not, "b")])
+
+      sentence = sentence_factory.build("a", :and, [:not, "b", :and, "a"])
+      expect(sentence.atoms).to match_array([sentence_factory.build("a"), sentence_factory.build(:not, "b")])
+    end
+  end
+
   describe '#to_cnf' do
     it 'returns a fully distributed sentence' do
       sentence = sentence_factory.build(["a", :iff, "b"], :or, ["d", :iff, "c"])

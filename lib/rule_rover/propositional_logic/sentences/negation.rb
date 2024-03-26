@@ -6,12 +6,28 @@ module RuleRover::PropositionalLogic::Sentences
 
     attr_reader :sentence
 
+    def symbol
+      if is_atomic?
+        sentence.symbol
+      else
+        raise SentenceNotInCNF.new
+      end
+    end
+
     def evaluate(model)
       not sentence.evaluate(model)
     end
 
     def symbols
       sentence.symbols
+    end
+
+    def atoms
+      if is_atomic?
+        Set.new([self])
+      else
+        sentence.atoms
+      end
     end
 
     def eliminate_biconditionals
@@ -52,14 +68,6 @@ module RuleRover::PropositionalLogic::Sentences
 
     def is_atomic?
       sentence.is_atomic?
-    end
-
-    def atoms
-      if is_atomic?
-        [self]
-      else
-        sentence.atoms
-      end
     end
 
     def to_s

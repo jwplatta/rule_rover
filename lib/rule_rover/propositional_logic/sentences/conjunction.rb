@@ -4,10 +4,6 @@ module RuleRover::PropositionalLogic::Sentences
       left.evaluate(model) and right.evaluate(model)
     end
 
-    def atoms
-      left.atoms + right.atoms
-    end
-
     def to_s
       "[#{left} :and #{right}]"
     end

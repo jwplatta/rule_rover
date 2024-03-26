@@ -1,13 +1,23 @@
 module RuleRover::PropositionalLogic::Sentences
+  class NotInModel < StandardError; end
+
   class Atomic < Sentence
-    def initialize(sentence)
-      @sentence = sentence
+    def initialize(symbol)
+      @symbol = symbol
     end
 
-    attr_reader :sentence
+    attr_reader :symbol
+
+    def sentence
+      @symbol
+    end
 
     def evaluate(model)
-      model[sentence]
+      model.fetch(symbol, false)
+    end
+
+    def in_model?(model)
+      model.include?(symbol)
     end
 
     def ==(other)
@@ -15,7 +25,11 @@ module RuleRover::PropositionalLogic::Sentences
     end
 
     def symbols
-      Set.new([sentence])
+      Set.new([symbol])
+    end
+
+    def atoms
+      Set.new([self])
     end
 
     def eliminate_biconditionals
@@ -38,10 +52,6 @@ module RuleRover::PropositionalLogic::Sentences
       self
     end
 
-    def atoms
-      [self]
-    end
-
     def is_positive?
       true
     end
@@ -59,4 +69,3 @@ module RuleRover::PropositionalLogic::Sentences
     end
   end
 end
-

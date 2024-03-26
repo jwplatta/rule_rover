@@ -107,10 +107,6 @@ module RuleRover::PropositionalLogic::Sentences
       end
     end
 
-    def atoms
-      left.atoms + right.atoms
-    end
-
     def to_s
       "[#{left} :or #{right}]"
     end

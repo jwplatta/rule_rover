@@ -51,7 +51,7 @@ module RuleRover::PropositionalLogic::Sentences
     end
 
     def atoms
-      left.atoms + right.atoms
+      left.atoms.merge(right.atoms)
     end
 
     def is_atomic?
