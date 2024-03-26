@@ -13,9 +13,6 @@ describe RuleRover::PropositionalLogic::Algorithms::ForwardChaining do
       kb = kb.to_cnf
       query = sentence_factory.build("b")
 
-      puts kb.sentences
-      puts "symbols: #{kb.symbols}"
-
       expect(described_class.run(kb: kb, query: query)).to be true
     end
 
