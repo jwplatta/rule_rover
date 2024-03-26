@@ -34,11 +34,13 @@ module RuleRover::PropositionalLogic::Algorithms
     def resolve(clauses)
       new_clauses = []
       clauses.combination(2).to_a.each do |cls_a, cls_b|
-        complements = first_complements(cls_a, cls_b)
+        cls_a_atoms = cls_a.atoms.to_a
+        cls_b_atoms = cls_b.atoms.to_a
+        complements = first_complements(cls_a_atoms, cls_b_atoms)
         if complements.empty?
           next
         else
-          resolve_clauses(cls_a.atoms, cls_b.atoms, *complements).then do |new_clause|
+          resolve_clauses(cls_a_atoms, cls_b_atoms, *complements).then do |new_clause|
             if new_clause.is_a? EmptyClause
               return true
             elsif not new_clauses.include? new_clause
@@ -78,8 +80,8 @@ module RuleRover::PropositionalLogic::Algorithms
       end
     end
 
-    def first_complements(clause_a, clause_b)
-      clause_a.atoms.product(clause_b.atoms).find do |atomic_a, atomic_b|
+    def first_complements(clause_a_atoms, clause_b_atoms)
+      clause_a_atoms.product(clause_b_atoms).find do |atomic_a, atomic_b|
         complements?(atomic_a, atomic_b)
       end || []
     end
