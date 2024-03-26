@@ -20,7 +20,7 @@ module RuleRover::PropositionalLogic::Algorithms
     # @note The time complexity of this method is O(2^n), where n is the number of unique symbols contained in the query and the knowledge base.
     def check_truth_tables(query, symbols=[], model={})
       if symbols.empty?
-        !evaluate(model) or query.evaluate(model)
+        not evaluate(model) or query.evaluate(model)
       else
         check_truth_tables(query, symbols[1..], model.merge({symbols.first => false})) \
           and check_truth_tables(query, symbols[1..], model.merge({symbols.first => true}))
