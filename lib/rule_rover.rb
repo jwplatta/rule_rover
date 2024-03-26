@@ -16,11 +16,12 @@ require_relative "./rule_rover/propositional_logic/algorithms/logic_algorithm_ba
 require_relative "./rule_rover/propositional_logic/algorithms/model_checking.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/resolution.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/forward_chaining.rb"
+require_relative "./rule_rover/propositional_logic/algorithms/backward_chaining.rb"
 
 module RuleRover
   def knowledge_base(engine: :model_checking, &block)
     puts "rule_rover knowledge_base"
-    kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine=:model_checking)
+    kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :model_checking)
     kb.instance_eval(&block)
     kb
   end
