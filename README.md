@@ -32,13 +32,32 @@ $ gem install rule_rover-0.1.0.gem
 ### Propositional Logic
 
 ```ruby
-require 'rule_rover'
-
 RuleRover.knowledge_base(engine: :model_checking) do
-  assert "joe", :then, "mary"
-  assert :not, "mary"
-  entail? "joe" # => false
-  entail? :not, "joe" # => true
+  assert "it's raining", :then, "take an umbrella"
+  assert :not, "take an umbrella"
+
+  # checking entailment
+  entail? "it's raining" # => false
+  entail? :not, "it's raining" # => true
+end
+```
+
+Compare four inference engines: `:model_checking`, `:resolution`, `:forward_chaining`, `:backward_chaining`.
+```rb
+RuleRover.knowledge_base(engine: :backward_chaining) do
+  assert "rainy", :or, "cloudy"
+  assert "rainy", :iff, "carry an umbrella"
+  assert "sunny", :and, "warm", :then, "go to the beach"
+  assert :not, "snowy"
+  assert ["weekend", :and, ["sunny", :or, "cloudy"]], :then, "have a picnic"
+  assert "cold", :iff, ["windy", :and, "not sunny"]
+  assert :not, ["rainy", :and, "sunny"], :then, "see a rainbow"
+
+  # checking entailment
+  entail? "carry an umbrella"
+  entail? "go to the beach"
+  entail? "have a picnic"
+  entail? "see a rainbow"
 end
 ```
 
