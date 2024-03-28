@@ -17,6 +17,11 @@ require_relative "./rule_rover/propositional_logic/algorithms/model_checking.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/resolution.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/forward_chaining.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/backward_chaining.rb"
+require_relative "./rule_rover/first_order_logic/knowledge_base.rb"
+require_relative "./rule_rover/first_order_logic/sentences/factory.rb"
+require_relative "./rule_rover/first_order_logic/sentences/constant_symbol.rb"
+require_relative "./rule_rover/first_order_logic/sentences/function_symbol.rb"
+require_relative "./rule_rover/first_order_logic/sentences/predicate_symbol.rb"
 
 module RuleRover
   def knowledge_base(engine: :model_checking, &block)
