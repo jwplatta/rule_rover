@@ -5,15 +5,15 @@ describe RuleRover::FirstOrderLogic::Sentences::FunctionSymbol do
     expect { described_class.new }.not_to raise_error
   end
 
-  describe '.valid?' do
+  describe '.valid_name?' do
     it 'returns true for a symbol starting with an @' do
-      expect(described_class.valid?(:@teacher_of)).to be(true)
+      expect(described_class.valid_name?(:@teacher_of)).to be(true)
     end
-    it 'returns false for a symbol starting with a letter' do
-      expect(described_class.valid?(:teacher_of)).to be(false)
+    it 'returns false for a predicate name' do
+      expect(described_class.valid_name?(:teacher_of)).to be(false)
     end
     it 'returns false for a string' do
-      expect(described_class.valid?("@teacher_of")).to be(false)
+      expect(described_class.valid_name?("@teacher_of")).to be(false)
     end
   end
 end
