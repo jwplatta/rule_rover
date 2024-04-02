@@ -72,7 +72,7 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
       end
     end
 
-    fdescribe 'when given a quantifier' do
+    describe 'when given a quantifier' do
       it do
         result = described_class.build(
           :all,
