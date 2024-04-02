@@ -3,7 +3,7 @@ module RuleRover::FirstOrderLogic::Sentences
     class << self
       def valid_name?(*args)
         name = args.find { |elm| elm.is_a? Symbol }
-        /^[a-z]/.match?(name.to_s)
+        !RuleRover::OPERATORS.include?(name) && /^[a-z]/.match?(name)
       end
     end
 
@@ -16,6 +16,14 @@ module RuleRover::FirstOrderLogic::Sentences
       end
     end
 
+    def evaluate(model)
+      raise NotImplementedError
+    end
+
     attr_reader :subjects, :name, :objects
+
+    def to_s
+      "[#{subjects.join(', ')} :#{name} #{objects.join(', ')}]"
+    end
   end
 end
