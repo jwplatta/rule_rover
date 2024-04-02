@@ -22,6 +22,12 @@ require_relative "./rule_rover/first_order_logic/sentences/factory.rb"
 require_relative "./rule_rover/first_order_logic/sentences/constant_symbol.rb"
 require_relative "./rule_rover/first_order_logic/sentences/function_symbol.rb"
 require_relative "./rule_rover/first_order_logic/sentences/predicate_symbol.rb"
+require_relative "./rule_rover/first_order_logic/sentences/conjunction.rb"
+require_relative "./rule_rover/first_order_logic/sentences/disjunction.rb"
+require_relative "./rule_rover/first_order_logic/sentences/biconditional.rb"
+require_relative "./rule_rover/first_order_logic/sentences/conditional.rb"
+require_relative "./rule_rover/first_order_logic/sentences/negation.rb"
+
 
 module RuleRover
   def knowledge_base(engine: :model_checking, &block)
