@@ -21,5 +21,55 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
         expect(described_class.build('Plato', :taught, 'Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::PredicateSymbol
       end
     end
+
+    describe 'when given a negation' do
+      it do
+        expect(
+          described_class.build(:not, [['Plato', :taught, 'Aristotle'], :and, ['Aristotle', :taught, 'Alexander']])
+        ).to be_a RuleRover::FirstOrderLogic::Sentences::Negation
+      end
+      it do
+        expect(
+          described_class.build(['Plato', :taught, 'Aristotle'], :and, :not, ['Aristotle', :taught, 'Alexander']).to_s
+        ).to eq "[[Plato :taught Aristotle] :and [:not [Aristotle :taught Alexander]]]"
+      end
+      it do
+        expect(
+        described_class.build(:not, ['Plato', :taught, 'Aristotle'], :and, ['Aristotle', :taught, 'Alexander']).to_s
+        ).to eq "[[:not [Plato :taught Aristotle]] :and [Aristotle :taught Alexander]]"
+      end
+    end
+
+    describe 'when given a connector' do
+      it 'returns a conjunction' do
+        expect(
+          described_class.build(['Plato', :taught, 'Aristotle'], :and, ['Aristotle', :taught, 'Alexander'])
+        ).to be_a RuleRover::FirstOrderLogic::Sentences::Conjunction
+      end
+
+      it 'returns a disjunction' do
+        expect(
+          described_class.build(['Plato', :taught, 'Aristotle'], :or, ['Aristotle', :taught, 'Alexander'])
+        ).to be_a RuleRover::FirstOrderLogic::Sentences::Disjunction
+      end
+
+      it 'returns a conditional' do
+        expect(
+          described_class.build(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Alexander'])
+        ).to be_a RuleRover::FirstOrderLogic::Sentences::Conditional
+      end
+
+      it 'returns a biconditional' do
+        expect(
+          described_class.build(['Plato', :taught, 'Aristotle'], :iff, ['Aristotle', :taught, 'Alexander'])
+        ).to be_a RuleRover::FirstOrderLogic::Sentences::Biconditional
+      end
+
+      it do
+        expect(
+          described_class.build([['Plato', :taught, 'Aristotle'], :iff, :not, ['Aristotle', :taught, 'Alexander']], :and, [[:@teacher_of, 'Socrates'], :or, 'Alcibides']).to_s
+        ).to eq "[[[Plato :taught Aristotle] :iff [:not [Aristotle :taught Alexander]]] :and [[:@teacher_of Socrates] :or Alcibides]]"
+      end
+    end
   end
 end
