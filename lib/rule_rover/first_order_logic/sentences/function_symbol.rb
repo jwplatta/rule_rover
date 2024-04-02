@@ -3,7 +3,7 @@ module RuleRover::FirstOrderLogic::Sentences
     class << self
       def valid_name?(*args)
         name = args.find { |elm| elm.is_a? Symbol }
-        /^@/.match?(name.to_s)
+        /^@/.match?(name)
       end
     end
 
@@ -13,5 +13,9 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     attr_reader :name, :args
+
+    def to_s
+      "[:#{name} #{args.join(', ')}]"
+    end
   end
 end
