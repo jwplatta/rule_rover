@@ -71,5 +71,41 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
         ).to eq "[[[Plato :taught Aristotle] :iff [:not [Aristotle :taught Alexander]]] :and [[:@teacher_of Socrates] :or Alcibides]]"
       end
     end
+
+    fdescribe 'when given a quantifier' do
+      it do
+        result = described_class.build(
+          :all,
+          "x",
+          [:all, "y", [[:@brother, "x", "y"], :then, [:@sibling, "x", "y"]]]
+        ).to_s
+
+        puts result
+        expect(result).to eq ":all(x) [:all(y) [[[:@brother x, y] :then [:@sibling x, y]]]]"
+      end
+      it do
+        result = described_class.build(
+          :some,
+          "x",
+          [:some, "y", [[:@brother, "x", "y"], :then, [:@sibling, "x", "y"]]]
+        ).to_s
+
+        puts result
+        expect(result).to eq ":some(x) [:some(y) [[[:@brother x, y] :then [:@sibling x, y]]]]"
+      end
+      it do
+        result = described_class.build(
+          :all,
+          "x",
+          [:some, "y", [["x", :taught,  "y"], :then, ["y", :taught, "x"]]]
+        ).to_s
+
+        puts result
+        expect(result).to eq ":all(x) [:some(y) [[[x :taught y] :then [y :taught x]]]]"
+      end
+    end
+
+    describe 'when given equals' do
+    end
   end
 end

@@ -8,7 +8,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def initialize(*args)
-      name_index = args.find_index { |elm| elm.is_a? Symbol }
+      name_index = args.find_index { |elm| elm.is_a? Symbol and /^[a-z]/.match?(elm) }
       if name_index
         @name = args[name_index]
         @subjects = args[0...name_index]

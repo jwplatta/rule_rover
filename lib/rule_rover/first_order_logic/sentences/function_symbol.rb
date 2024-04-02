@@ -2,14 +2,15 @@ module RuleRover::FirstOrderLogic::Sentences
   class FunctionSymbol
     class << self
       def valid_name?(*args)
-        name = args.find { |elm| elm.is_a? Symbol }
-        /^@/.match?(name)
+        args.find do |elm|
+          elm.is_a? Symbol and /^@/.match?(elm)
+        end
       end
     end
 
     def initialize(*args)
-      @name = args.find { |elm| elm.is_a? Symbol }
-      @args = args.select { |elm| elm.is_a? String }
+      @name = args.find { |elm| elm.is_a? Symbol and /^@/.match?(elm) }
+      @args = args.select { |elm| not(/^@/.match?(elm)) }
     end
 
     attr_reader :name, :args

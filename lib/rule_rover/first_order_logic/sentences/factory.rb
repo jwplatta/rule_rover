@@ -8,11 +8,14 @@ module RuleRover::FirstOrderLogic::Sentences
           PredicateSymbol.new(*args)
         elsif FunctionSymbol.valid_name?(*args)
           FunctionSymbol.new(*args)
-        elsif args.size == 2
+        elsif args.size == 2 and args.first == :not
           Negation.new(build(*args[1]))
+        elsif args.size == 3 and args.first == :all
+          UniversalQuantifier.new(args[1], build(*args[2]))
+        elsif args.size == 3 and args.first == :some
+          ExistentialQuantifier.new(args[1], build(*args[2]))
         elsif find_connective(*args)
           connective = find_connective(*args)
-          puts "connective: #{connective}"
           connective_index = args.index(connective)
           left = remove_outer_array(args[0...connective_index])
           right = remove_outer_array(args[connective_index+1..])
