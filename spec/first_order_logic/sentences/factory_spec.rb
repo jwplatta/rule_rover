@@ -80,7 +80,6 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
           [:all, "y", [[:@brother, "x", "y"], :then, [:@sibling, "x", "y"]]]
         ).to_s
 
-        puts result
         expect(result).to eq ":all(x) [:all(y) [[[:@brother x, y] :then [:@sibling x, y]]]]"
       end
       it do
@@ -90,7 +89,6 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
           [:some, "y", [[:@brother, "x", "y"], :then, [:@sibling, "x", "y"]]]
         ).to_s
 
-        puts result
         expect(result).to eq ":some(x) [:some(y) [[[:@brother x, y] :then [:@sibling x, y]]]]"
       end
       it do
@@ -98,14 +96,24 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
           :all,
           "x",
           [:some, "y", [["x", :taught,  "y"], :then, ["y", :taught, "x"]]]
-        ).to_s
-
-        puts result
-        expect(result).to eq ":all(x) [:some(y) [[[x :taught y] :then [y :taught x]]]]"
+        )
+        expect(result.to_s).to eq ":all(x) [:some(y) [[[x :taught y] :then [y :taught x]]]]"
       end
     end
 
     describe 'when given equals' do
+      it do
+        result = described_class.build(
+          "x", :equals, "y"
+        )
+        expect(result.to_s).to eq '[x :equals y]'
+      end
+      it do
+        result = described_class.build(
+          :some, ["x", "y"], [[[:@brother, "x", "Richard"], :and, [:@brother, "y", "Richard"]], :and, :not, ["x", :equals, "y"]]
+        )
+        expect(result.to_s).to eq ':some(x, y) [[[[:@brother x, Richard] :and [:@brother y, Richard]] :and [:not [x :equals y]]]]'
+      end
     end
   end
 end

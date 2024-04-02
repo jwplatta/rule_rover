@@ -2,8 +2,11 @@ module RuleRover::FirstOrderLogic::Sentences
   class Factory
     class << self
       def build(*args)
+
         if args.size == 1 and ConstantSymbol.valid_name?(args.first)
           ConstantSymbol.new(args.first)
+        elsif args.size == 1 and Variable.valid_name?(args.first)
+          Variable.new(args.first)
         elsif PredicateSymbol.valid_name?(*args)
           PredicateSymbol.new(*args)
         elsif FunctionSymbol.valid_name?(*args)
@@ -11,9 +14,32 @@ module RuleRover::FirstOrderLogic::Sentences
         elsif args.size == 2 and args.first == :not
           Negation.new(build(*args[1]))
         elsif args.size == 3 and args.first == :all
-          UniversalQuantifier.new(args[1], build(*args[2]))
+          vars = if args[1].is_a? Array
+            args[1].map { |var| build(var) }
+          else
+            [build(*args[1])]
+          end
+
+          UniversalQuantifier.new(
+            vars,
+            build(*args[2])
+          )
         elsif args.size == 3 and args.first == :some
-          ExistentialQuantifier.new(args[1], build(*args[2]))
+          vars = if args[1].is_a? Array
+            args[1].map { |var| build(var) }
+          else
+            [build(*args[1])]
+          end
+
+          ExistentialQuantifier.new(
+            vars,
+            build(*args[2])
+          )
+        elsif args[1] == :equals and valid_term_name?(*args[0]) and valid_term_name?(*args[2])
+          Equals.new(
+            build(*args[0]),
+            build(*args[2])
+          )
         elsif find_connective(*args)
           connective = find_connective(*args)
           connective_index = args.index(connective)
@@ -46,6 +72,13 @@ module RuleRover::FirstOrderLogic::Sentences
         else
           raise RuleRover::SentenceNotWellFormedError.new(args.inspect)
         end
+      end
+
+      def valid_term_name?(*args)
+        Variable.valid_name?(args.first) or \
+        ConstantSymbol.valid_name?(args.first) or \
+        PredicateSymbol.valid_name?(*args) or \
+        FunctionSymbol.valid_name?(*args)
       end
 
       def find_connective(*args)
