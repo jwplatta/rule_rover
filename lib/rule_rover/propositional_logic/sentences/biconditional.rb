@@ -12,7 +12,7 @@ module RuleRover::PropositionalLogic::Sentences
     end
 
     def to_s
-      "[#{left.to_s} :iff #{right}]"
+      "[#{left} :iff #{right}]"
     end
   end
 end
