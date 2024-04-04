@@ -82,7 +82,7 @@ module RuleRover::FirstOrderLogic::Sentences
       end
 
       def find_connective(*args)
-        args.find { |elm| RuleRover::CONNECTIVES.include?(elm) }
+        args.find { |elm| RuleRover::FirstOrderLogic::CONNECTIVES.include?(elm) }
       end
 
       def remove_outer_array(sentence)

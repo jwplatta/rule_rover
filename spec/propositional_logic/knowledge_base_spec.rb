@@ -6,12 +6,12 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
   end
   describe '#connectives' do
     it do
-      expect(subject.connectives).to eq RuleRover::CONNECTIVES
+      expect(subject.connectives).to eq RuleRover::PropositionalLogic::CONNECTIVES
     end
   end
   describe '#operators' do
     it do
-      expect(subject.operators).to eq RuleRover::OPERATORS
+      expect(subject.operators).to eq RuleRover::PropositionalLogic::OPERATORS
     end
   end
   describe '#assert' do

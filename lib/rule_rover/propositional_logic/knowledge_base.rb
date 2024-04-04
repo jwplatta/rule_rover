@@ -52,11 +52,11 @@ module RuleRover::PropositionalLogic
     end
 
     def connectives
-      @connectives ||= RuleRover::CONNECTIVES
+      @connectives ||= RuleRover::PropositionalLogic::CONNECTIVES
     end
 
     def operators
-      @operators ||= RuleRover::OPERATORS
+      @operators ||= RuleRover::PropositionalLogic::OPERATORS
     end
 
     def to_clauses
@@ -101,7 +101,7 @@ module RuleRover::PropositionalLogic
     end
 
     def valid_engines
-      RuleRover::ENGINES
+      RuleRover::PropositionalLogic::ENGINES
     end
 
     def model_checking
