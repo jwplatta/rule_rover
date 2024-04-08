@@ -3,7 +3,7 @@ module RuleRover::FirstOrderLogic::Sentences
     class << self
       def valid_name?(*args)
         name = args.find { |elm| elm.is_a? Symbol }
-        !RuleRover::OPERATORS.include?(name) && /^[a-z]/.match?(name)
+        !RuleRover::FirstOrderLogic::OPERATORS.include?(name) && /^[a-z]/.match?(name)
       end
     end
 
@@ -15,6 +15,15 @@ module RuleRover::FirstOrderLogic::Sentences
         @objects = args[(name_index + 1)...]
       end
     end
+
+    # TODO:
+    # def substitute(substitution={})
+    #   self.class.new(
+    #     *subjects.map { |subject| substitution[subject] || subject },
+    #     name,
+    #     *objects.map { |object| substitution[object] || object }
+    #   )
+    # end
 
     def evaluate(model)
       raise NotImplementedError
