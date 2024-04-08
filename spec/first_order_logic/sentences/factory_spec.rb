@@ -6,19 +6,26 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
   end
 
   describe '.build' do
-    describe 'when given a constant symbol' do
-      it 'returns a ConstantSymbol object' do
-        expect(described_class.build('Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+    describe 'when given a term' do
+      describe 'when given a constant symbol' do
+        it 'returns a ConstantSymbol object' do
+          expect(described_class.build('Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+        end
       end
-    end
-    describe 'when given a function symbol' do
-      it 'returns a FunctionSymbol' do
-        expect(described_class.build(:@teacher_of, 'Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::FunctionSymbol
+      describe 'when given a function symbol' do
+        it 'returns a FunctionSymbol' do
+          expect(described_class.build(:@teacher_of, 'Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::FunctionSymbol
+        end
       end
-    end
-    describe 'when given a predicate symbol' do
-      it 'returns a PredicateSymbol' do
-        expect(described_class.build('Plato', :taught, 'Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::PredicateSymbol
+      describe 'when given a predicate symbol' do
+        it 'returns a PredicateSymbol' do
+          expect(described_class.build('Plato', :taught, 'Aristotle')).to be_a RuleRover::FirstOrderLogic::Sentences::PredicateSymbol
+        end
+      end
+      describe 'when given a variable' do
+        it 'returns a Variable' do
+          expect(described_class.build('x')).to eq RuleRover::FirstOrderLogic::Sentences::Variable.new('x')
+        end
       end
     end
 
