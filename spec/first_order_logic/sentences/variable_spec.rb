@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe RuleRover::FirstOrderLogic::Sentences::Variable do
   it 'does not raise' do
-    expect { described_class.new(nil) }.not_to raise_error
+    expect { described_class.new('a') }.not_to raise_error
   end
 
   describe '.valid_name?' do

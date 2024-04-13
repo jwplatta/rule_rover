@@ -2,11 +2,13 @@ module RuleRover::FirstOrderLogic::Sentences
   class Variable
     class << self
       def valid_name?(name)
-        name.is_a? String and /^[a-z]/.match?(name)
+        name.is_a? String and /\A[a-z]/.match?(name)
       end
     end
 
     def initialize(name)
+      self.class.valid_name?(name) or raise ArgumentError, "Invalid variable name: #{name}"
+
       @name = name
     end
 
