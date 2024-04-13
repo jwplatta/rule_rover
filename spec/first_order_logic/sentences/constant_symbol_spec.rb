@@ -6,11 +6,20 @@ describe RuleRover::FirstOrderLogic::Sentences::ConstantSymbol do
   end
 
   describe '.valid_name?' do
-    it 'returns true for a string starting with a capital letter' do
-      expect(described_class.valid_name?('Aristotle')).to be(true)
+    context 'when valid name' do
+      it 'returns true for a string starting with a capital letter' do
+        expect(described_class.valid_name?('Aristotle')).to be(true)
+      end
     end
-    it 'returns false for a string starting with a lowercase letter' do
-      expect(described_class.valid_name?('aristotle')).to be(false)
+    context 'when invalid name' do
+      it 'returns false for a string starting with a lowercase letter' do
+        expect(described_class.valid_name?('aristotle')).to be(false)
+      end
+      it 'returns false for a string without non-letters' do
+        expect(described_class.valid_name?('Aristotle$')).to be(false)
+        expect(described_class.valid_name?('Aristotle1')).to be(false)
+        expect(described_class.valid_name?('Aristotle@')).to be(false)
+      end
     end
   end
 end

@@ -3,7 +3,7 @@ module RuleRover::FirstOrderLogic::Sentences
   class ConstantSymbol
     class << self
       def valid_name?(name)
-        name.is_a? String and /^[A-Z]/.match?(name.to_s)
+        name.is_a? String and /\A[A-Z][a-z]*\z/.match?(name.to_s)
       end
     end
 
