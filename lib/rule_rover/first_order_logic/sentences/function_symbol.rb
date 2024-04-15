@@ -7,6 +7,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def initialize(*args)
+      # TODO: find vars consistent with constant names
       @name = args.find { |elm| elm.is_a? Symbol and /^@/.match?(elm) }
       @args = args.select { |elm| not(/^@/.match?(elm)) }
     end

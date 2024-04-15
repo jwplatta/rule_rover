@@ -29,27 +29,36 @@ describe RuleRover::FirstOrderLogic::Algorithms::Unification do
           ).to eq({})
         end
       end
-      fcontext 'when the variables are different' do
-        it 'returns a substitution' do
-          expect(
-            described_class.run(
-              sentence_factory.build('x'),
-              "Joe",
-              {}
-            )
-          ).to eq({ "x" => "Joe" })
-
-          expect(
-            described_class.run(
-              "Joe",
-              sentence_factory.build("x"),
-              {}
-            )
-          ).to eq({ "x" => "Joe" })
-        end
-      end
     end
     context 'when given a variable and a constant' do
+      it 'returns a substitution' do
+        expect(
+          described_class.run(
+            sentence_factory.build('x'),
+            "Maureen",
+            {}
+          )
+        ).to eq({ "x" => "Maureen" })
+
+        expect(
+          described_class.run(
+            "Maureen",
+            sentence_factory.build("x"),
+            {}
+          )
+        ).to eq({ "x" => "Maureen" })
+      end
+    end
+    context 'when given a constant and a compount statement' do
+      fit 'returns a substitution' do
+        expect(
+          described_class.run(
+            sentence_factory.build('x', :and, 'y'),
+            "Maureen",
+            { "x" => "Joe" }
+          )
+        ).to eq({ "x" => "Joe", "y" => "Maureen" })
+      end
     end
   end
 

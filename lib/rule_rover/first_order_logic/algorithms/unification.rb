@@ -10,6 +10,10 @@ module RuleRover::FirstOrderLogic::Algorithms
           unify_variable(expression_x, expression_y, substitution)
         elsif is_variable?(expression_y)
           unify_variable(expression_y, expression_x, substitution)
+        elsif is_compound?(expression_x) and is_compound?(expression_y)
+
+        elsif expression_x.is_a? Array and expression_y.is_a? Array
+          false
         else
           false
         end
@@ -25,6 +29,17 @@ module RuleRover::FirstOrderLogic::Algorithms
           substitution[variable] = expression
           substitution
         end
+      end
+
+      def is_compound?(expression)
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::Biconditional or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::Conjunction or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::Disjunction or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::Negation or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::UniversalQuantifier or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::ExistentialQuantifier or \
+        expression.is_a? RuleRover::FirstOrderLogic::Sentences::Equals
       end
 
       def is_variable?(expression)

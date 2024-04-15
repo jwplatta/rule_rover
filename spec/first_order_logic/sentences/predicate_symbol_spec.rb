@@ -5,17 +5,21 @@ describe RuleRover::FirstOrderLogic::Sentences::PredicateSymbol do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
   describe '.valid_name?' do
-    it 'returns true for a symbol starting with a lowercase letter' do
-      expect(described_class.valid_name?('Plato', :taught, 'Aristotle')).to be(true)
+    context 'when name is valid' do
+      it 'returns true for a symbol starting with a lowercase letter' do
+        expect(described_class.valid_name?('Plato', :taught, 'Aristotle')).to be(true)
+      end
     end
-    it 'returns false for a symbol starting with an uppercase letter' do
-      expect(described_class.valid_name?('Plato', :Taught, 'Aristotle')).to be(false)
-    end
-    it 'returns false for a function name' do
-      expect(described_class.valid_name?('Plato', :@taught, 'Aristotle')).to be(false)
-    end
-    it 'returns false for a string starting with an uppercase letter' do
-      expect(described_class.valid_name?('Plato', "Taught", 'Aristotle')).to be(false)
+    context 'when name is invalid' do
+      it 'returns false for a symbol starting with an uppercase letter' do
+        expect(described_class.valid_name?('Plato', :Taught, 'Aristotle')).to be(false)
+      end
+      it 'returns false for a function name' do
+        expect(described_class.valid_name?('Plato', :@taught, 'Aristotle')).to be(false)
+      end
+      it 'returns false for a string starting with an uppercase letter' do
+        expect(described_class.valid_name?('Plato', "Taught", 'Aristotle')).to be(false)
+      end
     end
   end
 end

@@ -7,6 +7,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :left, :right
 
+    def variables
+      left.vars.merge(right.vars)
+    end
+
     def evaluate(model)
       raise NotImplementedError
     end
