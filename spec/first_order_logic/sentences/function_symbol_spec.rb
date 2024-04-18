@@ -16,4 +16,12 @@ describe RuleRover::FirstOrderLogic::Sentences::FunctionSymbol do
       expect(described_class.valid_name?("@teacher_of", 'Aristotle')).to be(false)
     end
   end
+  describe '#initialize' do
+    it do
+      func_sym = described_class.new(:@teacher_of, 'Aristotle')
+      expect(func_sym.name).to eq(:@teacher_of)
+      expect(func_sym.args).to match_array(['Aristotle'])
+      expect(func_sym.vars).to match_array(['x_1'])
+    end
+  end
 end
