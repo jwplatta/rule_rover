@@ -9,12 +9,16 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def initialize(*args)
       name_index = args.find_index { |elm| elm.is_a? Symbol and /^[a-z]/.match?(elm) }
-      # TODO: find which subjects and objects share the same name and make a list
+      # TODO: find which subjects and objects
+      # share the same name and make a list
       # of variables consistent with that naming
       if name_index
         @name = args[name_index]
         @subjects = args[0...name_index]
         @objects = args[(name_index + 1)...]
+        @vars = @subjects.dup.concat(@objects).uniq.each_with_index.map do |arg, index|
+          "x_#{index+1}"
+        end
       end
     end
 
@@ -31,7 +35,7 @@ module RuleRover::FirstOrderLogic::Sentences
       raise NotImplementedError
     end
 
-    attr_reader :subjects, :name, :objects
+    attr_reader :subjects, :name, :objects, :vars
 
     def to_s
       "[#{subjects.join(', ')} :#{name} #{objects.join(', ')}]"

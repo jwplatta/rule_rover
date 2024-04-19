@@ -22,4 +22,13 @@ describe RuleRover::FirstOrderLogic::Sentences::PredicateSymbol do
       end
     end
   end
+  describe '#initialize' do
+    it do
+      pred_sym = described_class.new('Socrates', :taught, 'Socrates', 'Alexander', 'Plotinus')
+      expect(pred_sym.name).to eq(:taught)
+      expect(pred_sym.subjects).to match_array(['Socrates'])
+      expect(pred_sym.objects).to match_array(['Socrates', 'Alexander', 'Plotinus'])
+      expect(pred_sym.vars).to match_array(['x_1', 'x_2', 'x_3'])
+    end
+  end
 end
