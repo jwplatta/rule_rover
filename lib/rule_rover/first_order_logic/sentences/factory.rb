@@ -8,9 +8,18 @@ module RuleRover::FirstOrderLogic::Sentences
         elsif args.size == 1 and Variable.valid_name?(args.first)
           Variable.new(args.first)
         elsif PredicateSymbol.valid_name?(*args)
-          PredicateSymbol.new(*args)
+          name_index = args.find_index { |elm| elm.is_a? Symbol and /^[a-z]/.match?(elm) }
+
+          PredicateSymbol.new(
+            name: args[name_index],
+            subjects: args[0...name_index].map { |var| build(var) },
+            objects: args[(name_index + 1)...].map { |var| build(var) }
+          )
         elsif FunctionSymbol.valid_name?(*args)
-          FunctionSymbol.new(*args)
+          FunctionSymbol.new(
+            args.find { |elm| elm.is_a? Symbol and /^@/.match?(elm) },
+            args.select { |elm| not(/^@/.match?(elm)) }.map { |var| build(var) }
+          )
         elsif args.size == 2 and args.first == :not
           Negation.new(build(*args[1]))
         elsif args.size == 3 and args.first == :all
