@@ -6,19 +6,29 @@ module RuleRover::FirstOrderLogic::Sentences
       end
     end
 
-    def initialize(*args)
-      # TODO: find vars consistent with constant names
-      @name = args.find { |elm| elm.is_a? Symbol and /^@/.match?(elm) }
-      @args = args.select { |elm| not(/^@/.match?(elm)) }
-      @vars = @args.uniq.each_with_index.map do |arg, index|
-        "x_#{index+1}"
-      end
+    def initialize(name, args)
+      @name = name
+      @args = args
+      @vars = standardize_apart
     end
 
     attr_reader :name, :args, :vars
 
+    def standardize_apart
+      args.uniq.each_with_index.inject({}) do |hash, (arg, index)|
+        hash[arg] = sentence_factory.build("x_#{index+1}")
+        hash
+      end
+    end
+
     def to_s
       "[:#{name} #{args.join(', ')}]"
+    end
+
+    private
+
+    def sentence_factory
+      RuleRover::FirstOrderLogic::Sentences::Factory
     end
   end
 end
