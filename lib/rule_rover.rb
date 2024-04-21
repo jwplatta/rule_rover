@@ -33,6 +33,7 @@ require_relative "./rule_rover/first_order_logic/sentences/universal_quantifier.
 require_relative "./rule_rover/first_order_logic/sentences/existential_quantifier.rb"
 require_relative "./rule_rover/first_order_logic/sentences/equals.rb"
 require_relative "./rule_rover/first_order_logic/algorithms/unification.rb"
+require_relative "./rule_rover/first_order_logic/sentences/standardize_apart.rb"
 
 
 module RuleRover
