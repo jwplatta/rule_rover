@@ -12,36 +12,35 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def transform
       map(sentence)
-
-      return mapping
+      mapping
     end
 
     def map(expression)
       if expression.is_a? Variable
-        unless mapping.include? expression
-          map_term(expression)
-        end
+        map_term(expression) unless mapping.include? expression
       elsif expression.is_a? ConstantSymbol
-        unless mapping.include? expression
-          map_term(expression)
-        end
+        map_term(expression) unless mapping.include? expression
       elsif expression.is_a? PredicateSymbol
         (expression.subjects + expression.objects).uniq.each do |term|
-          unless mapping.include? term
-            map_term(term)
-          end
+          map_term(term) unless mapping.include? term
         end
       elsif expression.is_a? FunctionSymbol
         expression.args.each do |term|
-          unless mapping.include? term
-            map_term(term)
-          end
+          map_term(term) unless mapping.include? term
         end
-      elsif [Conjunction, Disjunction, Conditional, Biconditional].include? expression.class
+      elsif [Conjunction, Disjunction, Conditional, Biconditional, Equals].include? expression.class
         map(expression.left)
         map(expression.right)
       elsif expression.is_a? Negation
         map(expression.sentence)
+      elsif [ExistentialQuantifier, UniversalQuantifier].include? expression.class
+        expression.vars.each do |var|
+          map_term(var) unless mapping.include? var
+        end
+
+        map(expression.sentence)
+      else
+        raise NotImplementedError, "StandardizeApart not implemented for #{expression.class}"
       end
     end
 
