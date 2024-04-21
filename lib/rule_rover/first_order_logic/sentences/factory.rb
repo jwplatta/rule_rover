@@ -55,29 +55,33 @@ module RuleRover::FirstOrderLogic::Sentences
           left = remove_outer_array(args[0...connective_index])
           right = remove_outer_array(args[connective_index+1..])
 
-          if connective == :and
-            Conjunction.new(
-              build(*left),
-              build(*right)
-            )
-          elsif connective == :or
-            Disjunction.new(
-              build(*left),
-              build(*right)
-            )
-          elsif connective == :then
-            Conditional.new(
-              build(*left),
-              build(*right)
-            )
-          elsif connective == :iff
-            Biconditional.new(
-              build(*left),
-              build(*right)
-            )
-          else
-            raise RuleRover::SentenceNotWellFormedError.new(args.inspect)
-          end
+          build_connective(connective, left, right)
+        else
+          raise RuleRover::SentenceNotWellFormedError.new(args.inspect)
+        end
+      end
+
+      def build_connective(connective, left, right)
+        if connective == :and
+          Conjunction.new(
+            build(*left),
+            build(*right)
+          )
+        elsif connective == :or
+          Disjunction.new(
+            build(*left),
+            build(*right)
+          )
+        elsif connective == :then
+          Conditional.new(
+            build(*left),
+            build(*right)
+          )
+        elsif connective == :iff
+          Biconditional.new(
+            build(*left),
+            build(*right)
+          )
         else
           raise RuleRover::SentenceNotWellFormedError.new(args.inspect)
         end
