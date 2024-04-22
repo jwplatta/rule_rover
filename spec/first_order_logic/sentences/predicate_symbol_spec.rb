@@ -33,17 +33,6 @@ describe RuleRover::FirstOrderLogic::Sentences::PredicateSymbol do
       expect(pred_sym.objects).to match_array([socrates, alexander, plotinus])
     end
   end
-  describe '#standardize_apart' do
-    it do
-      pred_sym = sentence_factory.build('Socrates', :taught, 'Socrates', 'x', 'a')
-      expected = {
-        sentence_factory.build('Socrates') => sentence_factory.build('x_1'),
-        sentence_factory.build('x') => sentence_factory.build('x_2'),
-        sentence_factory.build('a') => sentence_factory.build('x_3')
-      }
-      expect(pred_sym.standardize_apart).to eq(expected)
-    end
-  end
 
   def sentence_factory
     RuleRover::FirstOrderLogic::Sentences::Factory

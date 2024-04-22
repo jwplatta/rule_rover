@@ -11,39 +11,28 @@ module RuleRover::FirstOrderLogic::Sentences
       @name = name
       @subjects = subjects
       @objects = objects
-      @vars = standardize_apart
-      # name_index = args.find_index { |elm| elm.is_a? Symbol and /^[a-z]/.match?(elm) }
-
-      # if name_index
-      #   @name = args[name_index]
-      #   @subjects = args[0...name_index]
-      #   @objects = args[(name_index + 1)...]
-      #   @vars = @subjects.dup.concat(@objects).uniq.each_with_index.map do |arg, index|
-      #     "x_#{index+1}"
-      #   end
-      # end
     end
 
-    def standardize_apart
-      subjects.dup.concat(objects).uniq.each_with_index.inject({}) do |hash, (arg, index)|
-        hash[arg] = sentence_factory.build("x_#{index+1}")
-        hash
-      end
+    attr_reader :name, :subjects, :objects
+
+    def is_term?
+      true
     end
-
-    attr_reader :subjects, :name, :objects, :vars
-
-    # TODO:
-    # def substitute(substitution={})
-    #   self.class.new(
-    #     *subjects.map { |subject| substitution[subject] || subject },
-    #     name,
-    #     *objects.map { |object| substitution[object] || object }
-    #   )
-    # end
 
     def evaluate(model)
       raise NotImplementedError
+    end
+
+    def ==(other)
+      to_s == other.to_s
+    end
+
+    def eql?(other)
+      self == other
+    end
+
+    def hash
+      to_s.hash
     end
 
     def to_s
