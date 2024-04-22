@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe RuleRover::FirstOrderLogic::Sentences::FunctionSymbol do
   it 'does not raise' do
-    expect { described_class.new(nil, []) }.not_to raise_error
+    expect { described_class.new(name: nil, args: []) }.not_to raise_error
   end
 
   describe '.valid_name?' do
@@ -21,22 +21,6 @@ describe RuleRover::FirstOrderLogic::Sentences::FunctionSymbol do
       func_sym = sentence_factory.build(:@teacher_of, 'Aristotle')
       expect(func_sym.name).to eq(:@teacher_of)
       expect(func_sym.args).to match_array([sentence_factory.build('Aristotle')])
-      expect(func_sym.vars).to eq(
-        {
-          sentence_factory.build('Aristotle') => sentence_factory.build('x_1')
-        }
-      )
-    end
-  end
-
-  describe '#standardize_apart' do
-    it do
-      func_sym = sentence_factory.build(:@son_of, 'Peter', 'a')
-      expected = {
-        sentence_factory.build('Peter') => sentence_factory.build('x_1'),
-        sentence_factory.build('a') => sentence_factory.build('x_2')
-      }
-      expect(func_sym.standardize_apart).to eq(expected)
     end
   end
 

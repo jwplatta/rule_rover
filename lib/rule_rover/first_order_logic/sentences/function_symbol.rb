@@ -6,19 +6,27 @@ module RuleRover::FirstOrderLogic::Sentences
       end
     end
 
-    def initialize(name, args)
+    def initialize(name:, args: [])
       @name = name
       @args = args
-      @vars = standardize_apart
     end
 
-    attr_reader :name, :args, :vars
+    attr_reader :name, :args
 
-    def standardize_apart
-      args.uniq.each_with_index.inject({}) do |hash, (arg, index)|
-        hash[arg] = sentence_factory.build("x_#{index+1}")
-        hash
-      end
+    def is_term?
+      true
+    end
+
+    def ==(other)
+      to_s == other.to_s
+    end
+
+    def eql?(other)
+      self == other
+    end
+
+    def hash
+      to_s.hash
     end
 
     def to_s

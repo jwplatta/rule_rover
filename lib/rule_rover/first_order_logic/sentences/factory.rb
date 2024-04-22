@@ -17,8 +17,8 @@ module RuleRover::FirstOrderLogic::Sentences
           )
         elsif FunctionSymbol.valid_name?(*args)
           FunctionSymbol.new(
-            args.find { |elm| elm.is_a? Symbol and /^@/.match?(elm) },
-            args.select { |elm| not(/^@/.match?(elm)) }.map { |var| build(var) }
+            name: args.find { |elm| elm.is_a? Symbol and /^@/.match?(elm) },
+            args: args.select { |elm| not(/^@/.match?(elm)) }.map { |var| build(var) }
           )
         elsif args.size == 2 and args.first == :not
           Negation.new(build(*args[1]))
