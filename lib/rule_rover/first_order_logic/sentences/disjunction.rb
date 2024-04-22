@@ -11,6 +11,18 @@ module RuleRover::FirstOrderLogic::Sentences
       left.evaluate(model) or right.evaluate(model)
     end
 
+    def ==(other)
+      to_s == other.to_s
+    end
+
+    def eql?(other)
+      self == other
+    end
+
+    def hash
+      to_s.hash
+    end
+
     def to_s
       "[#{left} :or #{right}]"
     end
