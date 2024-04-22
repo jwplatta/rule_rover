@@ -12,39 +12,44 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def transform
       map(sentence)
-      mapping
     end
+
+    private
 
     def map(expression)
       if expression.is_a? Variable
         map_term(expression) unless mapping.include? expression
+        mapping[expression]
       elsif expression.is_a? ConstantSymbol
         map_term(expression) unless mapping.include? expression
+        expression
       elsif expression.is_a? PredicateSymbol
-        (expression.subjects + expression.objects).uniq.each do |term|
-          map_term(term) unless mapping.include? term
-        end
+        PredicateSymbol.new(
+          name: expression.name,
+          subjects: expression.subjects.map { |term| map(term) },
+          objects: expression.objects.map { |term| map(term) }
+        )
       elsif expression.is_a? FunctionSymbol
-        expression.args.each do |term|
-          map_term(term) unless mapping.include? term
-        end
+        FunctionSymbol.new(
+          name: expression.name,
+          args: expression.args.map { |term| map(term) }
+        )
       elsif [Conjunction, Disjunction, Conditional, Biconditional, Equals].include? expression.class
-        map(expression.left)
-        map(expression.right)
+        expression.class.new(
+          map(expression.left),
+          map(expression.right)
+        )
       elsif expression.is_a? Negation
-        map(expression.sentence)
+        Negation.new(map(expression.sentence))
       elsif [ExistentialQuantifier, UniversalQuantifier].include? expression.class
-        expression.vars.each do |var|
-          map_term(var) unless mapping.include? var
-        end
-
-        map(expression.sentence)
+        expression.class.new(
+          expression.vars.map { |var| map(var) },
+          map(expression.sentence)
+        )
       else
         raise NotImplementedError, "StandardizeApart not implemented for #{expression.class}"
       end
     end
-
-    private
 
     def map_term(term)
       increment_var_count

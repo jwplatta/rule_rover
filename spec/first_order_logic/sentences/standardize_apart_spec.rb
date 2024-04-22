@@ -5,88 +5,70 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
     expect { described_class.new(nil) }.not_to raise_error
   end
   describe '#transform' do
-    it 'maps a variable' do
+    it 'transforms a variable' do
       sentence = sentence_factory.build('x')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({ sentence => sentence_factory.build('x_1') })
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence_factory.build('x_1'))
     end
-    it 'maps a constant symbol' do
+    it 'returns constant with mapping' do
       sentence = sentence_factory.build('Aristotle')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({ sentence => sentence_factory.build('x_1') })
-    end
-    it 'maps a function symbol with a constant' do
-      sentence = sentence_factory.build(:@student_of, 'Aristotle')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('Aristotle') => sentence_factory.build('x_1')
-      })
-    end
-    it 'maps a function symbol with a variable' do
-      sentence = sentence_factory.build(:@student_of, 'x')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('x') => sentence_factory.build('x_1')
-      })
-    end
-    it 'maps a predicate symbol with a constant' do
-      sentence = sentence_factory.build('Plato', :taught, 'Aristotle')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('Plato') => sentence_factory.build('x_1'),
-        sentence_factory.build('Aristotle') => sentence_factory.build('x_2')
-      })
-    end
-    it 'maps a predicate symbol with a variable' do
-      sentence = sentence_factory.build('x_2', :taught, 'Aristotle')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('x_2') => sentence_factory.build('x_1'),
-        sentence_factory.build('Aristotle') => sentence_factory.build('x_2')
-      })
-    end
-    it 'maps a conjunction with constants' do
-      sentence = sentence_factory.build('Aristotle', :and, 'Plato')
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('Aristotle') => sentence_factory.build('x_1'),
-        sentence_factory.build('Plato') => sentence_factory.build('x_2')
-      })
-    end
-    it 'maps a conjunction of predicates with variables and constants' do
-      sentence = sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x'])
-      mapping = described_class.new(sentence).transform
+      transformed_sent = described_class.new(sentence).transform
 
-      expect(mapping).to eq({
-        sentence_factory.build('Plato') => sentence_factory.build('x_1'),
-        sentence_factory.build('Aristotle') => sentence_factory.build('x_2'),
-        sentence_factory.build('x') => sentence_factory.build('x_3')
-      })
+      expect(transformed_sent).to eq(sentence)
     end
-    it 'maps quantifiers' do
+    it 'transforms a function symbol with a constant' do
+      sentence = sentence_factory.build(:@student_of, 'Aristotle')
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence)
+    end
+    it 'transforms a function symbol with a variable' do
+      sentence = sentence_factory.build(:@student_of, 'x')
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence_factory.build(:@student_of, 'x_1'))
+    end
+    it 'transforms a predicate symbol with a constant' do
+      sentence = sentence_factory.build('Plato', :taught, 'Aristotle')
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence)
+    end
+    it 'transforms a predicate symbol with a variable' do
+      sentence = sentence_factory.build('x_2', :taught, 'Aristotle')
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence_factory.build('x_1', :taught, 'Aristotle'))
+    end
+    it 'transforms a conjunction with constants' do
+      sentence = sentence_factory.build('Aristotle', :and, 'Plato')
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence)
+    end
+    it 'transforms a conjunction of predicates with variables and constants' do
+      sentence = sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x'])
+      transformed_sent = described_class.new(sentence).transform
+      expect(transformed_sent).to eq(sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x_3']))
+    end
+    it 'transforms quantifiers' do
       sentence = sentence_factory.build(
         :some,
         "x",
         [:all, "y", [[:@brother, "Matt"], :then, ["x", :sibling_of, "y"]]]
       )
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('x') => sentence_factory.build('x_1'),
-        sentence_factory.build('y') => sentence_factory.build('x_2'),
-        sentence_factory.build('Matt') => sentence_factory.build('x_3')
-      })
+      transformed_sent = described_class.new(sentence).transform
+      expected = sentence_factory.build(
+        :some,
+        "x_1",
+        [:all, "x_2", [[:@brother, "Matt"], :then, ["x_1", :sibling_of, "x_2"]]]
+      )
+      expect(transformed_sent).to eq(expected)
     end
-    it 'maps equals' do
+    it 'transforms equals' do
       sentence = sentence_factory.build(
         :some, ["x", "y"], [[[:@brother, "x", "Richard"], :and, [:@brother, "y", "Richard"]], :and, :not, ["x", :equals, "z"]]
       )
-      mapping = described_class.new(sentence).transform
-      expect(mapping).to eq({
-        sentence_factory.build('x') => sentence_factory.build('x_1'),
-        sentence_factory.build('y') => sentence_factory.build('x_2'),
-        sentence_factory.build('Richard') => sentence_factory.build('x_3'),
-        sentence_factory.build('z') => sentence_factory.build('x_4')
-      })
+      transformed_sent = described_class.new(sentence).transform
+      expected = sentence_factory.build(
+        :some, ["x_1", "x_2"], [[[:@brother, "x_1", "Richard"], :and, [:@brother, "x_2", "Richard"]], :and, :not, ["x_1", :equals, "x_4"]]
+      )
+      expect(transformed_sent).to eq(expected)
     end
   end
 
