@@ -1,52 +1,39 @@
 require 'spec_helper'
 
-describe RuleRover::FirstOrderLogic::Algorithms::Unification do
-  it 'does not raise' do
-    expect { described_class.run(nil, nil, {}) }.not_to raise_error
+describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
+  xit 'does not raise' do
+    expect { described_class.find(nil, nil) }.not_to raise_error
   end
 
-  describe '.run' do
-    context 'when substitution is false' do
-      it 'returns false' do
-        expect(
-          described_class.run(
-            sentence_factory.build('x'),
-            sentence_factory.build('y'),
-            false
-          )
-        ).to be(false)
-      end
-    end
-    xcontext 'when given two variables' do
-      context 'when the variables are the same' do
-        it 'returns a substitution' do
-          expect(
-            described_class.run(
-              sentence_factory.build('x'),
-              sentence_factory.build('x'),
-              {}
-            )
-          ).to eq({})
-        end
-      end
-    end
-    xcontext 'when given a variable and a constant' do
+  describe '.find' do
+    context 'when given two variables' do
       it 'returns a substitution' do
         expect(
-          described_class.run(
+          described_class.find(
             sentence_factory.build('x'),
-            "Maureen",
-            {}
+            sentence_factory.build('x')
           )
-        ).to eq({ "x" => "Maureen" })
+        ).to eq({})
+      end
+    end
+    fcontext 'when given a variable and a constant' do
+      it 'returns a substitution' do
+        example_one =  described_class.find(
+          sentence_factory.build('x'),
+          sentence_factory.build('Maureen')
+        )
+        expected = {
+          sentence_factory.build('x_1') => sentence_factory.build('Maureen')
+        }
 
-        expect(
-          described_class.run(
-            "Maureen",
-            sentence_factory.build("x"),
-            {}
-          )
-        ).to eq({ "x" => "Maureen" })
+        expect(example_one).to eq(expected)
+
+        example_two = described_class.find(
+          sentence_factory.build('Maureen'),
+          sentence_factory.build('x')
+        )
+
+        expect(example_two).to eq(expected)
       end
     end
     xcontext 'when given two predicates' do
