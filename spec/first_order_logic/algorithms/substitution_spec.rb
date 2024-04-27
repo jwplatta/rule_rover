@@ -58,6 +58,14 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         expect(substitution).to eq(expected)
       end
     end
+    context 'when given a function and a predicate' do
+      it 'returns false' do
+        sent1 = sentence_factory.build(:@son_of, 'Peter', 'x')
+        sent2 = sentence_factory.build('Plato', :taught, 'x')
+        substitution = described_class.find(sent1, sent2)
+        expect(substitution).to eq(false)
+      end
+    end
     xcontext 'when given a conjunction with the same constants' do
       it 'returns an empty substitution' do
         binding.pry
