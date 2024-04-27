@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
-  xit 'does not raise' do
-    expect { described_class.find(nil, nil) }.not_to raise_error
-  end
-
   describe '.find' do
     context 'when given two variables' do
       it 'returns a substitution' do
@@ -16,7 +12,7 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         ).to eq({})
       end
     end
-    fcontext 'when given a variable and a constant' do
+    context 'when given a variable and a constant' do
       it 'returns a substitution' do
         example_one =  described_class.find(
           sentence_factory.build('x'),
@@ -36,17 +32,17 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         expect(example_two).to eq(expected)
       end
     end
-    xcontext 'when given two predicates' do
-      it 'returns a substitution' do
+    fcontext 'when given two predicates' do
+      fit 'returns a substitution' do
         sent1 = sentence_factory.build('x', :taught, 'Aristotle')
         sent2 = sentence_factory.build('Plato', :taught, 'x')
         expected = {
           sentence_factory.build('x_1') => sentence_factory.build('Plato'),
           sentence_factory.build('x_2') => sentence_factory.build('Aristotle')
         }
-        expect(
-          described_class.run(sent1, sent2, {})
-        ).to eq(expected)
+
+        substitution = described_class.find(sent1, sent2)
+        expect(substitution).to eq(expected)
       end
     end
     xcontext 'when given two functions' do
