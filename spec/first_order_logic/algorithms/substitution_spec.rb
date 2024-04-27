@@ -32,8 +32,8 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         expect(example_two).to eq(expected)
       end
     end
-    fcontext 'when given two predicates' do
-      fit 'returns a substitution' do
+    context 'when given two predicates' do
+      it 'returns a substitution' do
         sent1 = sentence_factory.build('x', :taught, 'Aristotle')
         sent2 = sentence_factory.build('Plato', :taught, 'x')
         expected = {
@@ -45,7 +45,7 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         expect(substitution).to eq(expected)
       end
     end
-    xcontext 'when given two functions' do
+    context 'when given two functions' do
       it 'returns a substitution' do
         sent1 = sentence_factory.build(:@son_of, 'Peter', 'x')
         sent2 = sentence_factory.build(:@son_of, 'x', 'Mary')
@@ -53,9 +53,9 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
           sentence_factory.build('x_1') => sentence_factory.build('Peter'),
           sentence_factory.build('x_2') => sentence_factory.build('Mary')
         }
-        expect(
-          described_class.run(sent1, sent2, {})
-        ).to eq(expected)
+
+        substitution = described_class.find(sent1, sent2)
+        expect(substitution).to eq(expected)
       end
     end
     xcontext 'when given a conjunction with the same constants' do
