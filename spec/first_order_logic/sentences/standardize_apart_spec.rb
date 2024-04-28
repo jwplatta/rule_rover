@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
+describe RuleRover::FirstOrderLogic::StandardizeApart do
   it 'does not raise' do
     expect { described_class.new(nil) }.not_to raise_error
   end
