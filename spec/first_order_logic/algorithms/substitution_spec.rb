@@ -149,19 +149,6 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
       end
     end
   end
-  describe '.is_variable?' do
-    context 'when the expression is a variable' do
-      xit 'returns true' do
-        expect(
-          described_class.is_variable?(
-            sentence_factory.build('x')
-          )
-        ).to be true
-      end
-    end
-    context 'when the expression is not a variable' do
-    end
-  end
 
   def sentence_factory
     RuleRover::FirstOrderLogic::Sentences::Factory
