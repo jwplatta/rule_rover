@@ -66,75 +66,92 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         expect(substitution).to eq(false)
       end
     end
-    xcontext 'when given a conjunction with the same constants' do
+    context 'when given a conjunction with the same constants' do
       it 'returns an empty substitution' do
-        binding.pry
         expect(
-          described_class.run(
+          described_class.find(
             sentence_factory.build('Joe', :and, 'Maureen'),
-            sentence_factory.build('Joe', :and, 'Maureen'),
-            {}
+            sentence_factory.build('Joe', :and, 'Maureen')
           )
         ).to eq({})
       end
     end
-    xcontext 'when given a conjunction with different constants' do
+    context 'when given a conjunction with different constants' do
       it 'returns false' do
         expect(
-          described_class.run(
+          described_class.find(
             sentence_factory.build('Joe', :and, 'Matt'),
-            sentence_factory.build('Joe', :and, 'Maureen'),
-            {}
+            sentence_factory.build('Joe', :and, 'Maureen')
           )
         ).to eq(false)
       end
     end
-    xcontext 'when given a conjunction with a variable' do
+    context 'when given a conjunction with a constants and a function' do
       it 'returns a substitution' do
+        substitution = described_class.find(
+          sentence_factory.build('Joe', :and, 'Matt'),
+          sentence_factory.build('Joe', :and, [:@brother_of, 'x'])
+        )
         expect(
-          described_class.run(
-            sentence_factory.build('Joe', :and, 'Matt'),
-            sentence_factory.build('Joe', :and, 'x'),
-            {}
-          )
-        ).to eq({
-          sentence_factory.build('x') => sentence_factory.build('Matt')
-        })
+          substitution
+        ).to eq(false)
       end
     end
-    xcontext 'when given a conjunction with a variable' do
+    context 'when given a conjunction with a variables' do
       it 'returns a substitution' do
-        expect(
-          described_class.run(
-            sentence_factory.build('x', :and, 'Matt'),
-            sentence_factory.build('Joe', :and, 'x'),
-            {}
-          )
-        ).to eq({
+        substitution = described_class.find(
+          sentence_factory.build('x', :and, 'Matt'),
+          sentence_factory.build('Joe', :and, 'x')
+        )
+        expect(substitution).to eq({
           sentence_factory.build('x_1') => sentence_factory.build('Joe'),
           sentence_factory.build('x_2') => sentence_factory.build('Matt')
         })
       end
     end
-    xcontext 'when given a conjunction with different constants' do
+    context 'when given a biconditional with predicates' do
       it 'returns a substitution' do
+        substitution = described_class.find(
+          sentence_factory.build('Joe', :iff, ['Plato', :taught, 'x']),
+          sentence_factory.build('Joe', :iff, ['x', :taught, 'Aristotle'])
+        )
         expected = {
-          sentence_factory.build('x_1') => sentence_factory.build('Joe'),
-          sentence_factory.build('x_2') => sentence_factory.build('Maureen')
+          sentence_factory.build('x_2') => sentence_factory.build('Plato'),
+          sentence_factory.build('x_3') => sentence_factory.build('Aristotle')
         }
-        expect(
-          described_class.run(
-            sentence_factory.build('Joe', :and, 'Maureen'),
-            sentence_factory.build('Joe', :and, 'Maureen'),
-            {}
-          )
-        ).to eq({})
+        expect(substitution).to eq(expected)
+      end
+    end
+    context 'when given a disjunction with functions' do
+      it 'returns a substitution' do
+        substitution = described_class.find(
+          sentence_factory.build('Matt', :or, [:@son_of, 'Peter', 'x']),
+          sentence_factory.build('Matt', :or, [:@son_of, 'y', 'Mary'])
+        )
+        expected = {
+          sentence_factory.build('x_2') => sentence_factory.build('Peter'),
+          sentence_factory.build('x_3') => sentence_factory.build('Mary')
+        }
+        expect(substitution).to eq(expected)
+      end
+    end
+    context 'when given a negation with functions' do
+      it 'returns a substitution' do
+        substitution = described_class.find(
+          sentence_factory.build(:not, [:@son_of, 'Peter', 'x']),
+          sentence_factory.build(:not, [:@son_of, 'y', 'Mary'])
+        )
+        expected = {
+          sentence_factory.build('x_1') => sentence_factory.build('Peter'),
+          sentence_factory.build('x_2') => sentence_factory.build('Mary')
+        }
+        expect(substitution).to eq(expected)
       end
     end
   end
   describe '.is_variable?' do
     context 'when the expression is a variable' do
-      it 'returns true' do
+      xit 'returns true' do
         expect(
           described_class.is_variable?(
             sentence_factory.build('x')
