@@ -60,7 +60,6 @@ module RuleRover::PropositionalLogic
     end
 
     def to_clauses
-      # TODO: should be to_clauses
       sentences.map(&:to_cnf).then do |cnf_sentences|
         cnf_sentences.map do |sent|
           frontier = [sent]
