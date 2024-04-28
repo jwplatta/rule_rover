@@ -16,12 +16,14 @@ module RuleRover::FirstOrderLogic
 
     def assert(*sentence)
       sentence_factory.build(*sentence).then do |sentence|
-        @symbols.merge(sentence.symbols)
+        # @symbols.merge(sentence.symbols)
+        @sentences << sentence if sentences.include?(sentence) == false
       end
     end
 
-    def match?(*query)
-    end
+    def match?(*querty); end
+
+    def entail?(*query); end
 
     def connectives
       @connectives ||= RuleRover::FirstOrderLogic::CONNECTIVES
@@ -33,6 +35,10 @@ module RuleRover::FirstOrderLogic
 
     def quantifiers
       @quantifiers ||= RuleRover::FirstOrderLogic::QUANTIFIERS
+    end
+
+    def sentence_factory
+      RuleRover::FirstOrderLogic::Sentences::Factory
     end
   end
 end
