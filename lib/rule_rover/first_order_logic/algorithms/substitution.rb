@@ -1,6 +1,6 @@
-include RuleRover::FirstOrderLogic::Sentences
-
 module RuleRover::FirstOrderLogic::Algorithms
+  include RuleRover::FirstOrderLogic::Sentences
+
   class Substitution
     class << self
       def find(expression_x, expression_y)
