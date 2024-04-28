@@ -21,7 +21,7 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
     end
   end
-  fdescribe '#assert' do
+  describe '#assert' do
     it 'adds a constant' do
       expected = sentence_factory.build("a", :and, "b")
       subject.assert("a", :and, "b")
@@ -78,7 +78,30 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       expect(subject.sentences).to include(expected)
     end
   end
-  xdescribe '#match' do
+  describe '#match' do
+    describe 'when knowledge base is empty' do
+      it 'returns false' do
+        expect(subject.match?('Joe', :and, 'Matthew')).to be false
+      end
+    end
+    describe 'when knowledge base is not empty' do
+      before do
+        subject.assert('Joe', :and, 'Matthew')
+        subject.assert('Ben', :and, 'Joe')
+        subject.assert('x', :and, 'Joe')
+      end
+      context 'when knowledge base contains a match' do
+        it 'returns sentence from knowledge base' do
+          match = subject.match?('Maureen', :and, 'Joe')
+          expect(match).to be subject.sentences.last
+        end
+      end
+      context 'when knowledge base contains no match' do
+        fit 'returns nil' do
+          expect(subject.match?('Maureen', :and, 'Monkey')).to be nil
+        end
+      end
+    end
   end
   xdescribe '#entail' do
   end
