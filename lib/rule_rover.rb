@@ -18,7 +18,6 @@ require_relative "./rule_rover/propositional_logic/algorithms/resolution.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/forward_chaining.rb"
 require_relative "./rule_rover/propositional_logic/algorithms/backward_chaining.rb"
 require_relative "./rule_rover/first_order_logic/constants.rb"
-require_relative "./rule_rover/first_order_logic/knowledge_base.rb"
 require_relative "./rule_rover/first_order_logic/sentences/factory.rb"
 require_relative "./rule_rover/first_order_logic/sentences/constant_symbol.rb"
 require_relative "./rule_rover/first_order_logic/sentences/function_symbol.rb"
@@ -34,6 +33,7 @@ require_relative "./rule_rover/first_order_logic/sentences/existential_quantifie
 require_relative "./rule_rover/first_order_logic/sentences/equals.rb"
 require_relative "./rule_rover/first_order_logic/algorithms/substitution.rb"
 require_relative "./rule_rover/first_order_logic/sentences/standardize_apart.rb"
+require_relative "./rule_rover/first_order_logic/knowledge_base.rb"
 
 
 module RuleRover
