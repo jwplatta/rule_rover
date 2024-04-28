@@ -1,13 +1,10 @@
 module RuleRover::FirstOrderLogic::Algorithms
   include RuleRover::FirstOrderLogic::Sentences
 
-  class Substitution
+  class Unification
     class << self
-      def find(expression_x, expression_y)
-        self.new(
-          StandardizeApart.new(expression_x).transform,
-          StandardizeApart.new(expression_y).transform
-        ).run
+      def find_substitution(expression_x, expression_y)
+        self.new(expression_x, expression_y).find
       end
     end
 
@@ -18,7 +15,7 @@ module RuleRover::FirstOrderLogic::Algorithms
 
     attr_reader :expression_x, :expression_y, :substitution
 
-    def run
+    def find
       @substitution ||= unify(expression_x, expression_y, {})
     end
 

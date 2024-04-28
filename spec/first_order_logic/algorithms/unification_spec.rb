@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
-  describe '.find' do
+describe RuleRover::FirstOrderLogic::Algorithms::Unification do
+  describe '.find_substitution' do
     context 'when given two variables' do
       it 'returns a substitution' do
         expect(
-          described_class.find(
+          described_class.find_substitution(
             sentence_factory.build('x'),
             sentence_factory.build('x')
           )
@@ -14,9 +14,9 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
     end
     context 'when given a variable and a constant' do
       it 'returns a substitution' do
-        example_one =  described_class.find(
-          sentence_factory.build('x'),
-          sentence_factory.build('Maureen')
+        example_one =  described_class.find_substitution(
+          standardize_apart(sentence_factory.build('x')),
+          standardize_apart(sentence_factory.build('Maureen'))
         )
         expected = {
           sentence_factory.build('x_1') => sentence_factory.build('Maureen')
@@ -24,9 +24,9 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
 
         expect(example_one).to eq(expected)
 
-        example_two = described_class.find(
-          sentence_factory.build('Maureen'),
-          sentence_factory.build('x')
+        example_two = described_class.find_substitution(
+          standardize_apart(sentence_factory.build('Maureen')),
+          standardize_apart(sentence_factory.build('x'))
         )
 
         expect(example_two).to eq(expected)
@@ -41,7 +41,10 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
           sentence_factory.build('x_2') => sentence_factory.build('Aristotle')
         }
 
-        substitution = described_class.find(sent1, sent2)
+        substitution = described_class.find_substitution(
+          standardize_apart(sent1),
+          standardize_apart(sent2)
+        )
         expect(substitution).to eq(expected)
       end
     end
@@ -54,7 +57,10 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
           sentence_factory.build('x_2') => sentence_factory.build('Mary')
         }
 
-        substitution = described_class.find(sent1, sent2)
+        substitution = described_class.find_substitution(
+          standardize_apart(sent1),
+          standardize_apart(sent2)
+        )
         expect(substitution).to eq(expected)
       end
     end
@@ -62,16 +68,23 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
       it 'returns false' do
         sent1 = sentence_factory.build(:@son_of, 'Peter', 'x')
         sent2 = sentence_factory.build('Plato', :taught, 'x')
-        substitution = described_class.find(sent1, sent2)
+        substitution = described_class.find_substitution(
+          standardize_apart(sent1),
+          standardize_apart(sent2)
+        )
         expect(substitution).to eq(false)
       end
     end
     context 'when given a conjunction with the same constants' do
       it 'returns an empty substitution' do
         expect(
-          described_class.find(
-            sentence_factory.build('Joe', :and, 'Maureen'),
-            sentence_factory.build('Joe', :and, 'Maureen')
+          described_class.find_substitution(
+            standardize_apart(
+              sentence_factory.build('Joe', :and, 'Maureen')
+            ),
+            standardize_apart(
+              sentence_factory.build('Joe', :and, 'Maureen')
+            )
           )
         ).to eq({})
       end
@@ -79,18 +92,26 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
     context 'when given a conjunction with different constants' do
       it 'returns false' do
         expect(
-          described_class.find(
-            sentence_factory.build('Joe', :and, 'Matt'),
-            sentence_factory.build('Joe', :and, 'Maureen')
+          described_class.find_substitution(
+            standardize_apart(
+              sentence_factory.build('Joe', :and, 'Matt')
+            ),
+            standardize_apart(
+              sentence_factory.build('Joe', :and, 'Maureen')
+            )
           )
         ).to eq(false)
       end
     end
     context 'when given a conjunction with a constants and a function' do
       it 'returns a substitution' do
-        substitution = described_class.find(
-          sentence_factory.build('Joe', :and, 'Matt'),
-          sentence_factory.build('Joe', :and, [:@brother_of, 'x'])
+        substitution = described_class.find_substitution(
+          standardize_apart(
+            sentence_factory.build('Joe', :and, 'Matt')
+          ),
+          standardize_apart(
+            sentence_factory.build('Joe', :and, [:@brother_of, 'x'])
+          )
         )
         expect(
           substitution
@@ -99,9 +120,13 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
     end
     context 'when given a conjunction with a variables' do
       it 'returns a substitution' do
-        substitution = described_class.find(
-          sentence_factory.build('x', :and, 'Matt'),
-          sentence_factory.build('Joe', :and, 'x')
+        substitution = described_class.find_substitution(
+          standardize_apart(
+            sentence_factory.build('x', :and, 'Matt')
+          ),
+          standardize_apart(
+            sentence_factory.build('Joe', :and, 'x')
+          )
         )
         expect(substitution).to eq({
           sentence_factory.build('x_1') => sentence_factory.build('Joe'),
@@ -111,9 +136,13 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
     end
     context 'when given a biconditional with predicates' do
       it 'returns a substitution' do
-        substitution = described_class.find(
-          sentence_factory.build('Joe', :iff, ['Plato', :taught, 'x']),
-          sentence_factory.build('Joe', :iff, ['x', :taught, 'Aristotle'])
+        substitution = described_class.find_substitution(
+          standardize_apart(
+            sentence_factory.build('Joe', :iff, ['Plato', :taught, 'x'])
+          ),
+          standardize_apart(
+            sentence_factory.build('Joe', :iff, ['x', :taught, 'Aristotle'])
+          )
         )
         expected = {
           sentence_factory.build('x_2') => sentence_factory.build('Plato'),
@@ -124,9 +153,13 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
     end
     context 'when given a disjunction with functions' do
       it 'returns a substitution' do
-        substitution = described_class.find(
-          sentence_factory.build('Matt', :or, [:@son_of, 'Peter', 'x']),
-          sentence_factory.build('Matt', :or, [:@son_of, 'y', 'Mary'])
+        substitution = described_class.find_substitution(
+          standardize_apart(
+            sentence_factory.build('Matt', :or, [:@son_of, 'Peter', 'x'])
+          ),
+          standardize_apart(
+            sentence_factory.build('Matt', :or, [:@son_of, 'y', 'Mary'])
+          )
         )
         expected = {
           sentence_factory.build('x_2') => sentence_factory.build('Peter'),
@@ -137,9 +170,9 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
     end
     context 'when given a negation with functions' do
       it 'returns a substitution' do
-        substitution = described_class.find(
-          sentence_factory.build(:not, [:@son_of, 'Peter', 'x']),
-          sentence_factory.build(:not, [:@son_of, 'y', 'Mary'])
+        substitution = described_class.find_substitution(
+          standardize_apart(sentence_factory.build(:not, [:@son_of, 'Peter', 'x'])),
+          standardize_apart(sentence_factory.build(:not, [:@son_of, 'y', 'Mary']))
         )
         expected = {
           sentence_factory.build('x_1') => sentence_factory.build('Peter'),
@@ -148,6 +181,10 @@ describe RuleRover::FirstOrderLogic::Algorithms::Substitution do
         expect(substitution).to eq(expected)
       end
     end
+  end
+
+  def standardize_apart(sentence)
+    RuleRover::FirstOrderLogic::StandardizeApart.new(sentence).transform
   end
 
   def sentence_factory
