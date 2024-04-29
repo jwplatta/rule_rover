@@ -4,6 +4,8 @@ module RuleRover::FirstOrderLogic::Algorithms
   class Unification
     class << self
       def find_substitution(expression_x, expression_y)
+        # NOTE: Assumes that the expressions have been standardized apart
+
         self.new(expression_x, expression_y).find
       end
     end
