@@ -1,16 +1,21 @@
 include RuleRover::FirstOrderLogic::Sentences
 
 module RuleRover::FirstOrderLogic
-  class StandardizeApart
-    def initialize(sentence, mapping: {})
-      @sentence = sentence
+  module StandardizeApart
+    def setup_standardization()
       @var_count = 0
-      @mapping = mapping
+      @mapping = {}
     end
 
-    attr_reader :sentence, :var_count, :mapping
+    # def initialize(sentence, mapping: {})
+    #   @sentence = sentence
+    #   @var_count = 0
+    #   @mapping = mapping
+    # end
 
-    def transform
+    attr_reader :var_count, :mapping
+
+    def transform(sentence)
       map(sentence)
     end
 
