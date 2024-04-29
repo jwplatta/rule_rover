@@ -2,16 +2,10 @@ include RuleRover::FirstOrderLogic::Sentences
 
 module RuleRover::FirstOrderLogic
   module StandardizeApart
-    def setup_standardization()
+    def setup_standardization
       @var_count = 0
       @mapping = {}
     end
-
-    # def initialize(sentence, mapping: {})
-    #   @sentence = sentence
-    #   @var_count = 0
-    #   @mapping = mapping
-    # end
 
     attr_reader :var_count, :mapping
 
