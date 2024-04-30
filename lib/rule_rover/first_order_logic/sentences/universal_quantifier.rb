@@ -7,6 +7,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :vars, :sentence
 
+    def constants
+      sentence.constants
+    end
+
     def evaluate(model)
       raise NotImplementedError
     end

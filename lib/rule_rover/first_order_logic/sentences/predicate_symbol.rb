@@ -15,6 +15,13 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name, :subjects, :objects
 
+    def constants
+      Set.new(
+        subjects.select { |arg| arg.is_a? ConstantSymbol } +
+        objects.select { |arg| arg.is_a? ConstantSymbol }
+      )
+    end
+
     def is_term?
       true
     end

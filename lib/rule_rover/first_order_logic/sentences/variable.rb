@@ -12,6 +12,10 @@ module RuleRover::FirstOrderLogic::Sentences
       @name = name
     end
 
+    def constants
+      Set.new([])
+    end
+
     attr_reader :name
 
     def ==(other)

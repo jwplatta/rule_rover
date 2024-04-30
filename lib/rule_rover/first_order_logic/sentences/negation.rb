@@ -6,6 +6,11 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :sentence
 
+    def constants
+      sentence.constants
+    end
+
+
     def evaluate(model)
       not sentence.evaluate(model)
     end

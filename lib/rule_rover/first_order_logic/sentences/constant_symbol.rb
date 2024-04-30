@@ -13,6 +13,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name
 
+    def constants
+      Set.new([self])
+    end
+
     # NOTE: consider creating a SymbolBase class that
     # implements the #==, #eql?, #hash, and #to_s methods
     def ==(other)

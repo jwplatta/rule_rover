@@ -7,6 +7,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :left, :right
 
+    def constants
+      left.constants.merge(right.constants)
+    end
+
     def evaluate(model)
       left.evaluate(model) or right.evaluate(model)
     end
