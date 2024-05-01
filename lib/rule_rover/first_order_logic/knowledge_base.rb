@@ -1,13 +1,14 @@
 module RuleRover::FirstOrderLogic
-  include Algorithms
-
   class QueryNotSinglePropositionSymbol < StandardError; end
   class KnowledgeBaseNotDefinite < StandardError; end
   class InvalidEngine < StandardError; end
 
   class KnowledgeBase
+    include StandardizeApart
+    # TODO: include Unification
+
     def initialize(engine: :forward_chaining, sentences: [])
-      @constants = []
+      @constants = Set.new
       @functions = []
       @predicates = []
       @sentences = sentences
@@ -18,7 +19,9 @@ module RuleRover::FirstOrderLogic
 
     def assert(*sentence)
       sentence_factory.build(*sentence).then do |sentence|
+        # TODO: collect constants
         # TODO: @symbols.merge(sentence.symbols)
+        @constants.merge(sentence.constants)
         @sentences << sentence if sentences.include?(sentence) == false
       end
     end
@@ -35,7 +38,7 @@ module RuleRover::FirstOrderLogic
       # @return [Object, nil] Returns the matching sentence object if a match is found; otherwise, returns nil.
 
       sentence_factory.build(*query).then do |query|
-        sentences.find { |sentence| substitution.find(sentence, query)}
+        sentences.find { |sentence| unification.find_substitution(sentence, query)}
       end
     end
 
@@ -57,8 +60,8 @@ module RuleRover::FirstOrderLogic
       RuleRover::FirstOrderLogic::Sentences::Factory
     end
 
-    def substitution
-      Algorithms::Substitution
+    def unification
+      Algorithms::Unification
     end
   end
 end

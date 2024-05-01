@@ -21,61 +21,72 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
     end
   end
-  describe '#assert' do
+  fdescribe '#assert' do
     it 'adds a constant' do
       expected = sentence_factory.build("a", :and, "b")
       subject.assert("a", :and, "b")
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds a predicate' do
       expected = sentence_factory.build('Aristotle', :taught, 'Alexander')
       subject.assert('Aristotle', :taught, 'Alexander')
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 2
     end
     it 'adds a function' do
       expected = sentence_factory.build(:@father_of, 'x')
       subject.assert(:@father_of, 'x')
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds a negation' do
       expected = sentence_factory.build(:not, ['x', :and, 'y'])
       subject.assert(:not, ['x', :and, 'y'])
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds a conjunction' do
       expected = sentence_factory.build('a', :and, 'b')
       subject.assert('a', :and, 'b')
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds a disjunction' do
       expected = sentence_factory.build(['Plato', :taught, 'Aristotle'], :or, ['Aristotle', :taught, 'Alexander'])
       subject.assert(['Plato', :taught, 'Aristotle'], :or, ['Aristotle', :taught, 'Alexander'])
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 3
     end
     it 'adds an implication' do
       expected = sentence_factory.build('a', :then, 'b')
       subject.assert('a', :then, 'b')
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds a biconditional' do
       expected = sentence_factory.build('a', :iff, 'b')
       subject.assert('a', :iff, 'b')
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds a universal quantifier' do
       expected = sentence_factory.build(:all, 'y', [[:@brother, 'x', 'y'], :then, [:@sibling, 'x', 'y']])
       subject.assert(:all, 'y', [[:@brother, 'x', 'y'], :then, [:@sibling, 'x', 'y']])
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds an existential quantifier' do
       expected = sentence_factory.build(:some, 'y', [['x', :taught,  'y'], :then, ['y', :taught, 'x']])
       subject.assert(:some, 'y', [['x', :taught,  'y'], :then, ['y', :taught, 'x']])
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
     it 'adds an equality' do
       expected = sentence_factory.build([[:@father_of, 'x'], :and, [:@father_of, 'y']], :and, ['x',:equals, 'y'])
       subject.assert([[:@father_of, 'x'], :and, [:@father_of, 'y']], :and, ['x', :equals, 'y'])
       expect(subject.sentences).to include(expected)
+      expect(subject.constants.size).to eq 0
     end
   end
   describe '#match' do
@@ -97,7 +108,7 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
         end
       end
       context 'when knowledge base contains no match' do
-        fit 'returns nil' do
+        it 'returns nil' do
           expect(subject.match?('Maureen', :and, 'Monkey')).to be nil
         end
       end
