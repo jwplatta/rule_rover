@@ -51,7 +51,7 @@ describe RuleRover::FirstOrderLogic::StandardizeApart do
     it 'transforms a conjunction of predicates with variables and constants' do
       sentence = sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x'])
       transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x_3']))
+      expect(transformed_sent).to eq(sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x_1']))
     end
     it 'transforms quantifiers' do
       sentence = sentence_factory.build(
@@ -73,9 +73,22 @@ describe RuleRover::FirstOrderLogic::StandardizeApart do
       )
       transformed_sent = Dummy.new.transform(sentence)
       expected = sentence_factory.build(
-        :some, ["x_1", "x_2"], [[[:@brother, "x_1", "Richard"], :and, [:@brother, "x_2", "Richard"]], :and, :not, ["x_1", :equals, "x_4"]]
+        :some, ["x_1", "x_2"], [[[:@brother, "x_1", "Richard"], :and, [:@brother, "x_2", "Richard"]], :and, :not, ["x_1", :equals, "x_3"]]
       )
       expect(transformed_sent).to eq(expected)
+    end
+    context 'when given multiple sentences' do
+      xit do
+        sentences = [
+          ['Plato', :taught, 'Aristotle'],
+          ['y', :debates, 'Aristotle'],
+          ['Aristotle', :taught, 'Alexander'],
+          ['Plato', :student_of, 'x']
+        ].map { |s| sentence_factory.build(*s) }
+        dummy = Dummy.new
+        transformed_sents = sentences.map { |s| dummy.transform(s) }
+        binding.pry
+      end
     end
   end
 
