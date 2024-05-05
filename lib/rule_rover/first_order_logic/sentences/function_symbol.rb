@@ -36,11 +36,5 @@ module RuleRover::FirstOrderLogic::Sentences
     def to_s
       "[:#{name} #{args.join(', ')}]"
     end
-
-    private
-
-    def sentence_factory
-      RuleRover::FirstOrderLogic::Sentences::Factory
-    end
   end
 end
