@@ -23,6 +23,27 @@ describe RuleRover::FirstOrderLogic::Sentences::FunctionSymbol do
       expect(func_sym.args).to match_array([sentence_factory.build('Aristotle')])
     end
   end
+  describe '#==' do
+    context 'sentences have the same meaning'  do
+      it 'returns true' do
+        funct_sym_one = sentence_factory.build(:@cave_of, 'Plato')
+        funct_sym_two = sentence_factory.build(:@cave_of, 'Plato')
+        expect(funct_sym_one == funct_sym_two).to be(true)
+      end
+      it 'returns true' do
+        funct_sym_one = sentence_factory.build(:@student_of, 'x')
+        funct_sym_two = sentence_factory.build(:@student_of, 'y')
+        expect(funct_sym_one == funct_sym_two).to be(true)
+      end
+    end
+    context 'sentences have different meanings'  do
+      it 'returns false' do
+        func_sym_one = sentence_factory.build(:@son_of, 'x')
+        func_sym_two = sentence_factory.build(:@father_of, 'x')
+        expect(func_sym_one == func_sym_two).to be(false)
+      end
+    end
+  end
 
   def sentence_factory
     RuleRover::FirstOrderLogic::Sentences::Factory
