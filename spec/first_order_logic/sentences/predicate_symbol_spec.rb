@@ -34,6 +34,28 @@ describe RuleRover::FirstOrderLogic::Sentences::PredicateSymbol do
     end
   end
 
+  describe '#==' do
+    context 'sentences have the same meaning'  do
+      it 'returns true' do
+        pred_sym_one = sentence_factory.build('Socrates', :taught, 'Plato')
+        pred_sym_two = sentence_factory.build('Socrates', :taught, 'Plato')
+        expect(pred_sym_one == pred_sym_two).to be(true)
+      end
+      it 'returns true' do
+        pred_sym_one = sentence_factory.build('Socrates', :taught, 'x')
+        pred_sym_two = sentence_factory.build('Socrates', :taught, 'y')
+        expect(pred_sym_one == pred_sym_two).to be(true)
+      end
+    end
+    context 'sentences have different meanings'  do
+      it 'returns false' do
+        pred_sym_one = sentence_factory.build('Plato', :studied_with, 'x')
+        pred_sym_two = sentence_factory.build('Socrates', :taught, 'x')
+        expect(pred_sym_one == pred_sym_two).to be(false)
+      end
+    end
+  end
+
   def sentence_factory
     RuleRover::FirstOrderLogic::Sentences::Factory
   end

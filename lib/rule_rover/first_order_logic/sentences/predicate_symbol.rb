@@ -1,5 +1,10 @@
+require_relative '../standardize_apart'
+
 module RuleRover::FirstOrderLogic::Sentences
+  include RuleRover::FirstOrderLogic::StandardizeApart
+
   class PredicateSymbol
+
     class << self
       def valid_name?(*args)
         name = args.find { |elm| elm.is_a? Symbol }
@@ -31,7 +36,11 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def ==(other)
-      to_s == other.to_s
+      standardize.to_s == other.standardize.to_s
+    end
+
+    def standardize
+      transform(self)
     end
 
     def eql?(other)
