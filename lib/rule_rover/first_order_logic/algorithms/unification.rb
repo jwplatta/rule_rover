@@ -2,10 +2,8 @@ module RuleRover::FirstOrderLogic::Algorithms
   include RuleRover::FirstOrderLogic::Sentences
 
   module Unification
-    attr_reader :substitution
-
     def unify(expression_x, expression_y)
-      @substitution ||= unify_expressions(expression_x, expression_y, {})
+      unify_expressions(expression_x, expression_y, {})
     end
 
     private
