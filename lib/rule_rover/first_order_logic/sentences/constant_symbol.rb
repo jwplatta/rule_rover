@@ -1,9 +1,12 @@
-# NOTE: must start with a capital letter
+require_relative '../substitution'
+
 module RuleRover::FirstOrderLogic::Sentences
   class ConstantSymbol
+    include RuleRover::FirstOrderLogic::Substitution
+
     class << self
       def valid_name?(name)
-        name.is_a? String and /\A[A-Z][a-z]*\z/.match?(name.to_s)
+        name.is_a? String and /\A[A-Z][a-z0-9]*\z/.match?(name.to_s)
       end
     end
 

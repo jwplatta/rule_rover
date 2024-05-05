@@ -1,15 +1,35 @@
 module RuleRover::FirstOrderLogic
   module Substitution
-    def initialize
-      @mapping = {}
-    end
+    def substitute(mapping)
+      return self unless mapping
 
-    attr_reader :mapping
-
-    def add
-    end
-
-    def apply(sentence)
+      if is_a? Variable
+        mapping[self] || self
+      elsif is_a? ConstantSymbol
+        self
+      elsif is_a? PredicateSymbol
+        PredicateSymbol.new(
+          name: name,
+          subjects: subjects.map { |term| term.substitute(mapping) },
+          objects: objects.map { |term| term.substitute(mapping) }
+        )
+      elsif is_a? FunctionSymbol
+        FunctionSymbol.new(
+          name: name,
+          args: args.map { |term| term.substitute(mapping) }
+        )
+      elsif [Conjunction, Disjunction, Conditional, Biconditional, Equals].include? self.class
+        self.class.new(left.substitute(mapping), right.substitute(mapping))
+      elsif is_a? Negation
+        Negation.new(sentence.substitute(mapping))
+      elsif [ExistentialQuantifier, UniversalQuantifier].include? self.class
+        self.class.new(
+          vars.map { |var| var.substitute(mapping) },
+          sentence.substitute(mapping)
+        )
+      else
+        raise NotImplementedError, "Substitution not implemented for #{self.class}"
+      end
     end
   end
 end

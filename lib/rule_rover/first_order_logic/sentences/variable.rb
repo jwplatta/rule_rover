@@ -1,5 +1,9 @@
+require_relative '../substitution'
+
 module RuleRover::FirstOrderLogic::Sentences
   class Variable
+    include RuleRover::FirstOrderLogic::Substitution
+
     class << self
       def valid_name?(name)
         name.is_a? String and /\A[a-z]/.match?(name)

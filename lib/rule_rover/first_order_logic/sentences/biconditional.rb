@@ -1,5 +1,9 @@
+require_relative '../substitution'
+
 module RuleRover::FirstOrderLogic::Sentences
   class Biconditional
+    include RuleRover::FirstOrderLogic::Substitution
+
     def initialize(left, right)
       @left = left
       @right = right

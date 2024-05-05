@@ -1,7 +1,9 @@
 require_relative '../standardize_apart'
+require_relative '../substitution'
 
 module RuleRover::FirstOrderLogic::Sentences
   include RuleRover::FirstOrderLogic::StandardizeApart
+  include RuleRover::FirstOrderLogic::Substitution
 
   class PredicateSymbol
 
