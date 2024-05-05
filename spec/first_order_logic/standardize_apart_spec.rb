@@ -3,11 +3,8 @@ require 'spec_helper'
 describe RuleRover::FirstOrderLogic::StandardizeApart do
   class Dummy
     include RuleRover::FirstOrderLogic::StandardizeApart
-
-    def initialize
-      setup_standardization
-    end
   end
+
   it 'does not raise' do
     expect { Dummy.new }.not_to raise_error
   end

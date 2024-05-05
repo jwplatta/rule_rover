@@ -2,16 +2,15 @@ include RuleRover::FirstOrderLogic::Sentences
 
 module RuleRover::FirstOrderLogic
   module StandardizeApart
-    def setup_standardization
-      @var_count = 0
+    def init_var_count
+      @var_count = 0 unless instance_variable_defined? :@var_count
     end
 
     attr_reader :var_count, :mapping
 
-    # TODO: you need to check that the second sentence doesn't
-    # have one of hte new standardized variables.
-
     def transform(sentence)
+      init_var_count
+
       @mapping = {}
       map(sentence)
     end
@@ -21,9 +20,8 @@ module RuleRover::FirstOrderLogic
     def map(expression)
       if expression.is_a? Variable
         map_term(expression) unless mapping.include? expression
-        mapping[expression] # NOTE: returns the new variable
+        mapping[expression]
       elsif expression.is_a? ConstantSymbol
-        # map_term(expression) unless mapping.include? expression
         expression
       elsif expression.is_a? PredicateSymbol
         PredicateSymbol.new(
