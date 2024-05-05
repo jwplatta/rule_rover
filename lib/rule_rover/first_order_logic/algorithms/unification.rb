@@ -1,77 +1,62 @@
 module RuleRover::FirstOrderLogic::Algorithms
   include RuleRover::FirstOrderLogic::Sentences
 
-  class Unification
-    class << self
-      def find_substitution(expression_x, expression_y)
-        # NOTE: Assumes that the expressions have been standardized apart
+  module Unification
+    attr_reader :substitution
 
-        self.new(expression_x, expression_y).find
-      end
+    def unify(expression_x, expression_y)
+      @substitution ||= unify_expressions(expression_x, expression_y, {})
     end
 
-    def initialize(expression_x, expression_y)
-      @expression_x = expression_x
-      @expression_y = expression_y
-    end
+    private
 
-    attr_reader :expression_x, :expression_y, :substitution
-
-    def find
-      @substitution ||= unify(expression_x, expression_y, {})
-    end
-
-    def unify(exp_x, exp_y, substitution)
-      if not substitution
-        false
-      elsif exp_x == exp_y
+    def unify_expressions(exp_x, exp_y, substitution)
+      if exp_x == exp_y or not substitution
         substitution
       elsif is_variable?(exp_x)
         unify_variable(exp_x, exp_y, substitution)
       elsif is_variable?(exp_y)
         unify_variable(exp_y, exp_x, substitution)
       elsif exp_x.is_a? PredicateSymbol and exp_y.is_a? PredicateSymbol
-        unify(
+        unify_expressions(
           exp_x.subjects + exp_x.objects,
           exp_y.subjects + exp_y.objects,
-          unify(exp_x.name, exp_y.name, substitution),
+          unify_expressions(exp_x.name, exp_y.name, substitution),
         )
       elsif exp_x.is_a? FunctionSymbol and exp_y.is_a? FunctionSymbol
-        unify(
+        unify_expressions(
           exp_x.args,
           exp_y.args,
-          unify(exp_x.name, exp_y.name, substitution),
+          unify_expressions(exp_x.name, exp_y.name, substitution),
         )
       elsif exp_x.is_a? Array and exp_y.is_a? Array
-        unify(
+        unify_expressions(
           exp_x[1..],
           exp_y[1..],
-          unify(exp_x.first, exp_y.first, substitution)
+          unify_expressions(exp_x.first, exp_y.first, substitution)
         )
       elsif exp_x.is_a? Negation and exp_y.is_a? Negation
-        unify(
+        unify_expressions(
           exp_x.sentence,
           exp_y.sentence,
-          unify(exp_x.class, exp_y.class, substitution)
+          unify_expressions(exp_x.class, exp_y.class, substitution)
         )
       elsif is_compound?(exp_x) and is_compound?(exp_y)
-        unify(
+        unify_expressions(
           [exp_x.left, exp_x.right],
           [exp_y.left, exp_y.right],
-          unify(exp_x.class, exp_y.class, substitution)
+          unify_expressions(exp_x.class, exp_y.class, substitution)
         )
       else
         false
       end
     end
 
-    private
-
     def unify_variable(variable, expression, substitution)
       if substitution.key? variable
-        unify(substitution[variable], expression, substitution)
+        unify_expressions(substitution[variable], expression, substitution)
       elsif substitution.key? expression
-        unify(variable, substitution[expression], substitution)
+        unify_expressions(variable, substitution[expression], substitution)
       # TODO: implement check occur variable
       else
         substitution[variable] = expression
