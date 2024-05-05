@@ -5,7 +5,7 @@ module RuleRover::FirstOrderLogic
 
   class KnowledgeBase
     include StandardizeApart
-    # TODO: include Unification
+    include Algorithms::Unification
 
     def initialize(engine: :forward_chaining, sentences: [])
       @constants = Set.new
@@ -19,10 +19,9 @@ module RuleRover::FirstOrderLogic
 
     def assert(*sentence)
       sentence_factory.build(*sentence).then do |sentence|
-        # TODO: collect constants
-        # TODO: @symbols.merge(sentence.symbols)
         @constants.merge(sentence.constants)
-        @sentences << sentence if sentences.include?(sentence) == false
+        standardized_sent = transform(sentence)
+        @sentences << standardized_sent if sentences.include?(standardized_sent) == false
       end
     end
 
@@ -38,7 +37,7 @@ module RuleRover::FirstOrderLogic
       # @return [Object, nil] Returns the matching sentence object if a match is found; otherwise, returns nil.
 
       sentence_factory.build(*query).then do |query|
-        sentences.find { |sentence| unification.find_substitution(sentence, query)}
+        sentences.find { |sentence| unify(sentence, query)} || false
       end
     end
 

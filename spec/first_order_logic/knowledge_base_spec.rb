@@ -21,33 +21,34 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
     end
   end
-  fdescribe '#assert' do
-    it 'adds a constant' do
-      expected = sentence_factory.build("a", :and, "b")
+  describe '#assert' do
+    it 'adds sentence with standardized variables' do
+      expected = sentence_factory.build("x_1", :and, "x_2")
       subject.assert("a", :and, "b")
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds a predicate' do
-      expected = sentence_factory.build('Aristotle', :taught, 'Alexander')
-      subject.assert('Aristotle', :taught, 'Alexander')
+      sent = ['Aristotle', :taught, 'Alexander']
+      expected = sentence_factory.build(*sent)
+      subject.assert(*sent)
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 2
     end
     it 'adds a function' do
-      expected = sentence_factory.build(:@father_of, 'x')
+      expected = sentence_factory.build(:@father_of, 'x_1')
       subject.assert(:@father_of, 'x')
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds a negation' do
-      expected = sentence_factory.build(:not, ['x', :and, 'y'])
+      expected = sentence_factory.build(:not, ['x_1', :and, 'x_2'])
       subject.assert(:not, ['x', :and, 'y'])
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds a conjunction' do
-      expected = sentence_factory.build('a', :and, 'b')
+      expected = sentence_factory.build('x_1', :and, 'x_2')
       subject.assert('a', :and, 'b')
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
@@ -59,31 +60,31 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       expect(subject.constants.size).to eq 3
     end
     it 'adds an implication' do
-      expected = sentence_factory.build('a', :then, 'b')
+      expected = sentence_factory.build('x_1', :then, 'x_2')
       subject.assert('a', :then, 'b')
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds a biconditional' do
-      expected = sentence_factory.build('a', :iff, 'b')
+      expected = sentence_factory.build('x_1', :iff, 'x_2')
       subject.assert('a', :iff, 'b')
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds a universal quantifier' do
-      expected = sentence_factory.build(:all, 'y', [[:@brother, 'x', 'y'], :then, [:@sibling, 'x', 'y']])
+      expected = sentence_factory.build(:all, 'x_1', [[:@brother, 'x_2', 'x_1'], :then, [:@sibling, 'x_2', 'x_1']])
       subject.assert(:all, 'y', [[:@brother, 'x', 'y'], :then, [:@sibling, 'x', 'y']])
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds an existential quantifier' do
-      expected = sentence_factory.build(:some, 'y', [['x', :taught,  'y'], :then, ['y', :taught, 'x']])
+      expected = sentence_factory.build(:some, 'x_1', [['x_2', :taught,  'x_1'], :then, ['x_1', :taught, 'x_2']])
       subject.assert(:some, 'y', [['x', :taught,  'y'], :then, ['y', :taught, 'x']])
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
     end
     it 'adds an equality' do
-      expected = sentence_factory.build([[:@father_of, 'x'], :and, [:@father_of, 'y']], :and, ['x',:equals, 'y'])
+      expected = sentence_factory.build([[:@father_of, 'x_1'], :and, [:@father_of, 'x_2']], :and, ['x_1',:equals, 'x_2'])
       subject.assert([[:@father_of, 'x'], :and, [:@father_of, 'y']], :and, ['x', :equals, 'y'])
       expect(subject.sentences).to include(expected)
       expect(subject.constants.size).to eq 0
@@ -109,7 +110,7 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
       context 'when knowledge base contains no match' do
         it 'returns nil' do
-          expect(subject.match?('Maureen', :and, 'Monkey')).to be nil
+          expect(subject.match?('Maureen', :and, 'Monkey')).to be false
         end
       end
     end
