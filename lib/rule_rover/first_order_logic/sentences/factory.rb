@@ -1,5 +1,5 @@
 module RuleRover::FirstOrderLogic::Sentences
-  class Factory
+  class Factory # NOTE: would this be better as a module?
     class << self
       def build(*args)
 
@@ -90,6 +90,7 @@ module RuleRover::FirstOrderLogic::Sentences
       def valid_term_name?(*args)
         Variable.valid_name?(args.first) or \
         ConstantSymbol.valid_name?(args.first) or \
+        # NOTE: technically, predicates are not terms
         PredicateSymbol.valid_name?(*args) or \
         FunctionSymbol.valid_name?(*args)
       end
