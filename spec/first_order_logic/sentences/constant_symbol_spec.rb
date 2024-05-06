@@ -9,15 +9,15 @@ describe RuleRover::FirstOrderLogic::Sentences::ConstantSymbol do
     context 'when valid name' do
       it 'returns true for a string starting with a capital letter' do
         expect(described_class.valid_name?('Aristotle')).to be(true)
+        expect(described_class.valid_name?('Aristotle1')).to be(true)
       end
     end
     context 'when invalid name' do
       it 'returns false for a string starting with a lowercase letter' do
         expect(described_class.valid_name?('aristotle')).to be(false)
       end
-      it 'returns false for a string without non-letters' do
+      it 'returns false for a string without non-alphanumeric' do
         expect(described_class.valid_name?('Aristotle$')).to be(false)
-        expect(described_class.valid_name?('Aristotle1')).to be(false)
         expect(described_class.valid_name?('Aristotle@')).to be(false)
       end
     end

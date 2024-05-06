@@ -115,11 +115,11 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
     end
   end
-  describe '#add_constant' do
+  describe '#create_constant' do
     it do
       subject.assert('C1')
       subject.assert('C3')
-      new_constant = subject.add_constant
+      new_constant = subject.create_constant
 
       expect(new_constant).to eq sentence_factory.build('C2')
       expect(subject.constants.size).to eq 3
