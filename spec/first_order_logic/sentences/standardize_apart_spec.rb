@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe RuleRover::FirstOrderLogic::StandardizeApart do
+describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
   class Dummy
-    include RuleRover::FirstOrderLogic::StandardizeApart
+    include RuleRover::FirstOrderLogic::Sentences::StandardizeApart
   end
 
   it 'does not raise' do

@@ -1,11 +1,5 @@
-include RuleRover::FirstOrderLogic::Sentences
-
-module RuleRover::FirstOrderLogic
+module RuleRover::FirstOrderLogic::Sentences
   module StandardizeApart
-    def init_var_count
-      @var_count = 0 unless instance_variable_defined? :@var_count
-    end
-
     attr_reader :var_count, :mapping
 
     def transform(sentence)
@@ -16,6 +10,10 @@ module RuleRover::FirstOrderLogic
     end
 
     private
+
+    def init_var_count
+      @var_count = 0 unless instance_variable_defined? :@var_count
+    end
 
     def map(expression)
       if expression.is_a? Variable
