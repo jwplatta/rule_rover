@@ -1,10 +1,6 @@
-require_relative 'standardize_apart'
-require_relative 'substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class FunctionSymbol
-    include StandardizeApart
-    include Substitution
+    include Expression
 
     class << self
       def valid_name?(*args)
@@ -29,14 +25,6 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def standardize
       standardize_apart(self)
-    end
-
-    def eql?(other)
-      self == other
-    end
-
-    def hash
-      to_s.hash
     end
 
     def to_s

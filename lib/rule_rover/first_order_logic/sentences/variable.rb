@@ -1,6 +1,6 @@
 module RuleRover::FirstOrderLogic::Sentences
   class Variable
-    include Substitution
+    include Expression
 
     class << self
       def valid_name?(name)
@@ -14,22 +14,10 @@ module RuleRover::FirstOrderLogic::Sentences
       @name = name
     end
 
-    def constants
-      Set.new([])
-    end
-
     attr_reader :name
 
-    def ==(other)
-      to_s == other.to_s
-    end
-
-    def eql?(other)
-      self == other
-    end
-
-    def hash
-      to_s.hash
+    def constants
+      Set.new([])
     end
 
     def to_s

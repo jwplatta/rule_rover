@@ -1,6 +1,6 @@
 module RuleRover::FirstOrderLogic::Sentences
   class UniversalQuantifier
-    include Substitution
+    include Expression
 
     def initialize(vars, sentence)
       @vars = vars
@@ -15,18 +15,6 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def evaluate(model)
       raise NotImplementedError
-    end
-
-    def ==(other)
-      to_s == other.to_s
-    end
-
-    def eql?(other)
-      self == other
-    end
-
-    def hash
-      to_s.hash
     end
 
     def to_s

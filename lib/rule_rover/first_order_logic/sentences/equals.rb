@@ -1,6 +1,6 @@
 module RuleRover::FirstOrderLogic::Sentences
   class Equals
-    include Substitution
+    include Expression
 
     def initialize(left_term, right_term)
       @left = left_term
@@ -11,18 +11,6 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def constants
       left.constants.merge(right.constants)
-    end
-
-    def ==(other)
-      to_s == other.to_s
-    end
-
-    def eql?(other)
-      self == other
-    end
-
-    def hash
-      to_s.hash
     end
 
     def to_s

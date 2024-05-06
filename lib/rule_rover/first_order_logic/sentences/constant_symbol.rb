@@ -2,7 +2,7 @@ require_relative 'substitution'
 
 module RuleRover::FirstOrderLogic::Sentences
   class ConstantSymbol
-    include Substitution
+    include Expression
 
     class << self
       def valid_name?(name)
@@ -18,20 +18,6 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def constants
       Set.new([self])
-    end
-
-    # NOTE: consider creating a SymbolBase class that
-    # implements the #==, #eql?, #hash, and #to_s methods
-    def ==(other)
-      to_s == other.to_s
-    end
-
-    def eql?(other)
-      self == other
-    end
-
-    def hash
-      to_s.hash
     end
 
     def to_s
