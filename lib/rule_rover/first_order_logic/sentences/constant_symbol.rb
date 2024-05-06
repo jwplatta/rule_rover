@@ -1,8 +1,8 @@
-require_relative '../substitution'
+require_relative 'substitution'
 
 module RuleRover::FirstOrderLogic::Sentences
   class ConstantSymbol
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     class << self
       def valid_name?(name)

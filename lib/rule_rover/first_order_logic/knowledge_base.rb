@@ -4,8 +4,8 @@ module RuleRover::FirstOrderLogic
   class InvalidEngine < StandardError; end
 
   class KnowledgeBase
-    include StandardizeApart
-    include Algorithms::Unification
+    include Sentences::StandardizeApart
+    include Sentences::Unification
     # include Algorithms::ForwardChaining
 
     def initialize(engine: :forward_chaining, sentences: [], definite: false)
@@ -56,7 +56,7 @@ module RuleRover::FirstOrderLogic
       end
     end
 
-    def add_constant
+    def create_constant
       while true
         @new_constant_count += 1
         new_constant = sentence_factory.build("C#{@new_constant_count}")

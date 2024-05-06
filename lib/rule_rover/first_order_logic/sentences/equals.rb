@@ -1,8 +1,6 @@
-require_relative '../substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class Equals
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     def initialize(left_term, right_term)
       @left = left_term

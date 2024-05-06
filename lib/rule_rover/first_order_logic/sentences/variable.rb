@@ -1,8 +1,6 @@
-require_relative '../substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class Variable
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     class << self
       def valid_name?(name)

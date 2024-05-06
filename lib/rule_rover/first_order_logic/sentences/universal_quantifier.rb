@@ -1,8 +1,6 @@
-require_relative '../substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class UniversalQuantifier
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     def initialize(vars, sentence)
       @vars = vars

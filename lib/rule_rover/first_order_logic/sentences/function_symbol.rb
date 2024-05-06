@@ -1,11 +1,11 @@
-require_relative '../standardize_apart'
-require_relative '../substitution'
+require_relative 'standardize_apart'
+require_relative 'substitution'
 
 module RuleRover::FirstOrderLogic::Sentences
-  include RuleRover::FirstOrderLogic::StandardizeApart
-  include RuleRover::FirstOrderLogic::Substitution
-
   class FunctionSymbol
+    include StandardizeApart
+    include Substitution
+
     class << self
       def valid_name?(*args)
         args.any? { |elm| elm.is_a? Symbol and /^@/.match?(elm) }

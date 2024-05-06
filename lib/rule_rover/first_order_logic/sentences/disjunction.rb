@@ -1,8 +1,6 @@
-require_relative '../substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class Disjunction
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     def initialize(left, right)
       @left = left

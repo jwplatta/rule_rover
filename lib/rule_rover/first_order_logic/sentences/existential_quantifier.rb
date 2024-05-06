@@ -1,8 +1,6 @@
-require_relative '../substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class ExistentialQuantifier
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     def initialize(vars, sentence)
       @vars = vars

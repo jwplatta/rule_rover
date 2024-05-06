@@ -1,8 +1,6 @@
-require_relative '../substitution'
-
 module RuleRover::FirstOrderLogic::Sentences
   class Negation
-    include RuleRover::FirstOrderLogic::Substitution
+    include Substitution
 
     def initialize(sentence_or_term)
       @sentence = sentence_or_term
