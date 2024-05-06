@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe RuleRover::FirstOrderLogic::Algorithms::Unification do
+describe RuleRover::FirstOrderLogic::Sentences::Unification do
   class Dummy
-    include RuleRover::FirstOrderLogic::Algorithms::Unification
+    include RuleRover::FirstOrderLogic::Sentences::Unification
   end
 
   describe '.unify' do

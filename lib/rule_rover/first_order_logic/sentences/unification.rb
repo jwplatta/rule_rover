@@ -1,6 +1,4 @@
-module RuleRover::FirstOrderLogic::Algorithms
-  include RuleRover::FirstOrderLogic::Sentences
-
+module RuleRover::FirstOrderLogic::Sentences
   module Unification
     def unify(expression_x, expression_y)
       unify_expressions(expression_x, expression_y, {})
@@ -56,6 +54,7 @@ module RuleRover::FirstOrderLogic::Algorithms
       elsif substitution.key? expression
         unify_expressions(variable, substitution[expression], substitution)
       # TODO: implement check occur variable
+      # https://github.com/aimacode/aima-python/blob/master/logic.py#L1758
       else
         substitution[variable] = expression
         substitution
