@@ -25,10 +25,6 @@ module RuleRover::FirstOrderLogic::Sentences
       )
     end
 
-    def is_term?
-      true
-    end
-
     def evaluate(model)
       raise NotImplementedError
     end
@@ -38,7 +34,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def standardize
-      transform(self)
+      standardize_apart(self)
     end
 
     def eql?(other)

@@ -22,7 +22,7 @@ module RuleRover::FirstOrderLogic
     def assert(*sentence)
       sentence_factory.build(*sentence).then do |sentence|
         @constants.merge(sentence.constants)
-        standardized_sent = transform(sentence)
+        standardized_sent = standardize_apart(sentence)
         @sentences << standardized_sent if sentences.include?(standardized_sent) == false
       end
     end

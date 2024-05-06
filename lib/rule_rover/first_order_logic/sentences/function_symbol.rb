@@ -23,16 +23,12 @@ module RuleRover::FirstOrderLogic::Sentences
       Set.new(args.select { |arg| arg.is_a? ConstantSymbol })
     end
 
-    def is_term?
-      true
-    end
-
     def ==(other)
       standardize.to_s == other.standardize.to_s
     end
 
     def standardize
-      transform(self)
+      standardize_apart(self)
     end
 
     def eql?(other)

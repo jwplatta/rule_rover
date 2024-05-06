@@ -8,71 +8,71 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
   it 'does not raise' do
     expect { Dummy.new }.not_to raise_error
   end
-  describe '#transform' do
-    it 'transforms a variable' do
+  describe '#standardize_apart' do
+    it 'standardizes a variable' do
       sentence = sentence_factory.build('x')
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence_factory.build('x_1'))
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence_factory.build('x_1'))
     end
     it 'returns constant with mapping' do
       sentence = sentence_factory.build('Aristotle')
-      transformed_sent = Dummy.new.transform(sentence)
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
 
-      expect(transformed_sent).to eq(sentence)
+      expect(standardize_aparted_sent).to eq(sentence)
     end
-    it 'transforms a function symbol with a constant' do
+    it 'standardizes apart a function symbol with a constant' do
       sentence = sentence_factory.build(:@student_of, 'Aristotle')
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence)
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence)
     end
-    it 'transforms a function symbol with a variable' do
+    it 'standardizes apart a function symbol with a variable' do
       sentence = sentence_factory.build(:@student_of, 'x')
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence_factory.build(:@student_of, 'x_1'))
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence_factory.build(:@student_of, 'x_1'))
     end
-    it 'transforms a predicate symbol with a constant' do
+    it 'standardizes apart a predicate symbol with a constant' do
       sentence = sentence_factory.build('Plato', :taught, 'Aristotle')
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence)
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence)
     end
-    it 'transforms a predicate symbol with a variable' do
+    it 'standardizes apart a predicate symbol with a variable' do
       sentence = sentence_factory.build('x_2', :taught, 'Aristotle')
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence_factory.build('x_1', :taught, 'Aristotle'))
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence_factory.build('x_1', :taught, 'Aristotle'))
     end
-    it 'transforms a conjunction with constants' do
+    it 'standardizes apart a conjunction with constants' do
       sentence = sentence_factory.build('Aristotle', :and, 'Plato')
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence)
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence)
     end
-    it 'transforms a conjunction of predicates with variables and constants' do
+    it 'standardizes apart a conjunction of predicates with variables and constants' do
       sentence = sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x'])
-      transformed_sent = Dummy.new.transform(sentence)
-      expect(transformed_sent).to eq(sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x_1']))
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
+      expect(standardize_aparted_sent).to eq(sentence_factory.build(['Plato', :taught, 'Aristotle'], :and, ['Plato', :student_of, 'x_1']))
     end
-    it 'transforms quantifiers' do
+    it 'standardizes apart quantifiers' do
       sentence = sentence_factory.build(
         :some,
         "x",
         [:all, "y", [[:@brother, "Matt"], :then, ["x", :sibling_of, "y"]]]
       )
-      transformed_sent = Dummy.new.transform(sentence)
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
       expected = sentence_factory.build(
         :some,
         "x_1",
         [:all, "x_2", [[:@brother, "Matt"], :then, ["x_1", :sibling_of, "x_2"]]]
       )
-      expect(transformed_sent).to eq(expected)
+      expect(standardize_aparted_sent).to eq(expected)
     end
-    it 'transforms equals' do
+    it 'standardizes apart equals' do
       sentence = sentence_factory.build(
         :some, ["x", "y"], [[[:@brother, "x", "Richard"], :and, [:@brother, "y", "Richard"]], :and, :not, ["x", :equals, "z"]]
       )
-      transformed_sent = Dummy.new.transform(sentence)
+      standardize_aparted_sent = Dummy.new.standardize_apart(sentence)
       expected = sentence_factory.build(
         :some, ["x_1", "x_2"], [[[:@brother, "x_1", "Richard"], :and, [:@brother, "x_2", "Richard"]], :and, :not, ["x_1", :equals, "x_3"]]
       )
-      expect(transformed_sent).to eq(expected)
+      expect(standardize_aparted_sent).to eq(expected)
     end
     context 'when given multiple sentences' do
       xit do
@@ -83,7 +83,7 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
           ['Plato', :student_of, 'x']
         ].map { |s| sentence_factory.build(*s) }
         dummy = Dummy.new
-        transformed_sents = sentences.map { |s| dummy.transform(s) }
+        standardize_aparted_sents = sentences.map { |s| dummy.standardize_apart(s) }
         binding.pry
       end
     end

@@ -2,7 +2,7 @@ module RuleRover::FirstOrderLogic::Sentences
   module StandardizeApart
     attr_reader :var_count, :mapping
 
-    def transform(sentence)
+    def standardize_apart(sentence)
       init_var_count
 
       @mapping = {}
