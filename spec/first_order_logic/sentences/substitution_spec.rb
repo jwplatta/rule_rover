@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'RuleRover::FirstOrderLogic::Substitution' do
+describe 'RuleRover::FirstOrderLogic::Sentences::Substitution' do
   describe '#substitute' do
     context 'when the sentence is a conjunction of two variables' do
       it do

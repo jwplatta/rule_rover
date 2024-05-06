@@ -1,4 +1,4 @@
-module RuleRover::FirstOrderLogic
+module RuleRover::FirstOrderLogic::Sentences
   module Substitution
     def substitute(mapping)
       return self unless mapping
