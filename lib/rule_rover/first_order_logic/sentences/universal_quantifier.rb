@@ -1,22 +1,5 @@
 module RuleRover::FirstOrderLogic::Sentences
-  class UniversalQuantifier
-    include Expression
-
-    def initialize(vars, sentence)
-      @vars = vars
-      @sentence = sentence
-    end
-
-    attr_reader :vars, :sentence
-
-    def constants
-      sentence.constants
-    end
-
-    def evaluate(model)
-      raise NotImplementedError
-    end
-
+  class UniversalQuantifier < Quantifier
     def to_s
       ":all(#{vars.join(', ')}) [#{sentence}]"
     end
