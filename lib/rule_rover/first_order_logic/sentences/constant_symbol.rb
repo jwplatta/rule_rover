@@ -20,6 +20,10 @@ module RuleRover::FirstOrderLogic::Sentences
       Set.new([self])
     end
 
+    def variables
+      Set.new([])
+    end
+
     def to_s
       name
     end

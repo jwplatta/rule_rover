@@ -19,6 +19,10 @@ module RuleRover::FirstOrderLogic::Sentences
       Set.new(args.select { |arg| arg.is_a? ConstantSymbol })
     end
 
+    def variables
+      Set.new(args.select { |arg| arg.is_a? VariableSymbol })
+    end
+
     def ==(other)
       standardize.to_s == other.standardize.to_s
     end

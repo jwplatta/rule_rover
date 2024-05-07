@@ -24,8 +24,11 @@ module RuleRover::FirstOrderLogic::Sentences
       )
     end
 
-    def evaluate(model)
-      raise NotImplementedError
+    def variables
+      Set.new(
+        subjects.select { |arg| arg.is_a? VariableSymbol } +
+        objects.select { |arg| arg.is_a? VariableSymbol }
+      )
     end
 
     def ==(other)
@@ -38,12 +41,6 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def to_s
       "[#{subjects.join(', ')} :#{name} #{objects.join(', ')}]"
-    end
-
-    private
-
-    def sentence_factory
-      RuleRover::FirstOrderLogic::Sentences::Factory
     end
   end
 end
