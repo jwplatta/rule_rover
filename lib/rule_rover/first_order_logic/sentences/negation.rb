@@ -12,6 +12,10 @@ module RuleRover::FirstOrderLogic::Sentences
       sentence.constants
     end
 
+    def variables
+      sentence.variables
+    end
+
     def evaluate(model)
       not sentence.evaluate(model)
     end
