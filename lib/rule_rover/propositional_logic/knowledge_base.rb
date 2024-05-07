@@ -48,6 +48,8 @@ module RuleRover::PropositionalLogic
             query: sentence_factory.build(*query)
           )
         end
+      else
+        raise InvalidEngine.new
       end
     end
 
