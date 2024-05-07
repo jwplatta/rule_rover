@@ -20,6 +20,7 @@ require_relative "./rule_rover/propositional_logic/algorithms/backward_chaining.
 require_relative "./rule_rover/first_order_logic/constants.rb"
 require_relative "./rule_rover/first_order_logic/sentences/expression.rb"
 require_relative "./rule_rover/first_order_logic/sentences/complex_sentence.rb"
+require_relative "./rule_rover/first_order_logic/sentences/quantifier.rb"
 require_relative "./rule_rover/first_order_logic/sentences/factory.rb"
 require_relative "./rule_rover/first_order_logic/sentences/constant_symbol.rb"
 require_relative "./rule_rover/first_order_logic/sentences/function_symbol.rb"
