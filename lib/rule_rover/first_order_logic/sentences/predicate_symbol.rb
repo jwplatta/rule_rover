@@ -26,8 +26,8 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def variables
       Set.new(
-        subjects.select { |arg| arg.is_a? VariableSymbol } +
-        objects.select { |arg| arg.is_a? VariableSymbol }
+        subjects.select { |arg| arg.is_a? Variable } +
+        objects.select { |arg| arg.is_a? Variable }
       )
     end
 

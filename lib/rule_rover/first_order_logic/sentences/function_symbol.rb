@@ -20,7 +20,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def variables
-      Set.new(args.select { |arg| arg.is_a? VariableSymbol })
+      Set.new(args.select { |arg| arg.is_a? Variable })
     end
 
     def ==(other)
