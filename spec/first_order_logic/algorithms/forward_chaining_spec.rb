@@ -11,9 +11,30 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
 
         expect(described_class.forward_chain(kb, query)).to be(true)
       end
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert([:not, ['Alexander', :taught, 'Aristotle']], :or, ['Socrates', :taught, 'Plato'])
+        kb.assert('Alexander', :taught, 'Aristotle')
+        query = sentence_factory.build('Socrates', :taught, 'Plato')
+
+        expect(described_class.forward_chain(kb, query)).to be(true)
+      end
     end
   end
-  describe '.definite_clause?' do
+
+  describe '#antecedents_and_consequent' do
+    it 'returns an array of antecedents and a consequent' do
+      clause = sentence_factory.build([[:not, ['Plato', :or, 'Socrates']], :or, [:not, ['Alexander', :taught, 'Aristotle']]], :or, ['Socrates', :taught, 'Plato'])
+      antecedents, consequent = described_class.new(nil, nil).antecedents_and_consequent(clause)
+
+      expect(antecedents).to eq([
+        sentence_factory.build(:not, ['Plato', :or, 'Socrates']),
+        sentence_factory.build(:not, ['Alexander', :taught, 'Aristotle'])
+      ])
+      expect(consequent).to eq(sentence_factory.build('Socrates', :taught, 'Plato'))
+    end
+  end
+  describe '#definite_clause?' do
     context 'is a clause with a single positive literal' do
       it do
         sentence = sentence_factory.build([:not, ['Plato', :taught, 'Socrates'], :or, :not, ['Alexander', :taught, 'Aristotle']], :or, ['Aristotle', :taught, 'Alexander'])

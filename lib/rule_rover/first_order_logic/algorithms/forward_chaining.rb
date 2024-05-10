@@ -40,7 +40,30 @@ module RuleRover::FirstOrderLogic
         kb.sentences.each do |sentence|
           return true if unify(sentence, query)
         end
+
+        kb.sentences.each do |sentence|
+        end
         false
+      end
+
+      def antecedents_and_consequent(clause)
+        frontier = [clause.left, clause.right]
+        antecedents = []
+        consequent = nil
+
+        while frontier.any?
+          current = frontier.shift
+
+          if current.is_a? RuleRover::FirstOrderLogic::Sentences::Disjunction
+            frontier.push(current.left, current.right)
+          elsif current.is_a? RuleRover::FirstOrderLogic::Sentences::Negation
+            antecedents.push(current)
+          else
+            consequent = current
+          end
+        end
+
+        return antecedents, consequent
       end
 
       def substitutions(constants, variables)
