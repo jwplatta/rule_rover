@@ -6,14 +6,6 @@ module RuleRover::FirstOrderLogic::Sentences
     include Substitution
     include StandardizeApart
 
-    # def ==(other)
-    #   standardize.to_s == other.standardize.to_s
-    # end
-
-    # def standardize
-    #   standardize_apart(self)
-    # end
-
     def ==(other)
       to_s == other.to_s
     end
@@ -30,8 +22,47 @@ module RuleRover::FirstOrderLogic::Sentences
       raise NotImplementedError
     end
 
+    def constants
+      raise NotImplementedError
+    end
+
+    def variables
+      raise NotImplementedError
+    end
+
     def to_s
       raise NotImplementedError
     end
+
+    # def self.included(base)
+    #   if base.instance_methods.include?(:left)
+    #     base.include(MultipleTerms)
+    #   elsif base.instance_methods.include?(:vars)
+    #     base.include(SingleTerm)
+    #   end
+    # end
+
+    # module MultipleTerms
+    #   def constants
+    #     left.constants.merge(right.constants)
+    #   end
+
+    #   def variables
+    #     left.variables.merge(right.variables)
+    #   end
+    # end
+
+    # module Quantifier
+    #   def initialize(vars, sentence)
+    #     @vars = vars
+    #     @sentence = sentence
+    #   end
+
+    #   attr_reader :vars, :sentence
+
+    #   def constants
+    #     sentence.constants
+    #   end
+    # end
   end
 end
