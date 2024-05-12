@@ -7,7 +7,7 @@ module RuleRover::FirstOrderLogic::Sentences
     include StandardizeApart
 
     def ==(other)
-      to_s == other.to_s
+      standardize_apart(self, reset: true).to_s == standardize_apart(other, reset: true).to_s
     end
 
     def eql?(other)
