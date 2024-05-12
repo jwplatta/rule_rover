@@ -31,14 +31,6 @@ module RuleRover::FirstOrderLogic::Sentences
       )
     end
 
-    def ==(other)
-      standardize.to_s == other.standardize.to_s
-    end
-
-    def standardize
-      standardize_apart(self)
-    end
-
     def to_s
       "[#{subjects.join(', ')} :#{name} #{objects.join(', ')}]"
     end

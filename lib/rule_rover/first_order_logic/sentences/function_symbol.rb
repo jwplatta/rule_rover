@@ -23,14 +23,6 @@ module RuleRover::FirstOrderLogic::Sentences
       Set.new(args.select { |arg| arg.is_a? Variable })
     end
 
-    def ==(other)
-      standardize.to_s == other.standardize.to_s
-    end
-
-    def standardize
-      standardize_apart(self)
-    end
-
     def to_s
       "[:#{name} #{args.join(', ')}]"
     end
