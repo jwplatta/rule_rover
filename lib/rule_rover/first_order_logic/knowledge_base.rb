@@ -8,6 +8,13 @@ module RuleRover::FirstOrderLogic
     include Sentences::Unification
     # include Algorithms::ForwardChaining
 
+    TERM_CLASSES = [
+      RuleRover::FirstOrderLogic::Sentences::PredicateSymbol,
+      RuleRover::FirstOrderLogic::Sentences::FunctionSymbol,
+      RuleRover::FirstOrderLogic::Sentences::ConstantSymbol,
+      RuleRover::FirstOrderLogic::Sentences::Variable,
+    ]
+
     def initialize(engine: :forward_chaining, sentences: [], definite: false)
       @constants = Set.new
       @new_constant_count = 0
@@ -25,6 +32,17 @@ module RuleRover::FirstOrderLogic
         standardized_sent = standardize_apart(sentence)
         @sentences << standardized_sent if sentences.include?(standardized_sent) == false
       end
+    end
+
+    def assert_sentence(sentence)
+      @constants.merge(sentence.constants)
+      standardized_sent = standardize_apart(sentence)
+      @sentences << standardized_sent if sentences.include?(standardized_sent) == false
+    end
+
+    # TODO: filters out the sentences that are not clauses
+    def clauses
+      sentences.select { |sentence| definite_clause?(sentence) }
     end
 
     def match?(*query)
@@ -64,6 +82,29 @@ module RuleRover::FirstOrderLogic
           constants << new_constant
           return new_constant
         end
+      end
+    end
+
+    def definite_clause?(sentence)
+      if !sentence.is_a? Sentences::Conditional
+        false
+      elsif !TERM_CLASSES.include? sentence.right.class
+        false
+      else
+        frontier = [sentence.left]
+        while frontier.any?
+          current = frontier.shift
+
+          if current.is_a? Sentences::Conjunction
+            frontier.push(current.left, current.right)
+          elsif TERM_CLASSES.include? current.class
+            next
+          else
+            return false
+          end
+        end
+
+        true
       end
     end
 

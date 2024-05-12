@@ -126,6 +126,32 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
     end
   end
 
+  describe '#definite_clause?' do
+    context 'when sentence is not a conditional' do
+      it 'returns false' do
+        expect(subject.definite_clause?(sentence_factory.build('x', :and, 'y'))).to be false
+      end
+    end
+    context 'when consequent is a negation' do
+      it 'returns false' do
+        expect(subject.definite_clause?(sentence_factory.build('x', :then, :not, 'y'))).to be false
+      end
+    end
+    context 'when antecedent contains a positive literal' do
+      it 'returns false' do
+        expect(subject.definite_clause?(sentence_factory.build([:not, 'z', :or, 'x'], :then, 'y'))).to be false
+      end
+    end
+    context 'when sentence is a definite clause' do
+      it 'returns true' do
+        expect(subject.definite_clause?(sentence_factory.build('z', :then, 'y'))).to be true
+      end
+      it 'returns true' do
+        expect(subject.definite_clause?(sentence_factory.build(['z', :and, 'x'], :then, 'y'))).to be true
+      end
+    end
+  end
+
   xdescribe '#entail' do
   end
 
