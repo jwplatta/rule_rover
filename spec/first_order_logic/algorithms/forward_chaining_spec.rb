@@ -11,44 +11,66 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
 
         expect(described_class.forward_chain(kb, query)).to be(true)
       end
+    end
+    context 'knowledge base does not contain the query' do
       it do
         kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
-        kb.assert([:not, ['Alexander', :taught, 'Aristotle']], :or, ['Socrates', :taught, 'Plato'])
+        kb.assert(['Alexander', :taught, 'Aristotle'], :then, ['Socrates', :taught, 'Plato'])
         kb.assert('Alexander', :taught, 'Aristotle')
         query = sentence_factory.build('Socrates', :taught, 'Plato')
+
+        expect(described_class.forward_chain(kb, query)).to be(true)
+      end
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert([['Socrates', :taught, 'Plato'], :and, ['Plato', :taught, 'Aristotle']], :then, ['Alexander', :knows_about, 'Socrates'])
+        kb.assert('Socrates', :taught, 'Plato')
+        kb.assert('Plato', :taught, 'Aristotle')
+        query = sentence_factory.build('Alexander', :knows_about, 'Socrates')
+
+        expect(described_class.forward_chain(kb, query)).to be(true)
+      end
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert(['Socrates', :knows, 'Plato'], :then, ['Plato', :knows, 'Aristotle'])
+        kb.assert(['Plato', :knows, 'Aristotle'], :then, ['Aristotle', :knows, 'Alexander'])
+        kb.assert('Socrates', :knows, 'Plato')
+        query = sentence_factory.build('Aristotle', :knows, 'Alexander')
 
         expect(described_class.forward_chain(kb, query)).to be(true)
       end
     end
   end
 
-  describe '#antecedents_and_consequent' do
-    it 'returns an array of antecedents and a consequent' do
-      clause = sentence_factory.build([[:not, ['Plato', :or, 'Socrates']], :or, [:not, ['Alexander', :taught, 'Aristotle']]], :or, ['Socrates', :taught, 'Plato'])
-      antecedents, consequent = described_class.new(nil, nil).antecedents_and_consequent(clause)
-
-      expect(antecedents).to eq([
-        sentence_factory.build(:not, ['Plato', :or, 'Socrates']),
-        sentence_factory.build(:not, ['Alexander', :taught, 'Aristotle'])
-      ])
-      expect(consequent).to eq(sentence_factory.build('Socrates', :taught, 'Plato'))
-    end
-  end
-  describe '#definite_clause?' do
+  describe '#antecedent_and_consequent' do
     context 'is a clause with a single positive literal' do
-      it do
-        sentence = sentence_factory.build([:not, ['Plato', :taught, 'Socrates'], :or, :not, ['Alexander', :taught, 'Aristotle']], :or, ['Aristotle', :taught, 'Alexander'])
-        expect(described_class.new(nil, nil).definite_clause?(sentence)).to be(true)
+      it 'returns the antecedent and consequent' do
+        clause = sentence_factory.build('Plato', :taught, 'Socrates')
+        antecedent, consequent = described_class.new(
+          nil,
+          sentence_factory.build('x')
+        ).antecedent_and_consequent(clause)
+        expect(antecedent).to eq(clause)
+        expect(consequent).to eq(clause)
       end
     end
     context 'is a clause with a multiple positive literals' do
-      it do
-        sentence = sentence_factory.build(:not, ['Plato', :taught, 'Socrates'], :or, :not, ['Alexander', :taught, 'Aristotle'])
-        expect(described_class.new(nil, nil).definite_clause?(sentence)).to be(false)
+      it 'returns the antecedent and consequent' do
+        clause = sentence_factory.build([['Plato', :taught, 'Socrates'], :and, ['Alexander', :taught, 'Aristotle']], :then, ['Socrates', :taught, 'Plato'])
+        antecedent, consequent = described_class.new(nil, sentence_factory.build('x')).antecedent_and_consequent(clause)
+        expect(antecedent).to eq(sentence_factory.build(['Plato', :taught, 'Socrates'], :and, ['Alexander', :taught, 'Aristotle']))
+        expect(consequent).to eq(sentence_factory.build('Socrates', :taught, 'Plato'))
+      end
+    end
+    context 'not a conditional' do
+      it 'returns nil' do
+        clause = sentence_factory.build([:not, ['Plato', :taught, 'Socrates']], :and , ['Socrates', :taught, 'Plato'])
+        antecedent, consequent = described_class.new(nil, sentence_factory.build('x')).antecedent_and_consequent(clause)
+        expect(antecedent).to be_nil
+        expect(consequent).to be_nil
       end
     end
   end
-
   def sentence_factory
     RuleRover::FirstOrderLogic::Sentences::Factory
   end

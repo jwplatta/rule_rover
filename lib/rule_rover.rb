@@ -36,6 +36,7 @@ require_relative "./rule_rover/first_order_logic/sentences/existential_quantifie
 require_relative "./rule_rover/first_order_logic/sentences/equals.rb"
 require_relative "./rule_rover/first_order_logic/sentences/standardize_apart.rb"
 require_relative "./rule_rover/first_order_logic/sentences/unification.rb"
+require_relative "./rule_rover/first_order_logic/algorithms/forward_chaining.rb"
 require_relative "./rule_rover/first_order_logic/knowledge_base.rb"
 
 

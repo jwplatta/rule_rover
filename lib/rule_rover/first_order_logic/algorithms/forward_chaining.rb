@@ -2,12 +2,14 @@ require_relative '../sentences/unification'
 
 module RuleRover::FirstOrderLogic
   module Algorithms
+    class QueryNotAtomicSentence < StandardError; end
     class ForwardChaining
       include RuleRover::FirstOrderLogic::Sentences::Unification
 
       """
       - Requirements:
-      - only definite clauses
+      - Assumes that the knowledge base is a set of definite clauses
+      - Assumes the sentences have been standardized apart
       - need to be able to apply substitutions to the clauses
       - query needs to be an atomic sentence
       - existential instantiation
@@ -30,6 +32,8 @@ module RuleRover::FirstOrderLogic
       end
 
       def initialize(kb, query)
+        # TODO: raise if the query is not an atomic sentence
+        raise QueryNotAtomicSentence.new unless TERM_CLASSES.include? query.class
         @kb = kb
         @query = query
       end
@@ -37,62 +41,73 @@ module RuleRover::FirstOrderLogic
       attr_reader :kb, :query
 
       def forward_chain(kb, query)
-        kb.sentences.each do |sentence|
-          return true if unify(sentence, query)
+        kb.sentences.each { |sentence| return true if unify(sentence, query) }
+
+        while true
+          new_sentences = []
+          kb.clauses.each do |clause|
+            antecedent, consequent = antecedent_and_consequent(clause)
+
+            substitutions(kb.constants.to_a, antecedent.variables.to_a).each do |substitution|
+              _antecedent = antecedent.substitute(substitution)
+
+              conjuncts = conjuncts_to_a(_antecedent)
+
+              if conjuncts.all? { |conj| kb.sentences.any? { |sent| unify(sent, conj) } }
+                _consequent = consequent.substitute(substitution)
+
+                if !kb.sentences.any? { |sent| unify(sent, _consequent) }
+                  new_sentences << _consequent
+                  return true if unify(_consequent, query)
+                end
+              end
+            end
+          end
+
+          if new_sentences.empty?
+            return false
+          else
+            new_sentences.each { |sentence| kb.assert_sentence(sentence) }
+          end
         end
 
-        kb.sentences.each do |sentence|
-        end
         false
       end
 
-      def antecedents_and_consequent(clause)
-        frontier = [clause.left, clause.right]
-        antecedents = []
-        consequent = nil
+      def conjuncts_to_a(conjunction)
+        conjuncts = []
+        frontier = [conjunction]
 
         while frontier.any?
-          current = frontier.shift
+          conj = frontier.shift
 
-          if current.is_a? RuleRover::FirstOrderLogic::Sentences::Disjunction
-            frontier.push(current.left, current.right)
-          elsif current.is_a? RuleRover::FirstOrderLogic::Sentences::Negation
-            antecedents.push(current)
-          else
-            consequent = current
+          if TERM_CLASSES.include? conj.class
+            conjuncts << conj
+          elsif conj.is_a? RuleRover::FirstOrderLogic::Sentences::Conjunction
+            conjuncts << conj.left
+            conjuncts << conj.right
           end
         end
+        conjuncts
+      end
 
-        return antecedents, consequent
+      def antecedent_and_consequent(clause)
+        # NOTE: assumes that the clause is a definite clause
+        if TERM_CLASSES.include? clause.class
+          [clause, clause]
+        elsif clause.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
+          [clause.left, clause.right]
+        else
+          [nil, nil]
+        end
       end
 
       def substitutions(constants, variables)
-        variables.product(constants).map do |variable, constant|
-          { variable => constant }
+        subs = variables.product(constants).map do |var, const|
+          { var => const }
         end
-      end
-
-      def definite_clause?(sentence)
-        return false unless sentence.is_a? RuleRover::FirstOrderLogic::Sentences::Disjunction
-
-        frontier = [sentence.left, sentence.right]
-        count = 0
-
-        while frontier.any?
-          current = frontier.shift
-
-          if current.is_a? RuleRover::FirstOrderLogic::Sentences::Disjunction
-            frontier.push(current.left, current.right)
-          elsif current.is_a? RuleRover::FirstOrderLogic::Sentences::Negation
-            next
-          elsif TERM_CLASSES.include? current.class
-            count += 1
-          else
-            return false
-          end
-        end
-
-        count == 1
+        subs << {} # NOTE: include the empty substitution
+        subs
       end
     end
   end
