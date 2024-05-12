@@ -1,6 +1,7 @@
 module RuleRover::FirstOrderLogic::Sentences
   module Substitution
-    def substitute(mapping)
+    def substitute(mapping={})
+      # TODO: need to check that mapping uses Variable objects as keys
       return self unless mapping
 
       if is_a? Variable
