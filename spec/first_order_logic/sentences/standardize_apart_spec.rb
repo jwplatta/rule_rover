@@ -83,9 +83,7 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
           ['Plato', :student_of, 'x']
         ].map { |s| sentence_factory.build(*s) }
         dummy = Dummy.new
-        standardize_aparted_sents = sentences.map { |s| dummy.standardize_apart(s) }
-        binding.pry
-      end
+        standardize_aparted_sents = sentences.map { |s| dummy.standardize_apart(s) }      end
     end
   end
 
