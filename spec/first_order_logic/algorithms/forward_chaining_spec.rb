@@ -39,6 +39,17 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
 
         expect(described_class.forward_chain(kb, query)).to be(true)
       end
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert([['Russell', :studied, 'Plato'], :and, ['Socrates', :knows, 'Plato']], :then, ['Plato', :knows, 'Aristotle'])
+        kb.assert(['Plato', :knows, 'Aristotle'], :then, ['Aristotle', :knows, 'Alexander'])
+        kb.assert(['Moore', :studied, 'Plato'], :then, ['Russell', :studied, 'Plato'])
+        kb.assert('Moore', :studied, 'Plato')
+        kb.assert('Socrates', :knows, 'Plato')
+        query = sentence_factory.build('Aristotle', :knows, 'Alexander')
+
+        expect(described_class.forward_chain(kb, query)).to be(true)
+      end
     end
   end
 
