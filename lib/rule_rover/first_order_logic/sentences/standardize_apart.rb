@@ -2,8 +2,8 @@ module RuleRover::FirstOrderLogic::Sentences
   module StandardizeApart
     attr_reader :var_count, :mapping
 
-    def standardize_apart(sentence)
-      init_var_count
+    def standardize_apart(sentence, reset: false)
+      init_var_count(reset)
 
       @mapping = {}
       map(sentence)
@@ -11,8 +11,8 @@ module RuleRover::FirstOrderLogic::Sentences
 
     private
 
-    def init_var_count
-      @var_count = 0 unless instance_variable_defined? :@var_count
+    def init_var_count(reset)
+      @var_count = 0 if !instance_variable_defined? :@var_count or reset
     end
 
     def map(expression)
