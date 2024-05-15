@@ -27,12 +27,11 @@ module RuleRover::FirstOrderLogic
 
       class << self
         def forward_chain(kb, query)
-          self.new(kb, query).forward_chain(kb, query)
+          self.new(kb, query).forward_chain
         end
       end
 
       def initialize(kb, query)
-        # TODO: raise if the query is not an atomic sentence
         raise QueryNotAtomicSentence.new unless TERM_CLASSES.include? query.class
         @kb = kb
         @query = query
@@ -40,7 +39,7 @@ module RuleRover::FirstOrderLogic
 
       attr_reader :kb, :query
 
-      def forward_chain(kb, query)
+      def forward_chain
         kb.sentences.each { |sentence| return true if unify(sentence, query) }
 
         while true
