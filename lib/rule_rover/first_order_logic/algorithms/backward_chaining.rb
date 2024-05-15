@@ -13,7 +13,11 @@ module RuleRover::FirstOrderLogic
       end
 
       def initialize(kb, query)
+        @kb = kb
+        @query = query
       end
+
+      attr_reader :kb, :query
 
       def backward_chain(kb, query)
       end
