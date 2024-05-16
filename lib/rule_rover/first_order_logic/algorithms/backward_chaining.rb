@@ -21,6 +21,18 @@ module RuleRover::FirstOrderLogic
 
       def backward_chain(kb, query)
       end
+
+      def or(kb, goal, substitution); end
+
+      def and(kb, goal, substitution)
+        if not substitution
+        elsif not goals
+        else
+         first_goal, *rest_goals = goals
+        end
+      end
+
+
     end
   end
 end
