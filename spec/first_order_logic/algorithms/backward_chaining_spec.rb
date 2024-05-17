@@ -1,6 +1,31 @@
 require 'spec_helper'
 
 describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
+  describe '#rules_for_goal' do
+    context 'when no rules for goals' do
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Alexander'])
+        kb.assert(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Socrates'])
+        goal = sentence_factory.build('Alexander', :taught, 'Aristotle')
+
+        expect(described_class.new(kb, goal).rules_for_goal(goal)).to eq([])
+      end
+    end
+    context 'when one rule for the goal' do
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        rule_for_goal = sentence_factory.build(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Alexander'])
+        kb.assert(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Alexander'])
+        kb.assert(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Socrates'])
+        goal = sentence_factory.build('Aristotle', :taught, 'Alexander')
+
+        expect(described_class.new(kb, goal).rules_for_goal(goal)).to eq([rule_for_goal])
+      end
+    end
+    context 'when multiple rules for the goal' do
+    end
+  end
   describe '.backward_chain' do
     context 'knowledge base contains the query' do
       it do
