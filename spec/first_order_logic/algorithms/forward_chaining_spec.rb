@@ -51,6 +51,19 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
         expect(described_class.forward_chain(kb, query)).to be(true)
       end
     end
+    context 'knowledge base contains a sentence with a variable' do
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert([['Russell', :studied, 'x'], :and, ['Socrates', :knows, 'x']], :then, ['x', :knows, 'Aristotle'])
+        kb.assert(['Plato', :knows, 'x'], :then, ['x', :knows, 'Alexander'])
+        kb.assert(['Moore', :studied, 'x'], :then, ['Russell', :studied, 'x'])
+        kb.assert('Moore', :studied, 'Plato')
+        kb.assert('Socrates', :knows, 'Plato')
+        query = sentence_factory.build('Aristotle', :knows, 'Alexander')
+
+        expect(described_class.forward_chain(kb, query)).to be(true)
+      end
+    end
   end
 
   describe '#antecedent_and_consequent' do
