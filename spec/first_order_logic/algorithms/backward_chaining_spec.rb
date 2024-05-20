@@ -24,17 +24,33 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
       end
     end
     context 'when multiple rules for the goal' do
+      it do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert(['Socrates', :taught, 'Plato'], :then, ['Aristotle', :taught, 'Alexander'])
+        kb.assert(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Alexander'])
+        kb.assert(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Socrates'])
+
+        goal = sentence_factory.build('Aristotle', :taught, 'Alexander')
+        rules_for_goal = [
+          sentence_factory.build(['Socrates', :taught, 'Plato'], :then, ['Aristotle', :taught, 'Alexander']),
+          sentence_factory.build(['Plato', :taught, 'Aristotle'], :then, ['Aristotle', :taught, 'Alexander'])
+        ]
+
+        expect(described_class.new(kb, goal).rules_for_goal(goal)).to eq(rules_for_goal)
+      end
     end
   end
   describe '.backward_chain' do
     context 'knowledge base contains the query' do
-      it do
+      fit do
         kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
         kb.assert([:not, ['Alexander', :taught, 'Aristotle']], :or, ['Socrates', :taught, 'Plato'])
         kb.assert('Alexander', :taught, 'Aristotle')
         query = sentence_factory.build('Alexander', :taught, 'Aristotle')
+        result = described_class.backward_chain(kb, query)
+        binding.pry
 
-        expect(described_class.backward_chain(kb, query)).to be(true)
+        expect(result).to be(true)
       end
     end
     context 'knowledge base does not contain the query' do
