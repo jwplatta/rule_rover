@@ -26,8 +26,8 @@ module RuleRover::FirstOrderLogic
 
     attr_reader :constants, :functions, :predicates, :sentences, :engine
 
-    def assert(*sentence)
-      sentence_factory.build(*sentence).then do |sentence|
+    def assert(*sentence_parts)
+      sentence_factory.build(*sentence_parts).then do |sentence|
         @constants.merge(sentence.constants)
         standardized_sent = standardize_apart(sentence)
         @sentences << standardized_sent if sentences.include?(standardized_sent) == false
@@ -40,9 +40,8 @@ module RuleRover::FirstOrderLogic
       @sentences << standardized_sent if sentences.include?(standardized_sent) == false
     end
 
-    # TODO: filters out the sentences that are not clauses
     def clauses
-      sentences.select { |sentence| definite_clause?(sentence) }
+      @clauses ||= sentences.select { |sentence| definite_clause?(sentence) }
     end
 
     def match?(*query)
@@ -63,12 +62,9 @@ module RuleRover::FirstOrderLogic
 
     def entail?(*query)
       if engine == :forward_chaining
-        # raise QueryNotSinglePropositionSymbol.new unless query.size == 1 and query.first.is_a? String
-
-        # to_clauses.then do |kb_of_clauses|
-        #   raise KnowledgeBaseNotDefinite.new unless kb_of_clauses.is_definite?
-        #   forward_chaining.run(kb: kb_of_clauses, query: sentence_factory.build(*query))
-        # end
+        forward_chain(*query)
+      elsif engine == :backward_chaining
+        backward_chain(*query)
       else
         raise InvalidEngine.new
       end
@@ -86,11 +82,9 @@ module RuleRover::FirstOrderLogic
     end
 
     def definite_clause?(sentence)
-      if !sentence.is_a? Sentences::Conditional
-        false
-      elsif !TERM_CLASSES.include? sentence.right.class
-        false
-      else
+      if TERM_CLASSES.include? sentence.class
+        true
+      elsif sentence.is_a? Sentences::Conditional and TERM_CLASSES.include? sentence.right.class
         frontier = [sentence.left]
         while frontier.any?
           current = frontier.shift
@@ -105,6 +99,8 @@ module RuleRover::FirstOrderLogic
         end
 
         true
+      else
+        false
       end
     end
 
@@ -118,6 +114,16 @@ module RuleRover::FirstOrderLogic
 
     def quantifiers
       @quantifiers ||= RuleRover::FirstOrderLogic::QUANTIFIERS
+    end
+
+    private
+
+    def forward_chain(*query)
+      ForwardChaining.forward_chain(self, sentence_factory.build(*query))
+    end
+
+    def backward_chain(*query)
+      BackwardChaining.backward_chain(self, sentence_factory.build(*query))
     end
 
     def sentence_factory
