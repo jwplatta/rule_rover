@@ -1,7 +1,7 @@
 module RuleRover::FirstOrderLogic::Sentences
   module Unification
-    def unify(expression_x, expression_y)
-      unify_expressions(expression_x, expression_y, {})
+    def unify(expression_x, expression_y, substitution={})
+      unify_expressions(expression_x, expression_y, substitution)
     end
 
     private
