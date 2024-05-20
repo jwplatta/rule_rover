@@ -21,32 +21,37 @@ module RuleRover::FirstOrderLogic
       attr_reader :kb, :query
 
       def backward_chain(goal, substitution)
-        backward_chain_or(goal, substitution)
+        backward_chain_or(goal, substitution).next
       end
 
       def backward_chain_or(goal, substitution)
-        Fiber.new do
+        Enumerator.new do |yielder|
           rules_for_goal(goal).each do |rule|
-            antecedent, consequent = rule.left, rule.right
+            if rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
+              antecedent, consequent = rule.conditions, rule.right
+            else
+              antecedent, consequent = [], rule
+            end
 
             backward_chain_and(antecedent, unify(consequent, goal, substitution)).each do |subst|
-              Fiber.yield subst
+              yielder << subst
             end
           end
         end
       end
 
       def backward_chain_and(goals, substitution)
-        Fiber.new do
+        Enumerator.new do |yielder|
           if !substitution
-            Fiber.yield false
+            yielder << false
           elsif goals.empty?
-            Fiber.yield substitution
+            yielder << substitution
           else
             goal, *rest = goals
+
             backward_chain_or(goal, substitution).each do |subst|
               backward_chain_and(rest, subst).each do |sub|
-                Fiber.yield sub
+                yielder << sub
               end
             end
           end
@@ -55,7 +60,13 @@ module RuleRover::FirstOrderLogic
 
 
       def rules_for_goal(goal)
-        kb.clauses.select { |clause| clause.right == goal }
+        kb.clauses.select do |clause|
+          if clause.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
+            clause.right == goal
+          else
+            clause == goal
+          end
+        end
       end
     end
   end
