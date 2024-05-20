@@ -17,8 +17,8 @@ module RuleRover::PropositionalLogic
 
     attr_reader :symbols, :sentences, :engine
 
-    def assert(*sentence)
-      sentence_factory.build(*sentence).then do |sentence|
+    def assert(*sentence_parts)
+      sentence_factory.build(*sentence_parts).then do |sentence|
         @symbols.merge(sentence.symbols)
         @sentences << sentence if sentences.include?(sentence) == false
       end
