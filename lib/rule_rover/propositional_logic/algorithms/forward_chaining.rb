@@ -24,7 +24,7 @@ module RuleRover::PropositionalLogic::Algorithms
             if premise.include? p
               count[clause] -= 1
 
-              if count[cluase] == 0
+              if count[clause] == 0
                 # NOTE: conclusion is an atomic, so sentence returns
                 # a string instead of a Sentence object - not great design
                 agenda << conclusion.sentence
@@ -33,6 +33,7 @@ module RuleRover::PropositionalLogic::Algorithms
           end
         end
       end
+
       false
     end
   end
