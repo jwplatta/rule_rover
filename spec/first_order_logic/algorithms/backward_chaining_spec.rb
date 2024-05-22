@@ -104,7 +104,6 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
         kb.assert('Socrates', :knows, 'Plato')
         query = sentence_factory.build('Aristotle', :knows, 'Alexander')
         substitution = described_class.backward_chain(kb, query)
-        binding.pry
 
         expect(substitution).to be({})
       end
