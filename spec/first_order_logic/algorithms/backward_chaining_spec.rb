@@ -94,6 +94,21 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
         expect(substitution).to eq({})
       end
     end
+    context 'knowledge base contains a sentence with a variable' do
+      fit do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert([['Russell', :studied, 'x'], :and, ['Socrates', :knows, 'x']], :then, ['x', :knows, 'Aristotle'])
+        kb.assert(['Plato', :knows, 'x'], :then, ['x', :knows, 'Alexander'])
+        kb.assert(['Moore', :studied, 'x'], :then, ['Russell', :studied, 'x'])
+        kb.assert('Moore', :studied, 'Plato')
+        kb.assert('Socrates', :knows, 'Plato')
+        query = sentence_factory.build('Aristotle', :knows, 'Alexander')
+        substitution = described_class.backward_chain(kb, query)
+        binding.pry
+
+        expect(substitution).to be({})
+      end
+    end
   end
   def sentence_factory
     RuleRover::FirstOrderLogic::Sentences::Factory
