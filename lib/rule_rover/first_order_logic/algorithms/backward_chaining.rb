@@ -40,13 +40,13 @@ module RuleRover::FirstOrderLogic
             return backward_chain_and(antecedent_conditions, goal_substitution)
           end
         end
+
+        false
       end
 
       def backward_chain_and(goals, substitution)
-        if not substitution
-          return
-        elsif goals.empty?
-          return substitution
+        if goals.empty?
+          substitution
         else
           goal, *rest = goals
 

@@ -13,6 +13,17 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
         expect(result).to eq({})
       end
     end
+    context 'knowledge base does not imply the query' do
+      it 'returns false' do
+        kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
+        kb.assert(['Alexander', :taught, 'Aristotle'], :then, ['Socrates', :taught, 'Plato'])
+        kb.assert('Alexander', :taught, 'Aristotle')
+        query = sentence_factory.build('Kierkegaard', :taught, 'Nietzsche')
+        result = described_class.backward_chain(kb, query)
+
+        expect(result).to eq(false)
+      end
+    end
     context 'knowledge base does not contain the query' do
       it 'returns an empty substitution' do
         kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
@@ -56,7 +67,7 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
       end
     end
     context 'knowledge base contains a sentence with a variable' do
-      it do
+      it 'returns a valid substitution' do
         kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
         kb.assert([['Russell', :studied, 'x'], :and, ['Socrates', :knows, 'x']], :then, ['x', :knows, 'Aristotle'])
         kb.assert(['Plato', :knows, 'x'], :then, ['x', :knows, 'Alexander'])
