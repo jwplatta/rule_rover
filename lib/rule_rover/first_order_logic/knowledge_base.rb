@@ -6,7 +6,6 @@ module RuleRover::FirstOrderLogic
   class KnowledgeBase
     include Sentences::StandardizeApart
     include Sentences::Unification
-    # include Algorithms::ForwardChaining
 
     TERM_CLASSES = [
       RuleRover::FirstOrderLogic::Sentences::PredicateSymbol,
@@ -101,6 +100,14 @@ module RuleRover::FirstOrderLogic
         true
       else
         false
+      end
+    end
+
+    def substitute(mapping={})
+      KnowledgeBase.new(engine: engine).tap do |new_kb|
+        sentences.each do |sentence|
+          new_kb.assert_sentence(sentence.substitute(mapping))
+        end
       end
     end
 
