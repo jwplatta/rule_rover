@@ -21,13 +21,10 @@ module RuleRover::FirstOrderLogic
       attr_reader :kb, :query
 
       def backward_chain(goal, substitution)
-        @enum ||= Enumerator.new do |yielder|
-          backward_chain_or(goal, substitution, yielder)
-        end
-        @enum.next
+        backward_chain_or(goal, substitution)
       end
 
-      def backward_chain_or(goal, substitution, yielder)
+      def backward_chain_or(goal, substitution)
         kb.clauses.each do |rule|
           if rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
             antecedent_conditions, consequent = rule.conditions, rule.right
@@ -36,36 +33,25 @@ module RuleRover::FirstOrderLogic
           end
 
           goal_substitution = unify(consequent, goal, substitution)
-          next unless goal_substitution
 
-          backward_chain_and(antecedent_conditions, goal_substitution, yielder).each do |sub|
-            yielder.yield sub
+          unless goal_substitution
+            next
+          else
+            return backward_chain_and(antecedent_conditions, goal_substitution)
           end
         end
       end
 
-      def backward_chain_and(goals, substitution, yielder)
+      def backward_chain_and(goals, substitution)
         if not substitution
           return
         elsif goals.empty?
-          yielder.yield substitution
+          return substitution
         else
           goal, *rest = goals
 
-          backward_chain_or(goal, substitution, yielder).reduce() do |subst|
-            backward_chain_and(rest, subst, yielder).each do |sub|
-              yielder.yield sub
-            end
-          end
-        end
-      end
-
-      def rules_for_goal(goal)
-        kb.clauses.select do |clause|
-          if clause.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
-            clause.right == goal
-          else
-            clause == goal
+          backward_chain_or(goal, substitution).then do |subst|
+            backward_chain_and(rest, subst)
           end
         end
       end
