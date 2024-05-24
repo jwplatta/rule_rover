@@ -43,7 +43,7 @@ end
 ```
 
 ```rb
-RuleRover.knowledge_base(engine: :backward_chaining) do
+RuleRover.knowledge_base(system: :propositional, engine: :backward_chaining) do
   assert "rainy", :or, "cloudy"
   assert "rainy", :iff, "carry an umbrella"
   assert "sunny", :and, "warm", :then, "go to the beach"
@@ -52,7 +52,6 @@ RuleRover.knowledge_base(engine: :backward_chaining) do
   assert "cold", :iff, ["windy", :and, "not sunny"]
   assert :not, ["rainy", :and, "sunny"], :then, "see a rainbow"
 
-  # checking entailment
   entail? "carry an umbrella"
   entail? "go to the beach"
   entail? "have a picnic"
@@ -62,9 +61,17 @@ end
 
 ### First-Order Logic
 
-**TODO**
-- quantifiers - universal instantion, existential instantiation, substitution, unification
-- terms, functions, predicates
+The following example shows how to create a knowledge base in first-order logic. Create function symbols like `:@philosopher`. Create predicates like `:knows` and `:writes_about`. Create constants like `"Russell"` and `"ExternalWorld"`.
+
+```ruby
+RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) do
+  assert [:@philosopher, "x"], :then, ["x", :knows, "ExternalWorld"]
+  assert ["x", :writes_about, "ExternalWorld"], :then, ["x", :knows, "ExternalWorld"]
+  assert "Russell", :writes_about, "ExternalWorld"
+
+  entail? "Russell", :knows, "ExternalWorld"
+end
+```
 
 ## Development
 

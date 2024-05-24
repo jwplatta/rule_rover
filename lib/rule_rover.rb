@@ -41,11 +41,16 @@ require_relative "./rule_rover/first_order_logic/algorithms/forward_chaining.rb"
 require_relative "./rule_rover/first_order_logic/algorithms/backward_chaining.rb"
 require_relative "./rule_rover/first_order_logic/knowledge_base.rb"
 
-
 module RuleRover
-  def knowledge_base(engine: :model_checking, &block)
-    puts "rule_rover knowledge_base"
-    kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :model_checking)
+  def knowledge_base(system: :first_order, engine: :model_checking, &block)
+    kb = if system == :first_order
+      RuleRover::FirstOrderLogic::KnowledgeBase.new(engine: engine)
+    elsif system == :propositional
+      RuleRover::PropositionalLogic::KnowledgeBase.new(engine: engine)
+    else
+      raise ArgumentError, "Invalid system: #{system}"
+    end
+
     kb.instance_eval(&block)
     kb
   end
