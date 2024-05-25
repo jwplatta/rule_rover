@@ -4,23 +4,6 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
   it 'does not raise' do
     expect { described_class.new }.not_to raise_error
   end
-  describe 'constants' do
-    describe '#connectives' do
-      it do
-        expect(subject.connectives).to eq RuleRover::FirstOrderLogic::CONNECTIVES
-      end
-    end
-    describe '#operators' do
-      it do
-        expect(subject.operators).to eq RuleRover::FirstOrderLogic::OPERATORS
-      end
-    end
-    describe '#quantifiers' do
-      it do
-        expect(subject.quantifiers).to eq RuleRover::FirstOrderLogic::QUANTIFIERS
-      end
-    end
-  end
   describe '#assert' do
     it 'adds sentence with standardized variables' do
       expected = sentence_factory.build("x_1", :and, "x_2")
@@ -129,25 +112,25 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
   describe '#definite_clause?' do
     context 'when sentence is not a conditional' do
       it 'returns false' do
-        expect(subject.definite_clause?(sentence_factory.build('x', :and, 'y'))).to be false
+        expect(subject.send(:definite_clause?, sentence_factory.build('x', :and, 'y'))).to be false
       end
     end
     context 'when consequent is a negation' do
       it 'returns false' do
-        expect(subject.definite_clause?(sentence_factory.build('x', :then, :not, 'y'))).to be false
+        expect(subject.send(:definite_clause?, sentence_factory.build('x', :then, :not, 'y'))).to be false
       end
     end
     context 'when antecedent contains a positive literal' do
       it 'returns false' do
-        expect(subject.definite_clause?(sentence_factory.build([:not, 'z', :or, 'x'], :then, 'y'))).to be false
+        expect(subject.send(:definite_clause?, sentence_factory.build([:not, 'z', :or, 'x'], :then, 'y'))).to be false
       end
     end
     context 'when sentence is a definite clause' do
       it 'returns true' do
-        expect(subject.definite_clause?(sentence_factory.build('z', :then, 'y'))).to be true
+        expect(subject.send(:definite_clause?, sentence_factory.build('z', :then, 'y'))).to be true
       end
       it 'returns true' do
-        expect(subject.definite_clause?(sentence_factory.build(['z', :and, 'x'], :then, 'y'))).to be true
+        expect(subject.send(:definite_clause?, sentence_factory.build(['z', :and, 'x'], :then, 'y'))).to be true
       end
     end
   end
