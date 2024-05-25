@@ -32,7 +32,7 @@ $ gem install rule_rover-0.1.0.gem
 ### Propositional Logic
 
 ```ruby
-RuleRover.knowledge_base(engine: :model_checking) do
+RuleRover.knowledge_base(system: :propositional, engine: :model_checking) do
   assert "it's raining", :then, "take an umbrella"
   assert :not, "take an umbrella"
 
