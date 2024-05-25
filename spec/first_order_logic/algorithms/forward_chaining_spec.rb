@@ -71,7 +71,7 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
       it 'returns the antecedent and consequent' do
         clause = sentence_factory.build('Plato', :taught, 'Socrates')
         antecedent, consequent = described_class.new(
-          nil,
+          RuleRover::FirstOrderLogic::KnowledgeBase.new,
           sentence_factory.build('x')
         ).antecedent_and_consequent(clause)
         expect(antecedent).to eq(clause)
@@ -81,7 +81,10 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
     context 'is a clause with a multiple positive literals' do
       it 'returns the antecedent and consequent' do
         clause = sentence_factory.build([['Plato', :taught, 'Socrates'], :and, ['Alexander', :taught, 'Aristotle']], :then, ['Socrates', :taught, 'Plato'])
-        antecedent, consequent = described_class.new(nil, sentence_factory.build('x')).antecedent_and_consequent(clause)
+        antecedent, consequent = described_class.new(
+          RuleRover::FirstOrderLogic::KnowledgeBase.new,
+          sentence_factory.build('x')
+        ).antecedent_and_consequent(clause)
         expect(antecedent).to eq(sentence_factory.build(['Plato', :taught, 'Socrates'], :and, ['Alexander', :taught, 'Aristotle']))
         expect(consequent).to eq(sentence_factory.build('Socrates', :taught, 'Plato'))
       end
@@ -89,7 +92,10 @@ describe RuleRover::FirstOrderLogic::Algorithms::ForwardChaining do
     context 'not a conditional' do
       it 'returns nil' do
         clause = sentence_factory.build([:not, ['Plato', :taught, 'Socrates']], :and , ['Socrates', :taught, 'Plato'])
-        antecedent, consequent = described_class.new(nil, sentence_factory.build('x')).antecedent_and_consequent(clause)
+        antecedent, consequent = described_class.new(
+          RuleRover::FirstOrderLogic::KnowledgeBase.new,
+          sentence_factory.build('x')
+        ).antecedent_and_consequent(clause)
         expect(antecedent).to be_nil
         expect(consequent).to be_nil
       end

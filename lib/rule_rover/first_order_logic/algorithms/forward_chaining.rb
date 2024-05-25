@@ -18,13 +18,6 @@ module RuleRover::FirstOrderLogic
       - 1. try to unify the query with an existing clause in the database
       - 2. if not, then loop through all the clauses in the database
       """
-      TERM_CLASSES = [
-        RuleRover::FirstOrderLogic::Sentences::PredicateSymbol,
-        RuleRover::FirstOrderLogic::Sentences::FunctionSymbol,
-        RuleRover::FirstOrderLogic::Sentences::ConstantSymbol,
-        RuleRover::FirstOrderLogic::Sentences::Variable,
-      ]
-
       class << self
         def forward_chain(kb, query)
           self.new(kb, query).forward_chain
@@ -32,7 +25,7 @@ module RuleRover::FirstOrderLogic
       end
 
       def initialize(kb, query)
-        raise QueryNotAtomicSentence.new unless TERM_CLASSES.include? query.class
+        raise QueryNotAtomicSentence.new unless kb.class::ATOMIC_SENTENCE_CLASSES.include? query.class
         @kb = kb
         @query = query
       end
@@ -80,7 +73,7 @@ module RuleRover::FirstOrderLogic
         while frontier.any?
           conj = frontier.shift
 
-          if TERM_CLASSES.include? conj.class
+          if kb.class::ATOMIC_SENTENCE_CLASSES.include? conj.class
             conjuncts << conj
           elsif conj.is_a? RuleRover::FirstOrderLogic::Sentences::Conjunction
             conjuncts << conj.left
@@ -92,7 +85,7 @@ module RuleRover::FirstOrderLogic
 
       def antecedent_and_consequent(clause)
         # NOTE: assumes that the clause is a definite clause
-        if TERM_CLASSES.include? clause.class
+        if kb.class::ATOMIC_SENTENCE_CLASSES.include? clause.class
           [clause, clause]
         elsif clause.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
           [clause.left, clause.right]
