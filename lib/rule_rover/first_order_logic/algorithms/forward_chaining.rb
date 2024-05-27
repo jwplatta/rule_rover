@@ -5,45 +5,25 @@ module RuleRover::FirstOrderLogic
     class QueryNotAtomicSentence < StandardError; end
     class ForwardChaining
       include RuleRover::FirstOrderLogic::Sentences::Unification
-
       # The ForwardChaining class implements the
       # forward chaining algorithm for inference in a knowledge base.
 
       # Requirements:
-      # - Assumes that the knowledge base is a set of definite clauses
-      # - Assumes the sentences have been standardized apart
-      # - Need to be able to apply substitutions to the clauses
-      # - Query needs to be an atomic sentence
+      # - The knowledge base is a set of definite clauses
+      # - The sentences are standardized apart
+      # - The query is an atomic sentence
       # - Existential instantiation
 
       # Steps:
       # 1. Try to unify the query with an existing clause in the database
       # 2. If not, then loop through all the clauses in the database
-
-      # Class Methods:
-      # - forward_chain(kb, query): Performs forward chaining inference on the given knowledge base and query.
-
-      # Instance Methods:
-      # - initialize(kb, query): Initializes a new instance of ForwardChaining with the given knowledge base and query.
-      # - forward_chain: Performs forward chaining inference on the knowledge base and query.
-
-      # Helper Methods:
-      # - conjuncts_to_a(conjunction): Converts a conjunction into an array of conjuncts.
-      # - antecedent_and_consequent(clause): Extracts the antecedent and consequent from a clause.
-      # - substitutions(constants, variables): Generates all possible substitutions for the given constants and variables.
-
-      # Attributes:
-      # - kb: The knowledge base.
-      # - query: The query.
-
-      # Example Usage:
-      # kb = KnowledgeBase.new
-      # query = AtomicSentence.new(:p, [Constant.new(:a)])
-      # ForwardChaining.forward_chain(kb, query)
-
-      # Returns:
-      # - true if the query is entailed by the knowledge base, false otherwise.
       class << self
+        # Performs forward chaining on the knowledge base (kb)
+        # to derive the truth value of the given query.
+        #
+        # @param kb [KnowledgeBase] The knowledge base.
+        # @param query [Expression] The query to be evaluated.
+        # @return [Boolean] The truth value of the query.
         def forward_chain(kb, query)
           self.new(kb, query).forward_chain
         end
