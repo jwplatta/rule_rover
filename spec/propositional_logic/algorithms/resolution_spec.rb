@@ -1,11 +1,11 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe RuleRover::PropositionalLogic::Algorithms::Resolution do
-  it 'does not raise' do
+  it "does not raise" do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
 
-  describe '.run' do
+  describe ".run" do
     let(:kb) { RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :resolution) }
     it do
       kb.assert("a", :then, "b")
@@ -44,7 +44,7 @@ describe RuleRover::PropositionalLogic::Algorithms::Resolution do
       query = sentence_factory.build(:not, "x")
       expect(described_class.run(kb: kb, query: query)).to be true
     end
-    describe 'when sentence is not proveable' do
+    describe "when sentence is not proveable" do
       around(:each) do |test|
         start_time = Time.now
         puts "Starting: #{test.description}"
@@ -56,7 +56,7 @@ describe RuleRover::PropositionalLogic::Algorithms::Resolution do
         duration = end_time - start_time
         puts "Finished: #{test.description}. Duration: #{duration} seconds."
       end
-      it 'explore all possible clauses' do
+      it "explore all possible clauses" do
         kb.assert ["a", :and, "c"], :iff, "b"
         kb.assert "b"
         query1 = sentence_factory.build("a", :and, "c")

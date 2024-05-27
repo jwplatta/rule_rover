@@ -1,33 +1,33 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe RuleRover::PropositionalLogic::KnowledgeBase do
-  it 'does not raise' do
+  it "does not raise" do
     expect { described_class.new }.not_to raise_error
   end
-  describe '#connectives' do
+  describe "#connectives" do
     it do
       expect(subject.connectives).to eq RuleRover::PropositionalLogic::CONNECTIVES
     end
   end
-  describe '#operators' do
+  describe "#operators" do
     it do
       expect(subject.operators).to eq RuleRover::PropositionalLogic::OPERATORS
     end
   end
-  describe '#assert' do
-    it 'it saves a set of sentences' do
+  describe "#assert" do
+    it "it saves a set of sentences" do
       subject.assert("a", :and, "b")
       subject.assert("a", :and, "b")
       expect(subject.sentences.size).to eq 1
     end
-    it 'saves a set of symbols' do
+    it "saves a set of symbols" do
       subject.assert("a", :and, "b")
       subject.assert("a", :or, "c")
       subject.assert("d", :then, "b")
-      expect(subject.symbols).to eq(Set.new(["a", "b", "c", "d"]))
+      expect(subject.symbols).to eq(Set.new(%w[a b c d]))
     end
   end
-  describe '#to_cnf' do
+  describe "#to_cnf" do
     it do
       subject.assert("a", :iff, "b")
       subject.assert("a", :and, "f")
@@ -41,14 +41,14 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
         sentence_factory.build([:not, "b"], :or, "a"),
         sentence_factory.build("a"),
         sentence_factory.build([:not, "c"], :or, "d"),
-        sentence_factory.build("e"),
+        sentence_factory.build("e")
       ]
       expect(new_kb.sentences).to match_array(expected)
     end
   end
 
-  describe '#is_definite?' do
-    describe 'when all clauses are definite' do
+  describe "#is_definite?" do
+    describe "when all clauses are definite" do
       it do
         subject.assert("a", :iff, "b")
         subject.assert("a", :and, "f")
@@ -58,7 +58,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
         expect(new_kb.is_definite?).to be true
       end
     end
-    describe 'when some clauses are not definite' do
+    describe "when some clauses are not definite" do
       it do
         subject.assert("a", :iff, "b")
         subject.assert(:not, "a", :and, :not, "f")
@@ -68,8 +68,8 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
         expect(new_kb.is_definite?).to be false
       end
     end
-    describe '#entail?' do
-      describe 'model_checking' do
+    describe "#entail?" do
+      describe "model_checking" do
         it do
           kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :model_checking)
           kb.assert("a", :then, "b")
@@ -77,7 +77,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
           expect(kb.entail?("b")).to be true
         end
       end
-      describe 'resolution' do
+      describe "resolution" do
         it do
           kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :resolution)
           kb.assert("a", :then, "b")
@@ -85,7 +85,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
           expect(kb.entail?("b")).to be true
         end
       end
-      describe 'forward_chaining' do
+      describe "forward_chaining" do
         it do
           kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
           kb.assert("a", :then, "b")
@@ -93,8 +93,8 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
 
           expect(kb.entail?("b")).to be true
         end
-        describe 'when query is not a single symbol' do
-          it 'raises' do
+        describe "when query is not a single symbol" do
+          it "raises" do
             kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
             kb.assert("a", :then, "b")
             kb.assert("a")
@@ -104,8 +104,8 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
             )
           end
         end
-        describe 'when knowledge base is not definite' do
-          it 'raises' do
+        describe "when knowledge base is not definite" do
+          it "raises" do
             kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
             kb.assert("a", :then, :not, "b")
             kb.assert("a")
@@ -115,7 +115,7 @@ describe RuleRover::PropositionalLogic::KnowledgeBase do
           end
         end
       end
-      describe 'backward_chaining' do
+      describe "backward_chaining" do
         it do
           kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
           kb.assert("a", :then, "b")

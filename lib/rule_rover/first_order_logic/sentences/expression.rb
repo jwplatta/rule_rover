@@ -1,5 +1,5 @@
-require_relative 'substitution'
-require_relative 'standardize_apart'
+require_relative "substitution"
+require_relative "standardize_apart"
 
 module RuleRover::FirstOrderLogic::Sentences
   module Expression

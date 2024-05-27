@@ -1,5 +1,6 @@
 module RuleRover::PropositionalLogic::Sentences
   class NotDefiniteClause < StandardError; end
+
   class Disjunction < Sentence
     def evaluate(model)
       left.evaluate(model) or right.evaluate(model)
@@ -71,11 +72,7 @@ module RuleRover::PropositionalLogic::Sentences
         return false if post_cnt > 1
       end
 
-      if post_cnt == 1
-        true
-      else
-        false
-      end
+      post_cnt == 1
     end
 
     def is_horn?

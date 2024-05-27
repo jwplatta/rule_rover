@@ -24,7 +24,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def to_s
-      "[:#{name} #{args.join(', ')}]"
+      "[:#{name} #{args.join(", ")}]"
     end
   end
 end

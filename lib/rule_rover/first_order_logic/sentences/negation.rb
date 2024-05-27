@@ -17,7 +17,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def evaluate(model)
-      not sentence.evaluate(model)
+      !sentence.evaluate(model)
     end
 
     def to_s

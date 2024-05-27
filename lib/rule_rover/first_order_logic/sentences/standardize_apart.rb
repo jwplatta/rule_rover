@@ -12,9 +12,9 @@ module RuleRover::FirstOrderLogic::Sentences
     private
 
     def init_var_count(reset)
-      if !instance_variable_defined? :@var_count or reset
-        @var_count = 0
-      end
+      return unless !instance_variable_defined? :@var_count or reset
+
+      @var_count = 0
     end
 
     def map(expression)

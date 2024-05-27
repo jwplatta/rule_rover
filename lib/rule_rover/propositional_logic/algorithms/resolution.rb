@@ -18,13 +18,13 @@ module RuleRover::PropositionalLogic::Algorithms
     def find_clauses(sentences)
       # NOTE: assumes that the sentences are in CNF
       clauses = []
-      while not sentences.empty?
+      until sentences.empty?
         sent = sentences.shift
 
         if sent.is_a? conjunction
           sentences << sent.left
           sentences << sent.right
-        elsif not clauses.include? sent
+        elsif !clauses.include? sent
           clauses << sent
         end
       end
@@ -37,24 +37,20 @@ module RuleRover::PropositionalLogic::Algorithms
         cls_a_atoms = cls_a.atoms.to_a
         cls_b_atoms = cls_b.atoms.to_a
         complements = first_complements(cls_a_atoms, cls_b_atoms)
-        if complements.empty?
-          next
-        else
-          resolve_clauses(cls_a_atoms, cls_b_atoms, *complements).then do |new_clause|
-            if new_clause.is_a? EmptyClause
-              return true
-            elsif not new_clauses.include? new_clause
-              new_clauses << new_clause
-            end
+        next if complements.empty?
+
+        resolve_clauses(cls_a_atoms, cls_b_atoms, *complements).then do |new_clause|
+          if new_clause.is_a? EmptyClause
+            return true
+          elsif !new_clauses.include? new_clause
+            new_clauses << new_clause
           end
         end
       end
 
-      if new_clauses.all? { |new_cls| clauses.include? new_cls }
-        return false
-      else
-        resolve(clauses + new_clauses.select { |new_cls| not clauses.include? new_cls })
-      end
+      return false if new_clauses.all? { |new_cls| clauses.include? new_cls }
+
+      resolve(clauses + new_clauses.select { |new_cls| !clauses.include? new_cls })
     end
 
     def resolve_clauses(cls_a_atoms, cls_b_atoms, comp_a, comp_b)
@@ -71,9 +67,7 @@ module RuleRover::PropositionalLogic::Algorithms
             left, right = new_atoms.shift(2)
 
             new_clause = disjunction.new(left, right)
-            while not new_atoms.empty?
-              new_clause = disjunction.new(new_clause, new_atoms.shift)
-            end
+            new_clause = disjunction.new(new_clause, new_atoms.shift) until new_atoms.empty?
             new_clause
           end
         end

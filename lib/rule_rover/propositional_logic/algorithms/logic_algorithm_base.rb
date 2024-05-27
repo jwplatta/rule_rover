@@ -2,7 +2,7 @@ module RuleRover::PropositionalLogic::Algorithms
   class LogicAlgorithmBase
     class << self
       def run(kb: nil, query: [])
-        self.new(kb, query).entail?
+        new(kb, query).entail?
       end
     end
 

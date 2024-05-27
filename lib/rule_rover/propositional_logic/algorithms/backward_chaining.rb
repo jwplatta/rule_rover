@@ -11,7 +11,6 @@ module RuleRover::PropositionalLogic::Algorithms
 
     def satisfy?(clauses, symbols, model)
       # TODO: #evaluate_partial
-
       if clauses.all? { |cls| cls.evaluate(model) }
         true
       elsif symbols.all? { |sym| model.keys.include? sym } and clauses.any? { |cls| not cls.evaluate(model) }
@@ -49,7 +48,7 @@ module RuleRover::PropositionalLogic::Algorithms
 
       # NOTE: ignore true clauses
       filtered_clauses = filtered_clauses.select do |clause|
-        clause  unless clause.evaluate(model)
+        clause unless clause.evaluate(model)
       end
 
       all_atoms = clauses.map { |cls| cls.atoms.to_a }.flatten

@@ -10,6 +10,7 @@ module RuleRover::FirstOrderLogic::Sentences
   #
   class ComplexSentence
     attr_reader :left, :right
+
     include Expression
 
     def initialize(left, right)

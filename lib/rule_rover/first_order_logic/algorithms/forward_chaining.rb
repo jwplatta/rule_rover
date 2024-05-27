@@ -1,8 +1,9 @@
-require_relative '../sentences/unification'
+require_relative "../sentences/unification"
 
 module RuleRover::FirstOrderLogic
   module Algorithms
     class QueryNotAtomicSentence < StandardError; end
+
     class ForwardChaining
       include RuleRover::FirstOrderLogic::Sentences::Unification
       # The ForwardChaining class implements the
@@ -25,12 +26,13 @@ module RuleRover::FirstOrderLogic
         # @param query [Expression] The query to be evaluated.
         # @return [Boolean] The truth value of the query.
         def forward_chain(kb, query)
-          self.new(kb, query).forward_chain
+          new(kb, query).forward_chain
         end
       end
 
       def initialize(kb, query)
         raise QueryNotAtomicSentence.new unless kb.class::ATOMIC_SENTENCE_CLASSES.include? query.class
+
         @kb = kb
         @query = query
       end
@@ -50,22 +52,21 @@ module RuleRover::FirstOrderLogic
 
               conjuncts = conjuncts_to_a(_antecedent)
 
-              if conjuncts.all? { |conj| kb.sentences.any? { |sent| unify(sent, conj) } }
-                _consequent = consequent.substitute(substitution)
+              next unless conjuncts.all? { |conj| kb.sentences.any? { |sent| unify(sent, conj) } }
 
-                if !kb.sentences.any? { |sent| unify(sent, _consequent) }
-                  new_sentences << _consequent
-                  return true if unify(_consequent, query)
-                end
+              _consequent = consequent.substitute(substitution)
+
+              unless kb.sentences.any? { |sent| unify(sent, _consequent) }
+                new_sentences << _consequent
+                return true if unify(_consequent, query)
               end
             end
           end
 
-          if new_sentences.empty?
-            return false
-          else
-            new_sentences.each { |sentence| kb.assert_sentence(sentence) }
-          end
+          return false if new_sentences.empty?
+
+          new_sentences.each { |sentence| kb.assert_sentence(sentence) }
+
         end
 
         false

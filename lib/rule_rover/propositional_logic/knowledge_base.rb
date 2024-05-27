@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module RuleRover
   module PropositionalLogic
@@ -12,6 +12,7 @@ module RuleRover
         @sentences = sentences
 
         raise InvalidEngine.new unless valid_engines.include?(engine)
+
         @engine = engine
       end
 
@@ -39,6 +40,7 @@ module RuleRover
 
           to_clauses.then do |kb_of_clauses|
             raise KnowledgeBaseNotDefinite.new unless kb_of_clauses.is_definite?
+
             forward_chaining.run(kb: kb_of_clauses, query: sentence_factory.build(*query))
           end
         elsif engine == :backward_chaining

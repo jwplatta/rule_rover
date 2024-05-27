@@ -7,7 +7,7 @@ module RuleRover::FirstOrderLogic
     include Sentences::StandardizeApart
     include Sentences::Unification
 
-    ATOMIC_SENTENCE_CLASSES=[
+    ATOMIC_SENTENCE_CLASSES = [
       RuleRover::FirstOrderLogic::Sentences::PredicateSymbol,
       RuleRover::FirstOrderLogic::Sentences::FunctionSymbol,
       RuleRover::FirstOrderLogic::Sentences::ConstantSymbol,
@@ -15,9 +15,7 @@ module RuleRover::FirstOrderLogic
     ]
 
     def initialize(engine: :forward_chaining, sentences: [], definite: false)
-      unless ENGINES.include?(engine)
-        raise InvalidEngine.new("Invalid engine: #{engine}")
-      end
+      raise InvalidEngine.new("Invalid engine: #{engine}") unless ENGINES.include?(engine)
 
       @constants = Set.new
       @new_constant_count = 0
@@ -80,7 +78,7 @@ module RuleRover::FirstOrderLogic
     # @return [Object, false] Returns the matching sentence object if a match is found; otherwise, returns false.
     def match?(*query)
       sentence_factory.build(*query).then do |query|
-        sentences.find { |sentence| unify(sentence, query)} || false
+        sentences.find { |sentence| unify(sentence, query) } || false
       end
     end
 
@@ -107,7 +105,7 @@ module RuleRover::FirstOrderLogic
     #
     # @param mapping [Hash] A hash containing variable substitutions.
     # @return [KnowledgeBase] A new knowledge base with substituted sentences.
-    def substitute(mapping={})
+    def substitute(mapping = {})
       KnowledgeBase.new(engine: engine).tap do |new_kb|
         sentences.each do |sentence|
           new_kb.assert_sentence(sentence.substitute(mapping))

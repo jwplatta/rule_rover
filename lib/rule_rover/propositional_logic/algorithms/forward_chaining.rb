@@ -2,11 +2,11 @@ module RuleRover::PropositionalLogic::Algorithms
   class ForwardChaining < LogicAlgorithmBase
     def entail?
       count = kb.sentences.each_with_object({}) do |sentence, count|
-        unless sentence.is_atomic?
-          premises, _ = sentence.premise_and_conclusion
-          symbols = Set.new(premises.map { |premise| premise.symbols }.flatten)
-          count[sentence] = symbols.size
-        end
+        next if sentence.is_atomic?
+
+        premises, = sentence.premise_and_conclusion
+        symbols = Set.new(premises.map { |premise| premise.symbols }.flatten)
+        count[sentence] = symbols.size
       end
 
       agenda = kb.symbols.to_a
@@ -16,21 +16,21 @@ module RuleRover::PropositionalLogic::Algorithms
         p = sentence_factory.build(agenda.shift)
         return true if p == query
 
-        if inferred[p] == false
-          inferred[p] = true
+        next unless inferred[p] == false
 
-          kb.sentences.each do |clause|
-            premise, conclusion = clause.premise_and_conclusion
-            if premise.include? p
-              count[clause] -= 1
+        inferred[p] = true
 
-              if count[clause] == 0
-                # NOTE: conclusion is an atomic, so sentence returns
-                # a string instead of a Sentence object - not great design
-                agenda << conclusion.sentence
-              end
-            end
-          end
+        kb.sentences.each do |clause|
+          premise, conclusion = clause.premise_and_conclusion
+          next unless premise.include? p
+
+          count[clause] -= 1
+
+          next unless count[clause] == 0
+
+          # NOTE: conclusion is an atomic, so sentence returns
+          # a string instead of a Sentence object - not great design
+          agenda << conclusion.sentence
         end
       end
 

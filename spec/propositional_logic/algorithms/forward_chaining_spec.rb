@@ -1,11 +1,11 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe RuleRover::PropositionalLogic::Algorithms::ForwardChaining do
-  it 'does not raise' do
+  it "does not raise" do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
 
-  describe '.run' do
+  describe ".run" do
     it do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :forward_chaining)
       kb.assert("a", :then, "b")

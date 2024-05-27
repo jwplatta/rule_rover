@@ -67,11 +67,11 @@ module RuleRover::PropositionalLogic::Sentences
     end
 
     def to_cnf
-      self.eliminate_biconditionals.then do |sent|
+      eliminate_biconditionals.then do |sent|
         sent.eliminate_conditionals
       end.then do |prev_sent|
         changing = true
-        until not changing
+        while changing
           updated = prev_sent.elim_double_negations.then do |sent|
             sent.de_morgans_laws
           end
@@ -85,7 +85,7 @@ module RuleRover::PropositionalLogic::Sentences
         updated
       end.then do |prev_sent|
         changing = true
-        until not changing
+        while changing
           updated = prev_sent.distribute
           if updated.to_s == prev_sent.to_s
             changing = false

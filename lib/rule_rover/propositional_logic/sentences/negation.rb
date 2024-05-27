@@ -7,15 +7,13 @@ module RuleRover::PropositionalLogic::Sentences
     attr_reader :sentence
 
     def symbol
-      if is_atomic?
-        sentence.symbol
-      else
-        raise SentenceNotInCNF.new
-      end
+      raise SentenceNotInCNF.new unless is_atomic?
+
+      sentence.symbol
     end
 
     def evaluate(model)
-      not sentence.evaluate(model)
+      !sentence.evaluate(model)
     end
 
     def symbols

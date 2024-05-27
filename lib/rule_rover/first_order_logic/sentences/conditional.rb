@@ -21,7 +21,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def evaluate(model)
-      not left.evaluate(model) or right.evaluate(model)
+      !left.evaluate(model) or right.evaluate(model)
     end
 
     def eliminate_conditionals

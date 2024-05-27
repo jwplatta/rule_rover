@@ -1,17 +1,17 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
-  it 'does not raise' do
+  it "does not raise" do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
 
-  describe '#find_pure_symbol' do
+  describe "#find_pure_symbol" do
     it do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
       kb.assert("a", :or, "b")
       kb.assert(:not, "b", :or, "c")
       clauses = kb.to_clauses.sentences
-      model = { "c" => false, "b" => false}
+      model = { "c" => false, "b" => false }
 
       expect(
         described_class.new(nil, nil).find_pure_symbol({}, clauses, model)
@@ -21,7 +21,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
     it do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
       kb.assert("a", :or, "b")
-      kb.assert("a", :or, :not, "b") #ignores
+      kb.assert("a", :or, :not, "b") # ignores
       kb.assert("a", :or, "c")
       kb.assert(:not, "a", :or, "d")
       clauses = kb.to_clauses.sentences
@@ -32,7 +32,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       ).to eq(["c", true])
     end
 
-    it 'excludes true clauses' do
+    it "excludes true clauses" do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
       kb.assert("a", :or, "b")
       kb.assert("a", :or, :not, "b")
@@ -48,7 +48,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       ).to eq ["e", true]
     end
 
-    describe 'when there is no pure symbol' do
+    describe "when there is no pure symbol" do
       it do
         kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
         kb.assert("a", :or, "b")
@@ -57,7 +57,6 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb.assert(:not, "a", :or, :not, "c")
 
         clauses = kb.to_clauses.sentences
-
 
         expect(
           described_class.new(nil, nil).find_pure_symbol({}, clauses, {})
@@ -71,7 +70,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
         kb.assert("a", :or, "c")
 
         clauses = kb.to_clauses.sentences
-        model = {"a" => true, "b" => false, "c" => false}
+        model = { "a" => true, "b" => false, "c" => false }
 
         expect(
           described_class.new(nil, nil).find_pure_symbol(model.keys, clauses, model)
@@ -92,7 +91,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
     end
   end
 
-  describe '#is_unit?' do
+  describe "#is_unit?" do
     it do
       clause = sentence_factory.build("a", :or, "b")
       model = { "a" => false }
@@ -121,7 +120,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       expect(described_class.new(nil, nil).is_unit?(clause, model)).to eq nil
     end
 
-    describe 'when all literals except one are false' do
+    describe "when all literals except one are false" do
       it do
         clause = sentence_factory.build("a", :or, ["b", :or, "c"])
         model = { "a" => false, "b" => false }
@@ -130,7 +129,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       end
     end
 
-    describe 'when one literal is already true' do
+    describe "when one literal is already true" do
       it do
         clause = sentence_factory.build("a", :or, ["b", :or, "c"])
         model = { "a" => true, "b" => false }
@@ -140,7 +139,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
     end
   end
 
-  describe '#find_unit_clause' do
+  describe "#find_unit_clause" do
     it do
       clauses = [
         sentence_factory.build("a", :or, "b"),
@@ -183,7 +182,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
     end
   end
 
-  describe '.run' do
+  describe ".run" do
     it do
       kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
       kb.assert("a", :then, "b")
@@ -208,7 +207,7 @@ describe RuleRover::PropositionalLogic::Algorithms::BackwardChaining do
       expect(described_class.run(kb: kb, query: query)).to be true
     end
 
-    describe 'no model satisfies the query' do
+    describe "no model satisfies the query" do
       it do
         kb = RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :backward_chaining)
         kb.assert("a", :then, "b")

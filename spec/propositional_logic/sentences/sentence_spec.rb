@@ -1,21 +1,21 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe RuleRover::PropositionalLogic::Sentences::Sentence do
-  it 'does not raise' do
+  it "does not raise" do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
-  it 'is not atomic' do
+  it "is not atomic" do
     expect(described_class.new(nil, nil).is_atomic?).to be false
   end
-  it 'is not definite' do
+  it "is not definite" do
     expect(described_class.new(nil, nil).is_definite?).to be false
   end
-  it 'is not positive' do
+  it "is not positive" do
     expect(described_class.new(nil, nil).is_positive?).to be false
   end
 
-  describe '#atoms' do
-    it 'returns the atoms of the sentence' do
+  describe "#atoms" do
+    it "returns the atoms of the sentence" do
       sentence = sentence_factory.build("a")
       expect(sentence.atoms).to match_array([sentence_factory.build("a")])
 
@@ -27,17 +27,21 @@ describe RuleRover::PropositionalLogic::Sentences::Sentence do
     end
   end
 
-  describe '#to_cnf' do
-    it 'returns a fully distributed sentence' do
+  describe "#to_cnf" do
+    it "returns a fully distributed sentence" do
       sentence = sentence_factory.build(["a", :iff, "b"], :or, ["d", :iff, "c"])
-      expects = sentence_factory.build([[[[:not, "a"], :or, "b"], :or, [[:not, "d"], :or, "c"]], :and, [[[:not, "a"], :or, "b"], :or, [[:not, "c"], :or, "d"]]], :and, [[[[:not, "b"], :or, "a"], :or, [[:not, "d"], :or, "c"]], :and, [[[:not, "b"], :or, "a"], :or, [[:not, "c"], :or, "d"]]])
+      expects = sentence_factory.build(
+        [[[[:not, "a"], :or, "b"], :or, [[:not, "d"], :or, "c"]], :and,
+         [[[:not, "a"], :or, "b"], :or, [[:not, "c"], :or, "d"]]], :and, [[[[:not, "b"], :or, "a"], :or, [[:not, "d"], :or, "c"]], :and, [[[:not, "b"], :or, "a"], :or, [[:not, "c"], :or, "d"]]]
+      )
       expect(sentence.to_cnf).to eq(expects)
 
       sentence = sentence_factory.build(:not, [["a", :then, "c"], :and, ["b", :then, "d"]])
-      expects = sentence_factory.build([["a", :or, "b"], :and, ["a", :or, [:not, "d"]]], :and, [[[:not, "c"], :or, "b"], :and, [[:not, "c"], :or, [:not, "d"]]])
+      expects = sentence_factory.build([["a", :or, "b"], :and, ["a", :or, [:not, "d"]]], :and,
+                                       [[[:not, "c"], :or, "b"], :and, [[:not, "c"], :or, [:not, "d"]]])
       expect(sentence.to_cnf).to eq(expects)
     end
-    it 'returns a sentence in conjunctive normal form' do
+    it "returns a sentence in conjunctive normal form" do
       tests = [
         [
           sentence_factory.build("a", :iff, "b"),
@@ -61,7 +65,8 @@ describe RuleRover::PropositionalLogic::Sentences::Sentence do
         ],
         [
           sentence_factory.build(["a", :and, "b"], :iff, "c"),
-          sentence_factory.build([[[:not, "a"], :or, [:not, "b"]], :or, "c"], :and, [[[:not, "c"], :or, "a"], :and, [[:not, "c"], :or, "b"]])
+          sentence_factory.build([[[:not, "a"], :or, [:not, "b"]], :or, "c"], :and,
+                                 [[[:not, "c"], :or, "a"], :and, [[:not, "c"], :or, "b"]])
         ]
       ]
 

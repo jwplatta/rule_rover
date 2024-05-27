@@ -1,4 +1,4 @@
-require_relative 'substitution'
+require_relative "substitution"
 
 module RuleRover::FirstOrderLogic::Sentences
   class ConstantSymbol

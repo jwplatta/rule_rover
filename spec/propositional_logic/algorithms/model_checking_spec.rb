@@ -1,11 +1,11 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe RuleRover::PropositionalLogic::Algorithms::ModelChecking do
-  it 'does not raise' do
+  it "does not raise" do
     expect { described_class.new(nil, nil) }.not_to raise_error
   end
 
-  describe '.run' do
+  describe ".run" do
     let(:kb) { RuleRover::PropositionalLogic::KnowledgeBase.new(engine: :model_checking) }
 
     it do
