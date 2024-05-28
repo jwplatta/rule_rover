@@ -31,7 +31,7 @@ module RuleRover::FirstOrderLogic
       end
 
       def initialize(kb, query)
-        raise QueryNotAtomicSentence.new unless kb.class::ATOMIC_SENTENCE_CLASSES.include? query.class
+        raise QueryNotAtomicSentence.new unless Sentences::ATOMIC_SENTENCE_CLASSES.include? query.class
 
         @kb = kb
         @query = query
@@ -79,7 +79,7 @@ module RuleRover::FirstOrderLogic
         while frontier.any?
           conj = frontier.shift
 
-          if kb.class::ATOMIC_SENTENCE_CLASSES.include? conj.class
+          if Sentences::ATOMIC_SENTENCE_CLASSES.include? conj.class
             conjuncts << conj
           elsif conj.is_a? RuleRover::FirstOrderLogic::Sentences::Conjunction
             conjuncts << conj.left
@@ -91,7 +91,7 @@ module RuleRover::FirstOrderLogic
 
       def antecedent_and_consequent(clause)
         # NOTE: assumes that the clause is a definite clause
-        if kb.class::ATOMIC_SENTENCE_CLASSES.include? clause.class
+        if Sentences::ATOMIC_SENTENCE_CLASSES.include? clause.class
           [clause, clause]
         elsif clause.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
           [clause.left, clause.right]

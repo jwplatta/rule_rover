@@ -7,13 +7,6 @@ module RuleRover::FirstOrderLogic
     include Sentences::StandardizeApart
     include Sentences::Unification
 
-    ATOMIC_SENTENCE_CLASSES = [
-      RuleRover::FirstOrderLogic::Sentences::PredicateSymbol,
-      RuleRover::FirstOrderLogic::Sentences::FunctionSymbol,
-      RuleRover::FirstOrderLogic::Sentences::ConstantSymbol,
-      RuleRover::FirstOrderLogic::Sentences::Variable
-    ]
-
     def initialize(engine: :forward_chaining, sentences: [], definite: false)
       raise InvalidEngine.new("Invalid engine: #{engine}") unless ENGINES.include?(engine)
 
@@ -116,16 +109,16 @@ module RuleRover::FirstOrderLogic
     private
 
     def definite_clause?(sentence)
-      if ATOMIC_SENTENCE_CLASSES.include? sentence.class
+      if Sentences::ATOMIC_SENTENCE_CLASSES.include? sentence.class
         true
-      elsif sentence.is_a? Sentences::Conditional and ATOMIC_SENTENCE_CLASSES.include? sentence.right.class
+      elsif sentence.is_a? Sentences::Conditional and Sentences::ATOMIC_SENTENCE_CLASSES.include? sentence.right.class
         frontier = [sentence.left]
         while frontier.any?
           current = frontier.shift
 
           if current.is_a? Sentences::Conjunction
             frontier.push(current.left, current.right)
-          elsif ATOMIC_SENTENCE_CLASSES.include? current.class
+          elsif Sentences::ATOMIC_SENTENCE_CLASSES.include? current.class
             next
           else
             return false
