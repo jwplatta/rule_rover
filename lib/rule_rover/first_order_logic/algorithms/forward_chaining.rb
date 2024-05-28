@@ -5,7 +5,7 @@ module RuleRover::FirstOrderLogic
     class QueryNotAtomicSentence < StandardError; end
 
     class ForwardChaining
-      include RuleRover::FirstOrderLogic::Sentences::Unification
+      include Sentences::Unification
       # The ForwardChaining class implements the
       # forward chaining algorithm for inference in a knowledge base.
 
@@ -81,7 +81,7 @@ module RuleRover::FirstOrderLogic
 
           if Sentences::ATOMIC_SENTENCE_CLASSES.include? conj.class
             conjuncts << conj
-          elsif conj.is_a? RuleRover::FirstOrderLogic::Sentences::Conjunction
+          elsif conj.is_a? Sentences::Conjunction
             conjuncts << conj.left
             conjuncts << conj.right
           end
@@ -93,7 +93,7 @@ module RuleRover::FirstOrderLogic
         # NOTE: assumes that the clause is a definite clause
         if Sentences::ATOMIC_SENTENCE_CLASSES.include? clause.class
           [clause, clause]
-        elsif clause.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
+        elsif clause.is_a? Sentences::Conditional
           [clause.left, clause.right]
         else
           [nil, nil]
