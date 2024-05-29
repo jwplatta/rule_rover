@@ -32,6 +32,12 @@ module RuleRover::FirstOrderLogic
       end
     end
 
+    def constant(name)
+      sentence_factory.build(name).then do |sentence|
+        @constants.merge(sentence.constants)
+      end
+    end
+
     # This method takes a `sentence` object and adds it to the knowledge base.
     # It first merges the constants from the sentence with the existing constants in the knowledge base.
     # Then, it standardizes the sentence apart to avoid variable name conflicts.

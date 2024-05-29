@@ -99,6 +99,14 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
     end
   end
+  describe "#constant" do
+    it do
+      subject.constant("Aristotle")
+      subject.constant("Plato")
+      subject.constant("Plato")
+      expect(subject.constants.size).to eq 2
+    end
+  end
   describe "#create_constant" do
     it do
       subject.assert("C1")
