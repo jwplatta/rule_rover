@@ -1,5 +1,5 @@
 module RuleRover::FirstOrderLogic::Sentences
-  class Factory # NOTE: would this be better as a module?
+  class Factory
     class << self
       def build(*args)
 
@@ -49,15 +49,17 @@ module RuleRover::FirstOrderLogic::Sentences
             build(*args[0]),
             build(*args[2])
           )
-        elsif find_connective(*args)
-          connective = find_connective(*args)
-          connective_index = args.index(connective)
-          left = remove_outer_array(args[0...connective_index])
-          right = remove_outer_array(args[connective_index+1..])
-
-          build_connective(connective, left, right)
         else
-          raise RuleRover::SentenceNotWellFormedError.new(args.inspect)
+          connective = find_connective(*args)
+          if connective
+            connective_index = args.index(connective)
+            left = remove_outer_array(args[0...connective_index])
+            right = remove_outer_array(args[connective_index+1..])
+
+            build_connective(connective, left, right)
+          else
+            raise RuleRover::SentenceNotWellFormedError.new(args.inspect)
+          end
         end
       end
 
