@@ -28,12 +28,12 @@ end
 module RuleRover
   def knowledge_base(system: :first_order, engine: :forward_chaining, &block)
     kb = if system == :first_order
-           RuleRover::FirstOrderLogic::KnowledgeBase.new(engine: engine)
-         elsif system == :propositional
-           RuleRover::PropositionalLogic::KnowledgeBase.new(engine: engine)
-         else
-           raise ArgumentError, "Invalid system: #{system}"
-         end
+      RuleRover::FirstOrderLogic::KnowledgeBase.new(engine: engine)
+    elsif system == :propositional
+      RuleRover::PropositionalLogic::KnowledgeBase.new(engine: engine)
+    else
+      raise ArgumentError, "Invalid system: #{system}"
+    end
 
     kb.instance_eval(&block)
     kb
