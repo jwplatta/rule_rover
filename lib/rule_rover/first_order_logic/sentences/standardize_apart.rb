@@ -6,7 +6,13 @@ module RuleRover::FirstOrderLogic::Sentences
       init_var_count(reset)
 
       @mapping = {}
-      map(expression)
+      new_sent = map(expression)
+      new_sent.mapping = @mapping
+      new_sent
+    end
+
+    def mapping=(value)
+      @mapping = value
     end
 
     private
