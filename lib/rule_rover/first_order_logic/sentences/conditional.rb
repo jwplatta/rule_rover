@@ -2,14 +2,9 @@ module RuleRover::FirstOrderLogic::Sentences
   class Conditional < ComplexSentence
     def initialize(left, right)
       super(left, right)
-      @actions = []
     end
 
     attr_reader :actions
-
-    def add_action(name, **params)
-      @actions << [name, params]
-    end
 
     def conditions
       return @conditions if defined? @conditions
