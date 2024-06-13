@@ -7,7 +7,7 @@ module RuleRover::FirstOrderLogic::Sentences
 
       @mapping = {}
       new_sent = map(expression)
-      new_sent.mapping = @mapping
+      new_sent.mapping = @mapping.dup.freeze
       new_sent
     end
 
