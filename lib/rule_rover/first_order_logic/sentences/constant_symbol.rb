@@ -6,15 +6,25 @@ module RuleRover::FirstOrderLogic::Sentences
 
     class << self
       def valid_name?(name)
-        name.is_a? String and /\A[A-Z][a-z0-9]*\z/.match?(name.to_s)
+        if name.is_a? String
+          /\A[A-Z][a-z0-9]*\z/.match?(name.to_s)
+        else
+          # NOTE: all other types are valid. Should exclude datatypes from RuleRover.
+          true
+        end
       end
     end
 
     def initialize(name)
       @name = name
+      @type = name.class
     end
 
-    attr_reader :name
+    attr_reader :name, :type
+
+    def value
+      name
+    end
 
     def constants
       Set.new([self])
