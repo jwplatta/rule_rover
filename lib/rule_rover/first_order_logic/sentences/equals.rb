@@ -9,8 +9,16 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :left, :right
 
+    def grounded?
+      left.grounded? && right.grounded?
+    end
+
     def constants
       left.constants.merge(right.constants)
+    end
+
+    def variables
+      left.variables.merge(right.variables)
     end
 
     def to_s
