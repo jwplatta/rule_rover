@@ -1,5 +1,13 @@
+require_relative  './sentences/unification.rb'
+
 module RuleRover::FirstOrderLogic
+  class DuplicateActionExists < StandardError; end
+  class SentenceIsNotARule < StandardError; end
+  class ActionDoesNotExist < StandardError; end
+
   class ActionRegistry
+    include Sentences::Unification
+
     def initialize(kb: nil, actions: {}, rule_action_map: {})
       @kb = kb
       @actions = actions
@@ -8,13 +16,13 @@ module RuleRover::FirstOrderLogic
 
     attr_reader :kb, :actions, :rule_action_map
 
-    def add(name, *param_names, &block)
-      raise ArgumentError.new("Action already exists: #{name}") if @actions[name]
+    def add(name, &block)
+      raise DuplicateActionExists.new("Action already exists: #{name}") if exists?(name)
 
       @actions[name] = new_action(
-        name: name,
-        param_names: param_names,
-        func: block
+        name,
+        *block.parameters.map(&:last),
+        &block
       )
 
       @actions[name]
@@ -24,28 +32,49 @@ module RuleRover::FirstOrderLogic
       @actions.delete(name)
     end
 
-    def map_rule_to_action(rule, action_name, **params)
-      raise ArgumentError.new("Action does not exist: #{action_name}") unless exists?(action_name)
+    def rule_actions(rule)
+      key = rule_action_map.keys.find { |key| unify(key, rule).any? }
+      rule_action_map.fetch(key, [])
+    end
+
+    def map_rule_to_action(rule, name, **params)
+      # TODO: check that the rule is lifted
+      raise ActionDoesNotExist.new(name) unless exists?(name)
       unless rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
-        raise ArgumentError.new("Rule must be a conditional")
+        raise SentenceIsNotARule.new
       end
 
       rule_action_map[rule] ||= []
-      rule_action_map[rule] << { name: action_name, params: params }
+      rule_action_map[rule] << { name: name, params: params }
     end
 
     def call_rule_actions(rule)
+      # return unless rule_action_map.key?(rule)
+      return unless rule.grounded?
       # NOTE: will need to use the mapping stored on the rule from standardize_apart
       # in order to map the rule's variables to the action's parameters
-      actions = rule_action_map.fetch(rule, [])
-      actions.each do |action|
-        call(action.name, **action.params)
+
+      rule_actions(rule).map do |action|
+        params = action[:params].each_with_object({}) do |item, params_hash|
+          param_name, val = item
+          sent_key = RuleRover::FirstOrderLogic::Sentences::Factory.build(val)
+
+          # NOTE: the action gets created with the variable name provided by the user.
+          # The knowledge base standardizes apart the variables of each sentence added to it.
+          # So the mapping stored on the rule maintans the original variable name and the standardized variable name.
+          params_hash[param_name] = rule.standardization.fetch(sent_key, sent_key).then do |standardized_var|
+            rule.substitution.fetch(standardized_var, nil)
+          end.value
+        end
+
+        call(action[:name], **params)
       end
     end
 
     def call(name, **params)
-      find(name).call(**params)
-      binding.pry
+      raise ActionDoesNotExist.new(name) unless exists?(name)
+      action = find(name)
+      action.func.call(**params)
     end
 
     def exists?(name)
@@ -59,7 +88,7 @@ module RuleRover::FirstOrderLogic
     private
 
     def new_action(name, *param_names, &block)
-      Action.new(name: name, param_names: param_names, func: block)
+      Action.new(block, name: name, param_names: param_names)
     end
   end
 end
