@@ -9,13 +9,17 @@ module RuleRover::FirstOrderLogic::Sentences
   # [right] Represents the right sub-expression of the complex sentence.
   #
   class ComplexSentence
-    attr_reader :left, :right
-
     include Expression
 
     def initialize(left, right)
       @left = left
       @right = right
+    end
+
+    attr_reader :left, :right
+
+    def grounded?
+      left.grounded? && right.grounded?
     end
 
     def constants
