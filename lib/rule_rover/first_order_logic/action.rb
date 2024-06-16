@@ -1,9 +1,18 @@
 module RuleRover::FirstOrderLogic
+
   class Action
-    def initialize(name: nil, param_names: [], func: nil)
+    def initialize(func, name: nil, param_names: [])
+      unless func_parameters = func.parameters.map { |_, param_name| param_name }.sort == param_names.sort
+        raise ArgumentError, "Invalid function parameters: #{func_parameters}"
+      end
+
+      unless func.parameters.all? { |param_type, _| param_type == :keyreq}
+        raise ArgumentError, "Must use keyword parameters in Action function."
+      end
+
+      @func = func
       @name = name
       @param_names = param_names
-      @func = func
     end
 
     attr_reader :name, :param_names, :func
