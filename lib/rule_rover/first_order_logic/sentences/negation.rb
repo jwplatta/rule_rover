@@ -8,6 +8,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :sentence
 
+    def grounded?
+      sentence.grounded?
+    end
+
     def constants
       sentence.constants
     end
