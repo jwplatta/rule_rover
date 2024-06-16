@@ -5,11 +5,25 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
     expect { described_class.new }.not_to raise_error
   end
 
+  class CustomDataType; end
+
   describe ".build" do
     describe "when given a term" do
       describe "when given a constant symbol" do
-        it "returns a ConstantSymbol object" do
-          expect(described_class.build("Aristotle")).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+        context 'when given a string' do
+          it "returns a ConstantSymbol object" do
+            expect(described_class.build("Aristotle")).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+          end
+        end
+        context 'when given a numeric' do
+          it "returns a ConstantSymbol object" do
+            expect(described_class.build(1)).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+          end
+        end
+        context 'when given a custom datatype' do
+          it "returns a ConstantSymbol object" do
+            expect(described_class.build(CustomDataType.new)).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+          end
         end
       end
       describe "when given a function symbol" do
