@@ -1,18 +1,25 @@
 module RuleRover::FirstOrderLogic::Sentences
   module StandardizeApart
-    attr_reader :var_count, :mapping
+    attr_reader :var_count, :standardization
 
     def standardize_apart(expression, reset: false)
       init_var_count(reset)
-
-      @mapping = {}
+      refresh_standardization
       new_sent = map(expression)
-      new_sent.mapping = @mapping.dup.freeze
+      new_sent.standardization = @standardization.dup.freeze unless reset
       new_sent
     end
 
-    def mapping=(value)
-      @mapping = value
+    def standardization
+      @standardization ||= {}
+    end
+
+    def refresh_standardization
+      @standardization = {}
+    end
+
+    def standardization=(value)
+      @standardization = value
     end
 
     private
@@ -25,8 +32,8 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def map(expression)
       if expression.is_a? Variable
-        map_term(expression) unless mapping.include? expression
-        mapping[expression]
+        map_term(expression) unless standardization.include? expression
+        standardization[expression]
       elsif expression.is_a? ConstantSymbol
         expression
       elsif expression.is_a? PredicateSymbol
@@ -59,7 +66,7 @@ module RuleRover::FirstOrderLogic::Sentences
 
     def map_term(term)
       increment_var_count
-      @mapping[term] = sentence_factory.build("x_#{var_count}")
+      @standardization[term] = sentence_factory.build("x_#{var_count}")
     end
 
     def increment_var_count
