@@ -15,6 +15,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name, :args
 
+    def grounded?
+      args.all?(&:grounded?)
+    end
+
     def constants
       Set.new(args.select { |arg| arg.is_a? ConstantSymbol })
     end

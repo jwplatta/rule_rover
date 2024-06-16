@@ -16,6 +16,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name
 
+    def grounded?
+      false
+    end
+
     def constants
       Set.new([])
     end

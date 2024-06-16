@@ -22,6 +22,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name, :type
 
+    def grounded?
+      true
+    end
+
     def value
       name
     end
