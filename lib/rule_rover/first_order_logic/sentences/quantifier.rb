@@ -9,6 +9,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :vars, :sentence
 
+    def grounded?
+      false
+    end
+
     def constants
       sentence.constants
     end
