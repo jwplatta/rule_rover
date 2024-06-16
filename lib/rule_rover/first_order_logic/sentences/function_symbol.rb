@@ -15,6 +15,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name, :args
 
+    def lifted?
+      args.any?(&:lifted?)
+    end
+
     def grounded?
       args.all?(&:grounded?)
     end

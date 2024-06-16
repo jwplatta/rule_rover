@@ -8,6 +8,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :sentence
 
+    def lifted?
+      sentence.lifted?
+    end
+
     def grounded?
       sentence.grounded?
     end

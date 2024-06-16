@@ -9,6 +9,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :left, :right
 
+    def lifted?
+      left.lifted? || right.lifted?
+    end
+
     def grounded?
       left.grounded? && right.grounded?
     end

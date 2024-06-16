@@ -22,6 +22,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name, :type
 
+    def lifted?
+      false
+    end
+
     def grounded?
       true
     end

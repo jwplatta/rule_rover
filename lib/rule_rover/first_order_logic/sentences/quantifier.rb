@@ -9,6 +9,11 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :vars, :sentence
 
+    def lifted?
+      # WARNING: this might cause a bug if the sentence is in fact grounded.
+      true
+    end
+
     def grounded?
       false
     end

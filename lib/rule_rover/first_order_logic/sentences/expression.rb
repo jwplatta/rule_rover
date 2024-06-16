@@ -18,6 +18,10 @@ module RuleRover::FirstOrderLogic::Sentences
       to_s.hash
     end
 
+    def lifted?
+      raise NotImplementedError
+    end
+
     def grounded?
       raise NotImplementedError
     end

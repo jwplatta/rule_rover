@@ -17,6 +17,10 @@ module RuleRover::FirstOrderLogic::Sentences
 
     attr_reader :name, :subjects, :objects
 
+    def lifted?
+      subjects.any?(&:lifted?) || objects.any?(&:lifted?)
+    end
+
     def grounded?
       subjects.all?(&:grounded?) && objects.all?(&:grounded?)
     end
