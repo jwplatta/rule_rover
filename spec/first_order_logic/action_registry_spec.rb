@@ -27,7 +27,7 @@ describe RuleRover::FirstOrderLogic::ActionRegistry do
   end
 
   describe '#map_rule_to_action' do
-    let(:rule) { sentence_factory.build([:@philosopher, "x"], :then, ["x", :knows, "Externalworld"]) }
+    let(:rule) { sentence_factory.build([:@philosopher, "x"], :then, ["x", :knows, "y"]) }
     let(:not_a_rule) { sentence_factory.build([:@philosopher, "x"], :and, ["x", :knows, "Externalworld"]) }
     let(:function) { Proc.new { |name:| puts name } }
     let(:action_registry) do
