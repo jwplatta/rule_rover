@@ -39,7 +39,12 @@ module RuleRover::FirstOrderLogic
 
           next unless goal_substitution
 
-          return backward_chain_and(antecedent_conditions, goal_substitution)
+          subst = backward_chain_and(antecedent_conditions, goal_substitution)
+          if subst
+            kb.call_rule_actions(rule, substitution: subst)
+
+            return subst
+          end
         end
 
         false
