@@ -34,7 +34,7 @@ module RuleRover::FirstOrderLogic
 
         # TODO: checks, e.g. is it a rule? constant? etc.
         @constants.merge(sentence.constants)
-        standardized_sent = standardize_apart(sentence)
+        standardized_sent = standardize_apart(sentence, store: true)
 
         if sentences.include?(standardized_sent) == false
           if block_given?
@@ -97,7 +97,7 @@ module RuleRover::FirstOrderLogic
       raise SentenceIsNotAnExpression.new unless sentence.is_a? Sentences::Expression
 
       @constants.merge(sentence.constants)
-      standardized_sent = standardize_apart(sentence)
+      standardized_sent = standardize_apart(sentence, store: true)
       @sentences << standardized_sent if sentences.include?(standardized_sent) == false
     end
 
