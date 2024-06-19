@@ -85,8 +85,8 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
         )
       end
     end
-    context 'knowledge base contains actions' do
-      it 'executes the actions' do
+    context "knowledge base contains actions" do
+      it "executes the actions" do
         kb = RuleRover::FirstOrderLogic::KnowledgeBase.new
         kb.assert([["Russell", :studied, "x"], :and, ["Socrates", :knows, "x"]], :then, ["x", :knows, "Aristotle"]) do
           do_action :knows_aristotle, philosopher: "x" do |philosopher:|

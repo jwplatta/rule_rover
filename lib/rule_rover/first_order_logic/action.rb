@@ -4,9 +4,7 @@ module RuleRover::FirstOrderLogic
 
   class Action
     def initialize(func, name: nil, param_names: [])
-      unless func.parameters.all? { |param_type, _| param_type == :keyreq}
-        raise ActionRequiresKeywordParameters.new
-      end
+      raise ActionRequiresKeywordParameters.new unless func.parameters.all? { |param_type, _| param_type == :keyreq }
 
       @func = func
       @name = name

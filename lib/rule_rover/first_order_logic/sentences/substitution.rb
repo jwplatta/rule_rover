@@ -23,7 +23,7 @@ module RuleRover::FirstOrderLogic::Sentences
         PredicateSymbol.new(
           name: name,
           subjects: subjects.map { |term| term.substitute(subst) },
-          objects: objects.map { |term| term.substitute(subst) },
+          objects: objects.map { |term| term.substitute(subst) }
         ).tap do |new_sent|
           new_sent.substitution = subst
           new_sent.standardization = standardization if standardization

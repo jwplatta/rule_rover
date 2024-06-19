@@ -36,15 +36,14 @@ module RuleRover::FirstOrderLogic
           end
 
           goal_substitution = unify(consequent, goal, substitution)
-
           next unless goal_substitution
 
           subst = backward_chain_and(antecedent_conditions, goal_substitution)
-          if subst
-            kb.call_rule_actions(rule, substitution: subst)
+          next unless subst
 
-            return subst
-          end
+          kb.call_rule_actions(rule, substitution: subst)
+
+          return subst
         end
 
         false

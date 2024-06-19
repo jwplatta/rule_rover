@@ -1,4 +1,4 @@
-require_relative  './sentences/unification.rb'
+require_relative "./sentences/unification"
 
 module RuleRover::FirstOrderLogic
   class DuplicateActionExists < ArgumentError; end
@@ -55,12 +55,11 @@ module RuleRover::FirstOrderLogic
       # TODO: explicitly check if the sentence is a definite clause
       # Might depend on the knowledge base to do this.
 
-      unless rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
-        raise SentenceIsNotARule.new
-      end
+      raise SentenceIsNotARule.new unless rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
 
       # NOTE: does it matter if the sentence is abstract?
       raise SentenceNotAbstract.new unless rule.lifted?
+
       dup_rule = rule.dup
 
       rule_action_map[dup_rule] ||= []
@@ -69,6 +68,7 @@ module RuleRover::FirstOrderLogic
 
     def call_rule_actions(rule)
       return unless rule.grounded?
+
       # NOTE: Uses the mapping stored on the rule from standardize_apart
       # to map the rule's variables to the action's parameters
 

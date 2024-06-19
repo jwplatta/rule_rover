@@ -27,7 +27,7 @@ module RuleRover::FirstOrderLogic
     #
     # @param sentence_parts [Array] the parts of the sentence to be added
     # @return [void]
-    def assert(*sentence_parts, **kwargs, &block)
+    def assert(*sentence_parts, **_kwargs, &block)
       sentence_factory.build(*sentence_parts).then do |sentence|
         # TODO: retract sentence if it already exists
         # Only if it is completely grounded - no variables
@@ -38,7 +38,7 @@ module RuleRover::FirstOrderLogic
 
         if sentences.include?(standardized_sent) == false
           if block_given?
-            action_name, mapped_params = self.instance_eval(&block)
+            action_name, mapped_params = instance_eval(&block)
             action_registry.map_rule_to_action(
               standardized_sent,
               action_name,
@@ -68,14 +68,18 @@ module RuleRover::FirstOrderLogic
     end
 
     def do_action(name, **mapped_params, &block)
+      action(name, **mapped_params, &block)
+    end
+
+    def action(name, **mapped_params, &block)
       # NOTE: there's currently no way to update an existing action.
-      action = if block_given? and !action_registry.exists?(name)
+      act = if block_given? and !action_registry.exists?(name)
         action_registry.add(name, &block)
       else
         action_registry.find(name)
       end
 
-      if mapped_params.any? and !(mapped_params.keys.sort == action.param_names.sort)
+      if mapped_params.any? and !(mapped_params.keys.sort == act.param_names.sort)
         raise SentenceAndActionParamsMustMatch.new
       end
 

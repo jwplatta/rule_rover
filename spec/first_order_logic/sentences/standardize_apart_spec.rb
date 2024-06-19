@@ -77,7 +77,7 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
       )
       expect(standardize_aparted_sent).to eq(expected)
     end
-    context 'when reset variable count is true' do
+    context "when reset variable count is true" do
       it do
         sentence = sentence_factory.build("x")
         std_sent_a = Dummy.new.standardize_apart(
@@ -92,8 +92,8 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
         expect(std_sent_b).to eq(sentence_factory.build("x_1"))
       end
     end
-    context 'store is true' do
-      it 'persists the standardization on the sentence' do
+    context "store is true" do
+      it "persists the standardization on the sentence" do
         sentence = sentence_factory.build("y", :debates, "Aristotle")
         std_sent = Dummy.new.standardize_apart(sentence, store: true)
 

@@ -74,12 +74,12 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       expect(subject.constants.size).to eq 0
     end
   end
-  describe '#rule' do
+  describe "#rule" do
     # TODO: check that the sentence is a definite clause
   end
-  describe '#do_action' do
-    context 'when passed a valid new action' do
-      it 'returns the action name and the parameters' do
+  describe "#do_action" do
+    context "when passed a valid new action" do
+      it "returns the action name and the parameters" do
         result = subject.do_action :puts_expert, philosopher: "x", subject: "y" do |philosopher:, subject:|
           puts "#{philosopher} is an expert on #{subject}"
         end
@@ -90,8 +90,8 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
         expect(mapped_params).to eq({ philosopher: "x", subject: "y" })
       end
     end
-    context 'when passed an existing action' do
-      it 'returns the action name and the parameters' do
+    context "when passed an existing action" do
+      it "returns the action name and the parameters" do
         subject.do_action :puts_expert, philosopher: "x", subject: "y" do |philosopher:, subject:|
           puts "#{philosopher} is an expert on #{subject}"
         end
@@ -103,8 +103,8 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
         expect(mapped_params).to eq({ philosopher: "x", subject: "y" })
       end
     end
-    context 'when sentence parameters do not match the action parameters' do
-      it 'raises an error' do
+    context "when sentence parameters do not match the action parameters" do
+      it "raises an error" do
         expect do
           subject.do_action :puts_expert, foo: "x", bar: "y" do |philosopher:, subject:|
             puts "#{philosopher} is an expert on #{subject}"
@@ -113,9 +113,9 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       end
     end
   end
-  describe '#call_rule_actions' do
-    context 'when provided a substitution' do
-      it 'returns the result of the action' do
+  describe "#call_rule_actions" do
+    context "when provided a substitution" do
+      it "returns the result of the action" do
         subject.assert(["x", :writes_about, "y"], :then, ["x", :studies, "y"]) do
           do_action :puts_expert, philosopher: "x", subject: "y" do |philosopher:, subject:|
             "#{philosopher} is an expert on #{subject}"
@@ -131,8 +131,8 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
         expect(result).to eq(["Frege is an expert on Logic"])
       end
     end
-    context 'when provided a grounded sentence' do
-      it 'calls the action with the grounded sentence' do
+    context "when provided a grounded sentence" do
+      it "calls the action with the grounded sentence" do
         subject.assert(["x", :writes_about, "y"], :then, ["x", :studies, "y"]) do
           do_action :puts_expert, philosopher: "x", subject: "y" do |philosopher:, subject:|
             "#{philosopher} is an expert on #{subject}"
