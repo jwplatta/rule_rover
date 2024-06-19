@@ -79,7 +79,7 @@ describe RuleRover::FirstOrderLogic::ActionRegistry do
         substitution = {
           sentence_factory.build("x_1") => sentence_factory.build("Hume")
         }
-        std_rule = rule.standardize_apart(rule, reset: false)
+        std_rule = rule.standardize_apart(rule, reset_var_count: false)
         grounded_rule = std_rule.substitute(substitution)
         result = action_registry.call_rule_actions(grounded_rule)
         expect(result).to eq(["HUME"])
@@ -97,7 +97,7 @@ describe RuleRover::FirstOrderLogic::ActionRegistry do
         substitution = {
           sentence_factory.build("x_1") => sentence_factory.build("Hume")
         }
-        std_rule = rule.standardize_apart(rule, reset: false)
+        std_rule = rule.standardize_apart(rule, reset_var_count: false)
         grounded_rule = std_rule.substitute(substitution)
         result = action_registry.call_rule_actions(grounded_rule)
         expect(result).to eq(["HUME", "Leibniz"])
