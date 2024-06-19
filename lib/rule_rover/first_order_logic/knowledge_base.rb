@@ -2,6 +2,8 @@ module RuleRover::FirstOrderLogic
   class QueryNotSinglePropositionSymbol < StandardError; end
   class KnowledgeBaseNotDefinite < StandardError; end
   class InvalidEngine < StandardError; end
+  class SentenceIsNotAnExpression < StandardError; end
+  class SentenceAndActionParamsMustMatch < ArgumentError; end
 
   class KnowledgeBase
     include Sentences::StandardizeApart
@@ -16,26 +18,73 @@ module RuleRover::FirstOrderLogic
       @predicates = []
       @sentences = sentences
       @engine = engine
+      @action_registry = init_action_registry(self)
     end
 
-    attr_reader :constants, :functions, :predicates, :sentences, :engine
+    attr_reader :constants, :functions, :predicates, :sentences, :engine, :action_registry
 
     # Adds a new sentence to the knowledge base.
     #
     # @param sentence_parts [Array] the parts of the sentence to be added
     # @return [void]
-    def assert(*sentence_parts)
+    def assert(*sentence_parts, **kwargs, &block)
       sentence_factory.build(*sentence_parts).then do |sentence|
+        # TODO: retract sentence if it already exists
+        # Only if it is completely grounded - no variables
+
+        # TODO: checks, e.g. is it a rule? constant? etc.
         @constants.merge(sentence.constants)
         standardized_sent = standardize_apart(sentence)
-        @sentences << standardized_sent if sentences.include?(standardized_sent) == false
+
+        if sentences.include?(standardized_sent) == false
+          if block_given?
+            action_name, mapped_params = self.instance_eval(&block)
+            action_registry.map_rule_to_action(
+              standardized_sent,
+              action_name,
+              **mapped_params
+            )
+          end
+
+          @sentences << standardized_sent
+        end
       end
+    end
+
+    def rule(*sentence_parts, **kwargs, &block)
+      # TODO: check that the sentence is a definite clause
+      # before asserting it
+      assert(*sentence_parts, **kwargs, &block)
+    end
+
+    def fact(*sentence_parts, **kwargs, &block)
+      assert(*sentence_parts, **kwargs, &block)
     end
 
     def constant(name)
       sentence_factory.build(name).then do |sentence|
         @constants.merge(sentence.constants)
       end
+    end
+
+    def do_action(name, **mapped_params, &block)
+      # NOTE: there's currently no way to update an existing action.
+      action = if block_given? and !action_registry.exists?(name)
+        action_registry.add(name, &block)
+      else
+        action_registry.find(name)
+      end
+
+      if mapped_params.any? and !(mapped_params.keys.sort == action.param_names.sort)
+        raise SentenceAndActionParamsMustMatch.new
+      end
+
+      [name, mapped_params]
+    end
+
+    def call_rule_actions(rule, substitution: {})
+      # NOTE: might need to apply the substitution inside the action registry
+      action_registry.call_rule_actions(substitution.any? ? rule.substitute(substitution) : rule)
     end
 
     # This method takes a `sentence` object and adds it to the knowledge base.
@@ -45,6 +94,8 @@ module RuleRover::FirstOrderLogic
     # @param sentence [Expression] The sentence object to be added to the knowledge base.
     # @return [void]
     def assert_sentence(sentence)
+      raise SentenceIsNotAnExpression.new unless sentence.is_a? Sentences::Expression
+
       @constants.merge(sentence.constants)
       standardized_sent = standardize_apart(sentence)
       @sentences << standardized_sent if sentences.include?(standardized_sent) == false
@@ -100,14 +151,14 @@ module RuleRover::FirstOrderLogic
       end
     end
 
-    # Substitutes variables in the knowledge base with the provided mapping.
+    # Substitutes variables in the knowledge base with the provided substitution.
     #
-    # @param mapping [Hash] A hash containing variable substitutions.
+    # @param subst [Hash] A hash containing variable substitutions.
     # @return [KnowledgeBase] A new knowledge base with substituted sentences.
-    def substitute(mapping = {})
+    def substitute(subst = {})
       KnowledgeBase.new(engine: engine).tap do |new_kb|
         sentences.each do |sentence|
-          new_kb.assert_sentence(sentence.substitute(mapping))
+          new_kb.assert_sentence(sentence.substitute(subst))
         end
       end
     end
@@ -147,6 +198,10 @@ module RuleRover::FirstOrderLogic
 
     def sentence_factory
       RuleRover::FirstOrderLogic::Sentences::Factory
+    end
+
+    def init_action_registry(kb)
+      ActionRegistry.new(kb: kb)
     end
   end
 end
