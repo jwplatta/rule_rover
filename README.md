@@ -79,7 +79,7 @@ end
 
 #### Actions
 
-Actions are used exclusively with backward chaining and are intended to serve as side effects within the system. Actions must be weakly "lifted", i.e. contain at least one variable, and they can only be executed on grounded rules. A rule is a definite clauses wrapped in the Conditional class. A grounded rule is a rule with no variables. It's important to use named parameters when passing values to actions. This ensures that the parameters are properly mapped to the variables within the rule to enable the use of constant values.
+Actions are used exclusively with backward chaining and are intended to serve as side effects within the system. Actions must be weakly "lifted", i.e. contain at least one variable, and they can only be executed on grounded rules. A rule is a definite clause wrapped in the Conditional class. A grounded rule is a rule with no variables. It's important to use named parameters when passing values to actions. This ensures that the parameters are properly mapped to the variables within the rule to enable the use of constant values.
 
 You can define an action with a rule by passing a block that wraps a `do_action` block.
 ```ruby
@@ -89,10 +89,12 @@ RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) do
       puts "#{philosopher} thinks about #{subject}"
     end
   end
+end
 ```
 
 You can also define actions separately from the rules and assign them to rules later on.
 ```ruby
+RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) do
   action :capitalize_subject do |subject:|
     puts subject.capitalizes
   end
