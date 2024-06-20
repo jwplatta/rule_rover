@@ -132,7 +132,7 @@ module RuleRover::FirstOrderLogic
     # @return [Object, false] Returns the matching sentence object if a match is found; otherwise, returns false.
     def match?(*query)
       sentence_factory.build(*query).then do |query|
-        sentences.find { |sentence| unify(sentence, query) } || false
+        sentences.select { |sentence| unify(sentence, query) } || []
       end
     end
 
