@@ -40,7 +40,7 @@ module RuleRover::FirstOrderLogic::Sentences
     end
 
     def to_s
-      "[#{subjects.join(", ")} :#{name} #{objects.join(", ")}]"
+      "[#{subjects.map(&:to_s).join(", ")} :#{name} #{objects.map(&:to_s).join(", ")}]"
     end
   end
 end
