@@ -51,6 +51,12 @@ module RuleRover::FirstOrderLogic
       end
     end
 
+    def retract(*sentence_parts)
+      match?(*sentence_parts).each do |sentence|
+        @sentences.delete(sentence)
+      end
+    end
+
     def rule(*sentence_parts, **kwargs, &block)
       # TODO: check that the sentence is a definite clause
       # before asserting it

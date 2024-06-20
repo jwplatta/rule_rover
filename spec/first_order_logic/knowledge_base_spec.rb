@@ -74,6 +74,28 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       expect(subject.constants.size).to eq 0
     end
   end
+  describe "#retract" do
+    context "when the sentence is not in the knowledge base" do
+      it do
+        subject.assert("Wittgenstein", :debates, "Russell")
+        subject.assert("Wittgenstein", :debates, "Moore")
+        subject.assert("Wittgenstein", :debates, "Frege")
+        subject.assert("Wittgenstein", :debates, "Carnap")
+        subject.retract("Russell", :debates, "x")
+
+        expect(subject.sentences.size).to eq 4
+      end
+    end
+    it "removes all sentences that match" do
+      subject.assert("Wittgenstein", :debates, "Russell")
+      subject.assert("Wittgenstein", :debates, "Moore")
+      subject.assert("Wittgenstein", :debates, "Frege")
+      subject.assert("Wittgenstein", :debates, "Carnap")
+      subject.retract("Wittgenstein", :debates, "x")
+
+      expect(subject.sentences).to eq []
+    end
+  end
   describe "#rule" do
     # TODO: check that the sentence is a definite clause
   end
