@@ -1,4 +1,5 @@
 require "spec_helper"
+require 'date'
 
 describe RuleRover::FirstOrderLogic::Sentences::Factory do
   it "does not raise" do
@@ -20,6 +21,11 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
             expect(described_class.build(1)).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
           end
         end
+        context "when given a date" do
+          it "returns a ConstantSymbol object" do
+            expect(described_class.build(Date.new(2024, 1, 1))).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
+          end
+        end
         context "when given a custom datatype" do
           it "returns a ConstantSymbol object" do
             expect(described_class.build(CustomDataType.new)).to be_a RuleRover::FirstOrderLogic::Sentences::ConstantSymbol
@@ -30,6 +36,15 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
         it "returns a FunctionSymbol" do
           expect(described_class.build(:@teacher_of,
                                        "Aristotle")).to be_a RuleRover::FirstOrderLogic::Sentences::FunctionSymbol
+        end
+        context 'with custom data type' do
+          it "returns a FunctionSymbol" do
+            sentence = described_class.build(
+              :@deceased,
+              Date.new(2024, 1, 1)
+            )
+            expect(sentence).to be_a RuleRover::FirstOrderLogic::Sentences::FunctionSymbol
+          end
         end
       end
       describe "when given a predicate symbol" do
