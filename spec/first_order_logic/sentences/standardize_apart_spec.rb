@@ -92,6 +92,13 @@ describe RuleRover::FirstOrderLogic::Sentences::StandardizeApart do
         expect(std_sent_b).to eq(sentence_factory.build("x_1"))
       end
     end
+    context "when predicate has multiple variables" do
+      it "standardizes apart the variables" do
+        sentence = sentence_factory.build("x", "z", :taught, "y")
+        std_sent = Dummy.new.standardize_apart(sentence, store: true)
+        expect(std_sent).to eq(sentence_factory.build("x_1", "x_2", :taught, "x_3"))
+      end
+    end
     context "store is true" do
       it "persists the standardization on the sentence" do
         sentence = sentence_factory.build("y", :debates, "Aristotle")
