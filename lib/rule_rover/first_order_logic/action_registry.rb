@@ -2,7 +2,11 @@ require_relative "./sentences/unification"
 
 module RuleRover::FirstOrderLogic
   class DuplicateActionExists < ArgumentError; end
-  class SentenceIsNotARule < ArgumentError; end
+  class SentenceIsNotARule < ArgumentError
+    def initialize(sentence)
+      super("The sentence provided is not a rule: #{sentence}")
+    end
+  end
   class ActionDoesNotExist < ArgumentError; end
   class SentenceNotAbstract < ArgumentError; end
 
@@ -55,7 +59,7 @@ module RuleRover::FirstOrderLogic
       # TODO: explicitly check if the sentence is a definite clause
       # Might depend on the knowledge base to do this.
 
-      raise SentenceIsNotARule.new unless rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
+      raise SentenceIsNotARule.new(rule) unless rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
 
       # NOTE: does it matter if the sentence is abstract?
       raise SentenceNotAbstract.new unless rule.lifted?
