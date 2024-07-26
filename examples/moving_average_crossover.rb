@@ -45,7 +45,6 @@ class Portfolio
   end
 end
 
-
 class Broker
   def initialize(portfolio: Portfolio.new)
     @protfolio = portfolio
@@ -68,7 +67,15 @@ class Broker
   end
 end
 
-Stock = Struct.new(:symbol, :price, :date)
+Stock = Struct.new(:symbol, :price, :date) do
+  def eql?(other)
+    symbol == other.symbol && price == other.price && date == other.date
+  end
+
+  def ==(other)
+    symbol == other.symbol && price == other.price && date == other.date
+  end
+end
 broker = Broker.new
 
 kb = RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) do
@@ -76,14 +83,21 @@ kb = RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) 
   # assert "stock", "date", :costs, "price"
   # assert "stock", :buy, "qty"
   # assert "stock", :sell,  "qty"
-  # NOTEL date is in the stock struct
+
+  # NOTE date is in the stock struct
   # assert "stock", :cross_above, "average"
   # assert "stock", :cross_below, "average"
   # assert "stock", :greater_than, "average"
   # assert "stock", :less_than, "average"
 
-  rule [["stock", :greater_than, "average"], :and, ["prevstock", :less_than, "prevaverage"]], :then, ["stock", :cross_above, "average"]
 
+  # rule [["stock", "date", :costs, "price"], :and, [:@today, "date"]], :then, [:@calculate_average, :stock] do
+  #   do_action :calculate_average, stock: "stock", date: "date" do |stock:, date:|
+  #     binding.pry
+  #   end
+  # end
+
+  rule [["stock", :greater_than, "average"], :and, ["prevstock", :less_than, "prevaverage"]], :then, ["stock", :cross_above, "average"]
   rule [["stock", :less_than, "average"], :and, ["prevstock", :greater_than, "prevaverage"]], :then, ["stock", :cross_below, "average"]
 
   rule ["stock", :cross_above, "average"], :then, ["stock", :buy, "qty"] do
@@ -99,22 +113,7 @@ kb = RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) 
   end
 end
 
-kb.assert(:@today, Date.new(2023, 9, 1))
-binding.pry
-kb.retract(:@today, "x")
-
-
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 1, 1), :costs, 100)
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 2, 1), :costs, 101)
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 3, 1), :costs, 102)
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 4, 1), :costs, 103)
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 5, 1), :costs, 104)
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 6, 1), :costs, 105)
-# kb.assert(Stock.new("AAPL"), Date.new(2024, 7, 1), :costs, 106)
-# kb.assert(Stock.new("CMG"), Date.new(2024, 1, 1), :costs, 65)
 # matches = kb.match?("y", Date.new(2024, 1, 1), :costs, "x")
-
-
 # matches = kb.match?(Stock.new("CMG"), Date.new(2024, 1, 1), 65)
 # assert(Stock.new("AAPL", 100, Date.today.strftime("%m-%d-%Y")))
 # assert(Stock.new("AAPL", 101, Date.today.strftime("%m-%d-%Y")))
@@ -139,25 +138,29 @@ def moving_average(quotes, period, date)
 end
 
 stock_updates.each do |stock|
-  # kb.retract(:@today, stock.date)
-  # kb.assert(*[:@today, stock.date])
   current_date = stock.date
-  kb.assert(Stock.new(stock.symbol), stock.date, :costs, stock.price)
-  stocks_prices = kb.match?(Stock.new(stock.symbol), "y", :costs, "x")
+
+  kb.retract :@today, "x"
+  kb.assert :@today, current_date
+
+  kb.assert [stock.symbol, stock.date], :costs, stock.price
+  stocks_prices = kb.match? [stock.symbol, "y"], :costs, "x"
 
 
   stocks = stocks_prices.map do |stck|
-    s = stck.subjects.find { |subject| subject.name.is_a?(Stock) }.name
+    ticker_symbol = stck.subjects.find { |subject| subject.name.is_a?(String) }.name
     quote_date = stck.subjects.find { |subject| subject.name.is_a?(Date) }.name
     price = stck.objects.find { |object| object.name.is_a?(Float) }.name
-    Stock.new(symbol: s.symbol, date: quote_date, price: price)
+
+    Stock.new(symbol: ticker_symbol, date: quote_date, price: price)
   end
 
   moving_avg = moving_average(stocks, 3, current_date)
-  kb.assert(Stock.new(stock.symbol), current_date, :moving_average_is, moving_avg)
+
+  kb.assert([stock.symbol, current_date], :moving_average_is, moving_avg)
+
+  kb.entail? stock.symbol, :sell, 10
+  kb.entail? stock.symbol, :buy, 10
 end
 
 moving_avgs = kb.match?("stock", "date", :moving_average_is, "average")
-
-binding.pry
-
