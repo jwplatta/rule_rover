@@ -9,11 +9,10 @@ module RuleRover::FirstOrderLogic::Sentences
           Variable.new(args.first)
         elsif PredicateSymbol.valid_name?(*args)
           name_index = args.find_index { |elm| elm.is_a? Symbol and /^[a-z]/.match?(elm) }
-
           PredicateSymbol.new(
             name: args[name_index],
-            subjects: args[0...name_index].map { |var| build(var) },
-            objects: args[(name_index + 1)...].map { |var| build(var) }
+            subjects: args[0...name_index].flatten.map { |var| build(var) },
+            objects: args[(name_index + 1)...].flatten.map { |var| build(var) }
           )
         elsif FunctionSymbol.valid_name?(*args)
           FunctionSymbol.new(
