@@ -1,6 +1,6 @@
 # RuleRover
 
-Experimental library implementing some of the core logic programming algorithms. The library provides a simple DSL for creating a knowledge base in propositional and first-order logic.
+Experimental library implementing some of the core logic programming algorithms. It provides a simple DSL for creating a knowledge base in propositional and first-order logic.
 
 ## Installation
 
@@ -65,7 +65,7 @@ The following example shows how to create a knowledge base in first-order logic.
 
 ```ruby
 RuleRover.knowledge_base(system: :first_order, engine: :forward_chaining) do
-  assert [:@philosopher, var: "x"], :then, ["x", :knows, "Externalworld"]
+  assert [:@philosopher, "x"], :then, ["x", :knows, "Externalworld"]
   assert ["x", :writes_about, "Externalworld"], :then, ["x", :knows, "Externalworld"], [:do, "x", :add_empiricist]
   assert ["x", :writes_about, "Externalworld"], :then, ["x", :knows, "Externalworld"]
   assert ["x", :writes_about, "y"], :then, ["x", :thinks_about, "y"], [:do, "x", "y", :add_argues_about]
@@ -74,12 +74,18 @@ RuleRover.knowledge_base(system: :first_order, engine: :forward_chaining) do
 
   entail? "Russell", :knows, "Externalworld" # => true
   match? "x", :knows, "Externalworld" # => returns all philosophers who know about the external world
+  retract "Russell", :writes_about, "x"
+
 end
 ```
 
 #### Actions
 
-Actions are used exclusively with backward chaining and are intended to serve as side effects within the system. Actions must be weakly "lifted", i.e. contain at least one variable, and they can only be executed on grounded rules. A rule is a definite clause wrapped in the Conditional class. A grounded rule is a rule with no variables. It's important to use named parameters when passing values to actions. This ensures that the parameters are properly mapped to the variables within the rule to enable the use of constant values.
+Actions are used exclusively with backward chaining and are intended to serve as side effects within the system. Actions must be weakly lifted, i.e. contain at least one variable, and they can only be executed on grounded rules.
+
+A **rule** is a definite clause wrapped in the `Conditional` class. A *grounded rule* is a rule with no variables.
+
+It's important to use named parameters when passing values to actions. This ensures that the parameters are properly mapped to the variables within the rule to enable the use of constant values.
 
 You can define an action with a rule by passing a block that wraps a `do_action` block.
 ```ruby
