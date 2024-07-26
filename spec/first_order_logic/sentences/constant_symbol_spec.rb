@@ -28,6 +28,7 @@ describe RuleRover::FirstOrderLogic::Sentences::ConstantSymbol do
         it "returns true for a string starting with a capital letter" do
           expect(described_class.valid_name?("Aristotle")).to be(true)
           expect(described_class.valid_name?("Aristotle1")).to be(true)
+          expect(described_class.valid_name?("ARISTOTLE")).to be(true)
         end
       end
       context "name is a custom datatype" do

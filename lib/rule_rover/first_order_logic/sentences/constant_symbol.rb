@@ -7,7 +7,7 @@ module RuleRover::FirstOrderLogic::Sentences
     class << self
       def valid_name?(name)
         if name.is_a? String
-          /\A[A-Z][a-z0-9]*\z/.match?(name.to_s)
+          /\A[A-Z][A-Za-z0-9]*\z/.match?(name.to_s)
         else
           # NOTE: all other types are valid. Should exclude datatypes from RuleRover.
           true
