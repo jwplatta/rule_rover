@@ -176,8 +176,8 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
   end
   describe "#match" do
     describe "when knowledge base is empty" do
-      it "returns false" do
-        expect(subject.match?("Joe", :and, "Matthew")).to be false
+      it "returns any empty array" do
+        expect(subject.match?("Joe", :and, "Matthew")).to be_empty
       end
     end
     describe "when knowledge base is not empty" do
@@ -189,12 +189,12 @@ describe RuleRover::FirstOrderLogic::KnowledgeBase do
       context "when knowledge base contains a match" do
         it "returns sentence from knowledge base" do
           match = subject.match?("Maureen", :and, "Joe")
-          expect(match).to be subject.sentences.last
+          expect(match.first).to be subject.sentences.last
         end
       end
       context "when knowledge base contains no match" do
         it "returns nil" do
-          expect(subject.match?("Maureen", :and, "Monkey")).to be false
+          expect(subject.match?("Maureen", :and, "Monkey")).to be_empty
         end
       end
     end
