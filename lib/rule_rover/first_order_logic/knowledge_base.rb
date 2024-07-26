@@ -199,21 +199,21 @@ module RuleRover::FirstOrderLogic
     end
 
     def forward_chain(*query)
-      ForwardChaining.forward_chain(
+      Algorithms::ForwardChaining.forward_chain(
         self,
         sentence_factory.build(*query)
       )
     end
 
     def backward_chain(*query)
-      BackwardChaining.backward_chain(
+      Algorithms::BackwardChaining.backward_chain(
         self,
         sentence_factory.build(*query)
       )
     end
 
     def sentence_factory
-      RuleRover::FirstOrderLogic::Sentences::Factory
+      Sentences::Factory
     end
 
     def init_action_registry(kb)
