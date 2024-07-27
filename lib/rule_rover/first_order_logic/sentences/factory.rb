@@ -2,7 +2,6 @@ module RuleRover::FirstOrderLogic::Sentences
   class Factory
     class << self
       def build(*args)
-
         if args.size == 1 and ConstantSymbol.valid_name?(args.first)
           ConstantSymbol.new(args.first)
         elsif args.size == 1 and Variable.valid_name?(args.first)

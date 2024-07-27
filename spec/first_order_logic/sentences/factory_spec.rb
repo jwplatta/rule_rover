@@ -34,8 +34,12 @@ describe RuleRover::FirstOrderLogic::Sentences::Factory do
       end
       describe "when given a function symbol" do
         it "returns a FunctionSymbol" do
-          expect(described_class.build(:@teacher_of,
-                                       "Aristotle")).to be_a RuleRover::FirstOrderLogic::Sentences::FunctionSymbol
+          expect(
+            described_class.build(
+              :@teacher_of,
+              "Aristotle"
+            )
+          ).to be_a RuleRover::FirstOrderLogic::Sentences::FunctionSymbol
         end
         context 'with custom data type' do
           it "returns a FunctionSymbol" do
