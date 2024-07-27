@@ -78,7 +78,7 @@ module RuleRover::FirstOrderLogic
     end
 
     def action(name, **mapped_params, &block)
-      # NOTE: there's currently no way to update an existing action.
+      # NOTE: currently no way to update an existing action.
       act = if block_given? and !action_registry.exists?(name)
         action_registry.add(name, &block)
       else
@@ -112,7 +112,7 @@ module RuleRover::FirstOrderLogic
     end
 
     def clauses
-      @clauses ||= sentences.select { |sentence| definite_clause?(sentence) }
+      sentences.select { |sentence| definite_clause?(sentence) }
     end
 
     def entail?(*query)
