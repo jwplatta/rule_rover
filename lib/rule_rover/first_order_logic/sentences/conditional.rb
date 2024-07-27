@@ -8,8 +8,8 @@ module RuleRover::FirstOrderLogic::Sentences
       while frontier.any?
         current = frontier.shift
         if current.is_a? Conjunction
-          frontier << left.left
-          frontier << left.right
+          frontier << current.left
+          frontier << current.right
         elsif [PredicateSymbol, Variable, FunctionSymbol, ConstantSymbol].include? current.class
           @conditions << current
         else
