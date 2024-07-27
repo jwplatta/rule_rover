@@ -27,12 +27,10 @@ module RuleRover::FirstOrderLogic
 
       def backward_chain_or(goal, substitution)
         kb.clauses.each do |rule|
-          if rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
-            antecedent_conditions = rule.conditions
-            consequent = rule.right
+          antecedent_conditions, consequent = if rule.is_a? RuleRover::FirstOrderLogic::Sentences::Conditional
+            [rule.conditions, rule.right]
           else
-            antecedent_conditions = []
-            consequent = rule
+            [[], rule]
           end
 
           goal_substitution = unify(consequent, goal, substitution)
