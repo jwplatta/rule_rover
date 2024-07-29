@@ -67,13 +67,13 @@ class Broker
   end
 end
 
-Stock = Struct.new(:symbol, :price, :date) do
+Stock = Struct.new(:symbol, :price, :date, :volumne, :rsi) do
   def eql?(other)
-    symbol == other.symbol && price == other.price && date == other.date
+    symbol == other.symbol && price == other.price && date == other.date && volume == other.volume && rsi == other.rsi
   end
 
   def ==(other)
-    symbol == other.symbol && price == other.price && date == other.date
+    symbol == other.symbol && price == other.price && date == other.date && volume == other.volume && rsi == other.rsi
   end
 end
 
@@ -90,6 +90,22 @@ kb = RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) 
     BROKER.sell stock, price, qty
   end
 
+  # if today's price is above the 10 day average, then check_average_volume
+  # if check_average_volume and the volume is greater than the average volume, then check_rsi_strong
+  # if check_rsi_strong and the RSI is less than 30, then buy 20
+  # if check_rsi_strong and the RSI is greater than or equal to 30, then buy 10
+
+  # if check_average_volume and the volume is less than or equal to average volume, then check_rsi_weak
+  # if check_rsi_weak and the RSI is less than 30, then buy 20
+  # if check_rsi_weak and the RSI is greater than or equal to 30, then buy 10
+
+  # if today's price is less than the 10 day average, then sell_signal
+  # if sell_signal and volume is greater than average volume, then sell_signal_strong
+  # if sell_signal_strong and RSI is greater than 70, then sell 20
+
+
+  # if today's price equals the 10 day average, then hold
+
   rule [[[:@today, "date"], :and, ["stock", "date", :costs, "price"]], :and, ["price", :below, BUY_THRESHOLD]], :then, ["stock", :buy, "qty"] do
     do_action :execute_buy_trade, stock: "stock", qty: "qty", price: "price"
   end
@@ -98,19 +114,6 @@ kb = RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) 
     do_action :execute_sell_trade, stock: "stock", qty: "qty", price: "price"
   end
 end
-
-# class Indicator
-#   def initialize(stock, period)
-#     @stock = stock
-#     @period = period
-#   end
-
-#   attr_reader :stock, :period
-
-#   def calculate
-#     moving_average = moving_average(stock, period)
-#   end
-# end
 
 def moving_average(prices, period)
   prices = prices.last(period)
@@ -162,15 +165,36 @@ class MarketSimulation
 end
 
 stock_updates = [
-  Stock.new("ACME", 91.0, Date.new(2023, 10, 1)),
-  Stock.new("ACME", 94.0, Date.new(2023, 11, 1)),
-  Stock.new("ACME", 98.0, Date.new(2023, 12, 1)),
-  Stock.new("ACME", 100.0, Date.new(2024, 1, 1)),
-  Stock.new("ACME", 110.0, Date.new(2024, 2, 1)),
-  Stock.new("ACME", 107.0, Date.new(2024, 3, 1)),
-  Stock.new("ACME", 102.0, Date.new(2024, 4, 1)),
-  Stock.new("ACME", 94.0, Date.new(2024, 5, 1)),
-  Stock.new("ACME", 99.0, Date.new(2024, 6, 1))
+  Stock.new("ACME", 250.00, Date.new(2023, 6, 1), 15000000, 55),
+  Stock.new("ACME", 252.00, Date.new(2023, 6, 2), 15500000, 57),
+  Stock.new("ACME", 251.50, Date.new(2023, 6, 3), 14800000, 54),
+  Stock.new("ACME", 253.00, Date.new(2023, 6, 4), 16000000, 60),
+  Stock.new("ACME", 255.00, Date.new(2023, 6, 5), 16200000, 65),
+  Stock.new("ACME", 257.00, Date.new(2023, 6, 6), 15800000, 68),
+  Stock.new("ACME", 256.50, Date.new(2023, 6, 7), 15900000, 67),
+  Stock.new("ACME", 258.00, Date.new(2023, 6, 8), 16100000, 70),
+  Stock.new("ACME", 259.00, Date.new(2023, 6, 9), 16300000, 72),
+  Stock.new("ACME", 260.00, Date.new(2023, 6, 10), 16400000, 75),
+  Stock.new("ACME", 261.00, Date.new(2023, 6, 11), 16500000, 77),
+  Stock.new("ACME", 262.00, Date.new(2023, 6, 12), 16600000, 78),
+  Stock.new("ACME", 263.00, Date.new(2023, 6, 13), 16700000, 80),
+  Stock.new("ACME", 262.50, Date.new(2023, 6, 14), 16650000, 79),
+  Stock.new("ACME", 261.00, Date.new(2023, 6, 15), 16500000, 75),
+  Stock.new("ACME", 259.00, Date.new(2023, 6, 16), 16400000, 70),
+  Stock.new("ACME", 257.50, Date.new(2023, 6, 17), 16300000, 65),
+  Stock.new("ACME", 256.00, Date.new(2023, 6, 18), 16200000, 60),
+  Stock.new("ACME", 255.00, Date.new(2023, 6, 19), 16100000, 58),
+  Stock.new("ACME", 254.50, Date.new(2023, 6, 20), 16050000, 55),
+  Stock.new("ACME", 253.00, Date.new(2023, 6, 21), 16000000, 53),
+  Stock.new("ACME", 252.00, Date.new(2023, 6, 22), 15950000, 50),
+  Stock.new("ACME", 251.00, Date.new(2023, 6, 23), 15900000, 48),
+  Stock.new("ACME", 250.00, Date.new(2023, 6, 24), 15850000, 46),
+  Stock.new("ACME", 249.50, Date.new(2023, 6, 25), 15800000, 45),
+  Stock.new("ACME", 248.00, Date.new(2023, 6, 26), 15750000, 43),
+  Stock.new("ACME", 247.00, Date.new(2023, 6, 27), 15700000, 42),
+  Stock.new("ACME", 246.00, Date.new(2023, 6, 28), 15650000, 40),
+  Stock.new("ACME", 245.00, Date.new(2023, 6, 29), 15600000, 38),
+  Stock.new("ACME", 244.00, Date.new(2023, 6, 30), 15550000, 35)
 ]
 
 MarketSimulation.run(stock_updates, kb)
