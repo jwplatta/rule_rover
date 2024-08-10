@@ -18,7 +18,7 @@ module RuleRover::FirstOrderLogic
       @predicates = []
       @sentences = sentences
       @engine = engine
-      @action_registry = init_action_registry(self)
+      @action_registry = init_action_registry
     end
 
     attr_reader :constants, :functions, :predicates, :sentences, :engine, :action_registry
@@ -216,8 +216,8 @@ module RuleRover::FirstOrderLogic
       Sentences::Factory
     end
 
-    def init_action_registry(kb)
-      ActionRegistry.new(kb: kb)
+    def init_action_registry
+      ActionRegistry.new
     end
   end
 end

@@ -76,7 +76,7 @@ describe RuleRover::FirstOrderLogic::ActionRegistry do
 
     context "when rule has single action" do
       it do
-        action_registry = described_class.new(kb: RuleRover::FirstOrderLogic::KnowledgeBase.new).tap do |act_reg|
+        action_registry = described_class.new.tap do |act_reg|
           act_reg.add(:upcase_name, &function_a)
           act_reg.map_rule_to_action(rule, :upcase_name, **{ name: "x" })
         end

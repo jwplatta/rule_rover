@@ -13,13 +13,12 @@ module RuleRover::FirstOrderLogic
   class ActionRegistry
     include Sentences::Unification
 
-    def initialize(kb: nil, actions: {}, rule_action_map: {})
-      @kb = kb
+    def initialize(actions: {}, rule_action_map: {})
       @actions = actions
       @rule_action_map = rule_action_map
     end
 
-    attr_reader :kb, :actions, :rule_action_map
+    attr_reader :actions, :rule_action_map
 
     def add(name, &block)
       raise DuplicateActionExists.new("Action already exists: #{name}") if exists?(name)
