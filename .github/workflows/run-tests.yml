@@ -21,6 +21,17 @@ jobs:
         with:
           ruby-version: 3.2.2
 
+      - name: Check for code changes
+        id: code_changes
+        run: |
+          git fetch origin main
+          git diff --exit-code origin/main -- . ':!README.md' ':!*.md'
+        continue-on-error: true
+
+      - name: Skip tests if no code changes
+        if: steps.code_changes.outcome == 'success'
+        run: echo "No code changes detected; skipping tests."
+
       - name: Install dependencies
         run: bundle install --jobs 4 --retry 3
 
