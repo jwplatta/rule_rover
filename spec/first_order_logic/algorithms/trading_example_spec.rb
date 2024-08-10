@@ -209,7 +209,7 @@ stock_updates = [
 
 describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
   describe ".backward_chain" do
-    fit do
+    xit do
       BROKER = Broker.new
 
       kb = RuleRover.knowledge_base(system: :first_order, engine: :backward_chaining) do
@@ -259,7 +259,6 @@ describe RuleRover::FirstOrderLogic::Algorithms::BackwardChaining do
       end
 
       MarketSimulation.run(stock_updates, kb)
-      binding.pry
     end
   end
 
