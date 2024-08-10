@@ -1,3 +1,5 @@
+[![Run RSpec Tests](https://github.com/jwplatta/rule_rover/actions/workflows/run-tests.yml/badge.svg)](https://github.com/jwplatta/rule_rover/actions/workflows/run-tests.yml)
+
 # RuleRover
 
 Experimental library implementing some of the core logic programming algorithms. It provides a simple DSL for creating a knowledge base in propositional and first-order logic.
