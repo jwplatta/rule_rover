@@ -48,7 +48,7 @@ describe RuleRover::PropositionalLogic::Algorithms::Resolution do
       around(:each) do |test|
         start_time = Time.now
         puts "Starting: #{test.description}"
-        puts "WARNING: The test '#{test.description}' takes ~30 seconds."
+        puts "WARNING: The test will some time, but less than ~60 seconds."
 
         test.run
 
