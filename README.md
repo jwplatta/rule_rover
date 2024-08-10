@@ -87,7 +87,7 @@ Actions are used exclusively with backward chaining and are intended to serve as
 
 A **rule** is a definite clause wrapped in the `Conditional` class. A *grounded rule* is a rule with no variables.
 
-It's important to use named parameters when passing values to actions. This ensures that the parameters are properly mapped to the variables within the rule to enable the use of constant values.
+It's important to use named parameters when passing values to actions. This ensures that the parameters are properly mapped to the variables within the rule to enable use of constant values during the execution of an action.
 
 You can define an action with a rule by passing a block that wraps a `do_action` block.
 ```ruby
