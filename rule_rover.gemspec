@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Joseph Platta"]
   spec.email         = ["jwplatta@gmail.com"]
 
-  spec.summary       = "Experimental library for building exerpt systems in ruby."
-  spec.description   = "Actually it's a complex library for building exerpt systems in ruby."
-  # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = "Experimental library for building expert systems in ruby."
+  spec.description   = "Actually it's a complex library for building expert systems in ruby."
+  spec.homepage      = "https://github.com/jwplatta/rule_rover"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
 
